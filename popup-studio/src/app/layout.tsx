@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
 import { getStore } from "@/lib/store";
-import { aiAvailable } from "@/lib/ai";
+import { aiAvailable, aiProviderName } from "@/lib/ai";
 
 export const metadata: Metadata = {
   title: "Popup Lab",
@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const durable = getStore().durable;
   const ai = aiAvailable();
+  const providerName = aiProviderName();
   const weakSecret = process.env.NODE_ENV === "production" && !process.env.REVIEW_SECRET;
   return (
     <html lang="ja" className="h-full antialiased">
@@ -20,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
             <Link href="/" className="flex items-baseline gap-2">
               <span className="text-lg font-black tracking-tight">Popup Lab</span>
-              <span className="text-xs font-bold text-muted">勝ちポップアップ発見エンジン</span>
+              <span className="text-xs font-bold text-muted">勝ちポップアップ発見エンジン{providerName ? ` · AI: ${providerName}` : ""}</span>
             </Link>
             <nav className="flex items-center gap-3 text-sm">
               <Link href="/briefs/new" className="btn-primary">
@@ -32,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="border-t border-warn/30 bg-warn-soft text-warn">
               <div className="mx-auto max-w-6xl px-4 py-1.5 text-xs font-bold">
                 {!durable && <span className="mr-4">データベース未接続: データはインスタンスのメモリに保持され、再起動で消えます（DATABASE_URL を設定してください）。</span>}
-                {!ai && <span className="mr-4">生成AI未接続: コピー生成と辛口分析はルールベースで動きます（ANTHROPIC_API_KEY を設定してください）。</span>}
+                {!ai && <span className="mr-4">生成AI未接続: コピー生成と辛口分析はルールベースで動きます（GEMINI_API_KEY / OPENAI_API_KEY / ANTHROPIC_API_KEY のいずれかを設定してください）。</span>}
                 {weakSecret && <span>承認リンクの署名キーが既定値です（REVIEW_SECRET を設定してください）。</span>}
               </div>
             </div>

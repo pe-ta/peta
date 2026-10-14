@@ -1,8 +1,7 @@
 import "server-only";
-import Anthropic from "@anthropic-ai/sdk";
-import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
 import { aiAvailable } from "./ai";
+import { generateJson } from "./llm";
 import { renderCreative } from "./render";
 import { runPreflight } from "./preflight";
 import { fullWidthLength } from "./text";
@@ -10,8 +9,9 @@ import { APPEAL_AXES, type Brief, type Creative, type Critique } from "./types";
 
 /**
  * 辛口分析: blunt critique of a popup, in the same shape as the short-video
- * analyzer (input -> analysis -> score + fixes). Uses Claude vision when a key
- * is configured; otherwise a rule-based critic so the loop still runs.
+ * analyzer (input -> analysis -> score + fixes). Uses the configured vision
+ * model (Gemini / OpenAI / Claude); otherwise a rule-based critic so the loop
+ * still runs.
  */
 
 const CritiqueSchema = z.object({
@@ -50,20 +50,13 @@ const SYSTEM = `あなたは日本のD2C・医療・美容・金融のWeb離脱�
 export async function critiqueCreative(brief: Brief, creative: Creative, champion?: Creative): Promise<Critique> {
   if (!aiAvailable()) return rulesCritique(brief, creative, champion);
 
-  const client = new Anthropic();
   const png = await renderCreative(brief, creative, { format: "png", scale: 0.75 });
-  const content: Anthropic.Beta.BetaContentBlockParam[] = [
-    { type: "text", text: "【評価対象の案】" },
-    { type: "image", source: { type: "base64", media_type: "image/png", data: Buffer.from(png.bytes).toString("base64") } },
-  ];
+  const images = [{ label: "評価対象の案", image: { mediaType: "image/png" as const, data: png.bytes } }];
   if (champion && champion.id !== creative.id) {
     const cp = await renderCreative(brief, champion, { format: "png", scale: 0.75 });
-    content.push({ type: "text", text: "【現行チャンピオン】" });
-    content.push({ type: "image", source: { type: "base64", media_type: "image/png", data: Buffer.from(cp.bytes).toString("base64") } });
+    images.push({ label: "現行チャンピオン", image: { mediaType: "image/png" as const, data: cp.bytes } });
   }
-  content.push({
-    type: "text",
-    text: `# 文脈
+  const user = `# 文脈
 クライアント: ${brief.clientName}（業種: ${brief.industry}）
 オファー: ${brief.offer}
 ターゲット: ${brief.target}
@@ -73,37 +66,23 @@ NGワード: ${brief.brand.ngWords.join("、") || "なし"}
 訴求軸: ${APPEAL_AXES.find((a) => a.id === creative.appealAxis)?.label}
 この案の検証仮説: ${creative.hypothesis}
 テキスト: 小見出し「${creative.slots.eyebrow}」/ 見出し「${creative.slots.headline}」/ サブ「${creative.slots.sub}」/ CTA「${creative.slots.cta}」/ バッジ「${creative.slots.badge ?? ""}」
+${images.length > 1 ? "チャンピオン画像を与えています。vsChampion を必ず埋めてください。" : "チャンピオン画像はありません。vsChampion は null。"}
 
-辛口に評価してください。`,
-  });
+辛口に評価してください。`;
 
-  try {
-    const res = await client.beta.messages.parse({
-      model: "claude-opus-5-5",
-      max_tokens: 4096,
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
-      system: [{ type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } }],
-      messages: [{ role: "user", content }],
-      output_config: { effort: "medium", format: betaZodOutputFormat(CritiqueSchema) },
-    });
-    if (res.stop_reason === "refusal" || !res.parsed_output) return rulesCritique(brief, creative, champion, "モデルが応答しなかったためルール判定");
-    const p = res.parsed_output;
-    return {
-      createdAt: new Date().toISOString(),
-      source: "ai",
-      overall: Math.round(p.overall),
-      verdict: p.verdict,
-      scores: Object.fromEntries(Object.entries(p.scores).map(([k, v]) => [k, Math.round(v)])) as Critique["scores"],
-      problems: p.problems,
-      fixes: p.fixes,
-      vsChampion: p.vsChampion && champion ? { championId: champion.id, ...p.vsChampion } : undefined,
-    };
-  } catch (err) {
-    const msg = err instanceof Anthropic.APIError ? `API error ${err.status}` : (err as Error).message;
-    console.error("critique failed", msg);
-    return rulesCritique(brief, creative, champion, `生成APIエラー（${msg}）のためルール判定`);
-  }
+  const res = await generateJson({ system: SYSTEM, user, images, schema: CritiqueSchema, maxTokens: 4096 });
+  if (!res.ok) return rulesCritique(brief, creative, champion, `生成APIエラー（${res.error}）のためルール判定`);
+  const p = res.data;
+  return {
+    createdAt: new Date().toISOString(),
+    source: "ai",
+    overall: Math.round(p.overall),
+    verdict: p.verdict,
+    scores: Object.fromEntries(Object.entries(p.scores).map(([k, v]) => [k, Math.round(v)])) as Critique["scores"],
+    problems: p.problems,
+    fixes: p.fixes,
+    vsChampion: p.vsChampion && champion ? { championId: champion.id, ...p.vsChampion } : undefined,
+  };
 }
 
 // Rule-based critic ---------------------------------------------------------

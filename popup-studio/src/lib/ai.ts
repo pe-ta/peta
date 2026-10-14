@@ -1,12 +1,12 @@
 import "server-only";
-import Anthropic from "@anthropic-ai/sdk";
-import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
 import { APPEAL_AXES, type AppealAxis, type Brief } from "./types";
+import { generateJson, providerLabel, resolveProvider } from "./llm";
 
 /**
- * Copy generation. Uses Claude when ANTHROPIC_API_KEY is present; otherwise a
- * deterministic fallback so the product keeps working in demos and tests.
+ * Copy generation. Uses whichever LLM provider is configured (Gemini / OpenAI /
+ * Claude, see llm.ts); otherwise a deterministic fallback so the product keeps
+ * working in demos and tests.
  */
 
 export const CopyVariantSchema = z.object({
@@ -24,7 +24,12 @@ const CopySetSchema = z.object({ variants: z.array(CopyVariantSchema) });
 export type CopyVariant = z.infer<typeof CopyVariantSchema>;
 
 export function aiAvailable() {
-  return Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
+  return resolveProvider() !== null;
+}
+
+/** Human-readable name of the configured provider, or null. */
+export function aiProviderName() {
+  return providerLabel(resolveProvider());
 }
 
 const SYSTEM = `あなたは日本のD2C・医療・美容・金融領域でWeb離脱時ポップアップのコピーを書く熟練のコミュニケーションデザイナーです。
@@ -40,9 +45,8 @@ const SYSTEM = `あなたは日本のD2C・医療・美容・金融領域でWeb�
 
 export async function generateCopy(brief: Brief, axes: AppealAxis[]): Promise<{ variants: CopyVariant[]; source: "ai" | "fallback"; note?: string }> {
   if (!aiAvailable()) {
-    return { variants: fallbackCopy(brief, axes), source: "fallback", note: "ANTHROPIC_API_KEY 未設定のためルールベースで生成" };
+    return { variants: fallbackCopy(brief, axes), source: "fallback", note: "生成AIの API キー未設定のためルールベースで生成" };
   }
-  const client = new Anthropic();
   const axisLabels = axes.map((a) => `${a}（${APPEAL_AXES.find((x) => x.id === a)?.label}）`).join("、");
   const user = `# ブリーフ
 クライアント: ${brief.clientName}（業種: ${brief.industry}）
@@ -60,28 +64,14 @@ NGワード: ${brief.brand.ngWords.join("、") || "なし"}
 以下の訴求軸それぞれについて1案ずつ、合計${axes.length}案を作成してください: ${axisLabels}
 appealAxis には指定したIDをそのまま入れること。`;
 
-  try {
-    const response = await client.beta.messages.parse({
-      model: "claude-opus-5-5",
-      max_tokens: 4096,
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
-      system: [{ type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } }],
-      messages: [{ role: "user", content: user }],
-      output_config: { effort: "medium", format: betaZodOutputFormat(CopySetSchema) },
-    });
-    if (response.stop_reason === "refusal" || !response.parsed_output) {
-      return { variants: fallbackCopy(brief, axes), source: "fallback", note: "モデルが応答を返さなかったためルールベースで生成" };
-    }
-    // Keep only requested axes, fill any missing ones from the fallback.
-    const got = response.parsed_output.variants.filter((v) => axes.includes(v.appealAxis));
-    const missing = axes.filter((a) => !got.some((v) => v.appealAxis === a));
-    return { variants: [...got, ...fallbackCopy(brief, missing)], source: "ai" };
-  } catch (err) {
-    const msg = err instanceof Anthropic.APIError ? `API error ${err.status}: ${err.message}` : (err as Error).message;
-    console.error("generateCopy failed", msg);
-    return { variants: fallbackCopy(brief, axes), source: "fallback", note: `生成APIエラーのためルールベースで生成（${msg}）` };
+  const res = await generateJson({ system: SYSTEM, user, schema: CopySetSchema, maxTokens: 4096 });
+  if (!res.ok) {
+    return { variants: fallbackCopy(brief, axes), source: "fallback", note: `生成APIエラーのためルールベースで生成（${res.error}）` };
   }
+  // Keep only requested axes, fill any missing ones from the fallback.
+  const got = res.data.variants.filter((v) => axes.includes(v.appealAxis));
+  const missing = axes.filter((a) => !got.some((v) => v.appealAxis === a));
+  return { variants: [...got, ...fallbackCopy(brief, missing)], source: "ai" };
 }
 
 // Deterministic fallback -----------------------------------------------------

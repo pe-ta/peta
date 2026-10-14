@@ -259,7 +259,7 @@ export async function critiqueAction(formData: FormData) {
   }
   revalidatePath(`/creatives/${id}`);
   revalidatePath(`/briefs/${creative.briefId}`);
-  back(`/creatives/${id}`, { msg: creative.critique?.source === "ai" ? "辛口分析を更新しました" : "簡易判定で分析しました（ANTHROPIC_API_KEY を設定すると画像を見た本分析になります）" });
+  back(`/creatives/${id}`, { msg: creative.critique?.source === "ai" ? "辛口分析を更新しました" : "簡易判定で分析しました（生成AIの API キーを設定すると画像を見た本分析になります）" });
 }
 
 /** Vision critiques take ~10-20s each, so with AI we do a few per click and tell the user how many remain. */
