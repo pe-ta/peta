@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>無料30秒セルフチェック｜メンズライフクリニック</title>
+  <meta name="description" content="たった3問のセルフチェックで、あなたの治療推奨レベルを無料で確認。回答いただいた方限定で55%OFFのLINE限定クーポンをお届けします。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-TR94XQQC');</script>
+  <!-- End Google Tag Manager -->
+  <style>
+    :root {
+      --navy: #1a3a6b;
+      --blue: #2f6fed;
+      --blue-pale: #eaf1ff;
+      --line: #06c755;
+      --line-dark: #04a647;
+      --red: #e5484d;
+      --yellow: #ffe94d;
+      --text: #1a1a1a;
+      --bg: #f3f6fb;
+      --header-h: 64px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Noto Sans JP', sans-serif;
+      line-height: 1.7;
+      color: var(--text);
+      background-color: var(--bg);
+      -webkit-text-size-adjust: 100%;
+      overflow-x: hidden;
+    }
+
+    p,
+    h1,
+    ul {
+      margin: 0;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+    }
+
+    /* header */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: var(--header-h);
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: #fff;
+      box-shadow: 0 2px 12px rgba(26, 58, 107, .12);
+    }
+
+    .header__logo {
+      font-size: 17px;
+      font-weight: 900;
+      letter-spacing: .04em;
+      color: var(--navy);
+      white-space: nowrap;
+    }
+
+    .header__logo small {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: var(--blue);
+      line-height: 1.2;
+    }
+
+    .header__badge {
+      flex-shrink: 0;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--red);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.3;
+      text-align: center;
+    }
+
+    .header__badge b {
+      font-size: 15px;
+      color: var(--yellow);
+    }
+
+    /* main */
+    .main {
+      padding: 24px 12px 48px;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(47, 111, 237, .12), transparent 40%),
+        radial-gradient(circle at 85% 70%, rgba(6, 199, 85, .10), transparent 40%),
+        var(--bg);
+      min-height: calc(100vh - var(--header-h));
+    }
+
+    .chat {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      border-radius: 16px;
+      background: var(--blue);
+      box-shadow: 0 8px 24px rgba(26, 58, 107, .18);
+      overflow: hidden;
+    }
+
+    .chat__head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: var(--navy);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .chat__head__dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--line);
+      box-shadow: 0 0 0 3px rgba(6, 199, 85, .3);
+    }
+
+    .chat__inner {
+      display: grid;
+      gap: 16px;
+      padding: 24px 16px;
+    }
+
+    .chat__box {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      animation: pop .35s ease both;
+    }
+
+    .chat__box[data-state="user"] {
+      justify-content: flex-end;
+    }
+
+    @keyframes pop {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .chat__icon {
+      flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #fff;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+    }
+
+    .chat__icon svg {
+      width: 30px;
+      height: 30px;
+    }
+
+    .chat__item {
+      position: relative;
+      max-width: calc(100% - 54px);
+      min-width: 72px;
+      min-height: 48px;
+      padding: 12px 16px;
+      border-radius: 4px 18px 18px 18px;
+      background: #fff;
+      box-shadow: 0 3px 10px rgba(26, 58, 107, .12);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .chat__item[data-state="user"] {
+      max-width: 80%;
+      border-radius: 18px 4px 18px 18px;
+      background: #dcf8c6;
+      box-shadow: inset 0 0 0 2px var(--line);
+    }
+
+    .chat__item--img {
+      width: 100%;
+      padding: 6px;
+      background: #fff;
+    }
+
+    .chat__item--img img {
+      width: 100%;
+      border-radius: 12px;
+    }
+
+    .chat__item--img img+img {
+      margin-top: 6px;
+    }
+
+    .chat__item--img img[data-size="s"] {
+      max-width: 260px;
+      margin-inline: auto;
+    }
+
+    /* typing dots */
+    .typing {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      height: 24px;
+    }
+
+    .typing span {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--blue);
+      animation: pulse .4s ease infinite alternate;
+    }
+
+    .typing span:nth-child(2) {
+      animation-delay: .2s;
+    }
+
+    .typing span:nth-child(3) {
+      animation-delay: .4s;
+    }
+
+    @keyframes pulse {
+      from {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      to {
+        opacity: .25;
+        transform: scale(.75);
+      }
+    }
+
+    /* text helpers */
+    .q-label {
+      display: inline-block;
+      margin-bottom: 4px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: var(--navy);
+      color: #fff;
+      font-size: 12px;
+      letter-spacing: .08em;
+    }
+
+    .q-text {
+      font-size: 17px;
+    }
+
+    .t-red {
+      color: var(--red);
+    }
+
+    .t-blue {
+      color: var(--blue);
+    }
+
+    .t-big {
+      font-size: 20px;
+    }
+
+    .t-small {
+      display: block;
+      margin-top: 6px;
+      font-size: 12px;
+      font-weight: 400;
+      color: #555;
+    }
+
+    .marker {
+      background: linear-gradient(transparent 60%, var(--yellow) 60%);
+    }
+
+    .worry-list {
+      list-style: none;
+      padding: 0;
+      margin-top: 8px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .worry-list li {
+      position: relative;
+      padding: 6px 8px 6px 32px;
+      border-radius: 8px;
+      background: var(--blue-pale);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .worry-list li::before {
+      content: "";
+      position: absolute;
+      left: 8px;
+      top: 50%;
+      width: 18px;
+      height: 18px;
+      transform: translateY(-50%);
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a3a6b' stroke-width='2.5'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cpolyline points='7 13 10 16 17 8'/%3E%3C/svg%3E") no-repeat center / contain;
+    }
+
+    .coupon {
+      margin-top: 8px;
+      padding: 10px 12px;
+      border: 2px dashed var(--red);
+      border-radius: 10px;
+      background: #fff7e6;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .coupon b {
+      display: block;
+      font-size: 22px;
+      color: var(--red);
+    }
+
+    /* answer area */
+    .chat__answer {
+      background: #fff;
+      border-top: 1px solid rgba(26, 58, 107, .08);
+    }
+
+    .chat__answer:empty {
+      display: none;
+    }
+
+    .chat__answer__list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px 12px;
+      padding: 20px 16px 26px;
+      animation: pop .35s ease both;
+    }
+
+    .chat__answer__list[data-cols="1"] {
+      grid-template-columns: 100%;
+    }
+
+    .chat__answer__item {
+      position: relative;
+      min-height: 56px;
+      padding: 10px 8px;
+      border: 0;
+      border-radius: 10px;
+      background: #fff;
+      color: var(--line-dark);
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.4;
+      box-shadow: inset 0 0 0 2px var(--line-dark), 0 5px 0 #036e3c;
+      transition: transform .1s, box-shadow .1s;
+    }
+
+    .chat__answer__item:active {
+      transform: translateY(5px);
+      box-shadow: inset 0 0 0 2px var(--line-dark), 0 0 0 #036e3c;
+    }
+
+    .chat__answer__item:focus-visible,
+    .img-btn:focus-visible {
+      outline: 3px solid var(--blue);
+      outline-offset: 3px;
+    }
+
+    /* image buttons with shine */
+    .img-btn {
+      position: relative;
+      display: block;
+      width: 100%;
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 0;
+      border: 0;
+      background: none;
+      overflow: hidden;
+      line-height: 0;
+      border-radius: 12px;
+      animation: bounce 2.4s ease-in-out infinite;
+    }
+
+    .img-btn img {
+      width: 100%;
+    }
+
+    .img-btn::after {
+      content: "";
+      position: absolute;
+      top: -15%;
+      left: -75%;
+      width: 35%;
+      height: 130%;
+      pointer-events: none;
+      background: linear-gradient(75deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .8) 50%, rgba(255, 255, 255, 0) 100%);
+      transform: skewX(-20deg);
+      animation: shine 3s ease-in-out infinite;
+    }
+
+    @keyframes shine {
+      0% {
+        left: -75%;
+      }
+
+      20%,
+      100% {
+        left: 125%;
+      }
+    }
+
+    @keyframes bounce {
+
+      0%,
+      70%,
+      100% {
+        transform: scale(1);
+      }
+
+      80% {
+        transform: scale(1.03);
+      }
+
+      90% {
+        transform: scale(.99);
+      }
+    }
+
+    .cta {
+      padding: 20px 16px 28px;
+      text-align: center;
+      animation: pop .35s ease both;
+    }
+
+    .cta__lead {
+      margin-bottom: 4px;
+      font-size: 15px;
+      font-weight: 900;
+      color: var(--navy);
+    }
+
+    .cta__arrows {
+      margin-bottom: 8px;
+      color: var(--line);
+      font-size: 18px;
+      letter-spacing: .3em;
+      animation: blink 1.2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      50% {
+        opacity: .35;
+      }
+    }
+
+    .cta__note {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    /* footer */
+    .footer {
+      padding: 32px 16px 40px;
+      background: #fff;
+      text-align: center;
+      box-shadow: 0 -2px 12px rgba(26, 58, 107, .08);
+    }
+
+    .footer__name {
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--navy);
+    }
+
+    .footer__note {
+      max-width: 720px;
+      margin: 12px auto 0;
+      font-size: 11px;
+      color: #666;
+      line-height: 1.7;
+    }
+
+    .footer__copy {
+      margin-top: 16px;
+      font-size: 11px;
+      color: var(--navy);
+    }
+
+    /* exit popup */
+    .exit {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      place-items: center;
+      padding: 16px;
+    }
+
+    .exit.show {
+      display: grid;
+    }
+
+    .exit__overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, .6);
+    }
+
+    .exit__box {
+      position: relative;
+      width: 100%;
+      max-width: 360px;
+      padding: 28px 20px 20px;
+      border-radius: 16px;
+      background: #fff;
+      text-align: center;
+      animation: pop .3s ease both;
+    }
+
+    .exit__x {
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      width: 36px;
+      height: 36px;
+      border: 0;
+      background: none;
+      font-size: 24px;
+      color: #888;
+    }
+
+    .exit__h {
+      font-size: 19px;
+      font-weight: 900;
+      color: var(--navy);
+      line-height: 1.5;
+    }
+
+    .exit__p {
+      margin-top: 12px;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .exit__cta {
+      display: block;
+      width: 100%;
+      margin-top: 16px;
+      padding: 14px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--line);
+      color: #fff;
+      font-weight: 700;
+      box-shadow: 0 4px 0 #036e3c;
+    }
+
+    .exit__no {
+      margin-top: 12px;
+      border: 0;
+      background: none;
+      font-size: 12px;
+      color: #888;
+      text-decoration: underline;
+    }
+
+    @media (min-width: 769px) {
+      :root {
+        --header-h: 80px;
+      }
+
+      .header {
+        padding: 0 40px;
+      }
+
+      .header__logo {
+        font-size: 22px;
+      }
+
+      .header__logo small {
+        font-size: 11px;
+      }
+
+      .main {
+        padding: 48px 24px 64px;
+      }
+
+      .chat__inner {
+        padding: 36px 48px;
+        gap: 20px;
+      }
+
+      .chat__icon {
+        width: 56px;
+        height: 56px;
+      }
+
+      .chat__icon svg {
+        width: 38px;
+        height: 38px;
+      }
+
+      .chat__item {
+        max-width: 78%;
+        padding: 16px 24px;
+        font-size: 16px;
+      }
+
+      .chat__item--img {
+        padding: 8px;
+      }
+
+      .chat__answer__list {
+        padding: 28px 48px 34px;
+        gap: 18px 24px;
+      }
+
+      .chat__answer__item {
+        min-height: 64px;
+        font-size: 17px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TR94XQQC" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+
+  <header class="header">
+    <p class="header__logo"><small>MEN'S LIFE CLINIC</small>メンズライフクリニック</p>
+    <p class="header__badge">LINE限定<br><b>55%OFF</b></p>
+  </header>
+
+  <main class="main">
+    <section class="chat" aria-label="セルフチェック">
+      <div class="chat__head"><span class="chat__head__dot"></span>無料30秒セルフチェック</div>
+      <div id="chatThread" class="chat__inner" aria-live="polite"></div>
+      <div id="chatAnswer" class="chat__answer"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p class="footer__name">メンズライフクリニック</p>
+    <p class="footer__note">
+      ※本セルフチェックは状態の目安を確認するためのもので、医師による診断ではありません。<br>
+      ※強い締め付けや痛みがある場合は無理に剥かず、医療機関へご相談ください。<br>
+      ※クーポンの利用条件・対象内容は、LINE友だち追加後のご案内をご確認ください。
+    </p>
+    <p class="footer__copy">&copy; メンズライフクリニック All Rights Reserved.</p>
+  </footer>
+
+  <div id="exitPopup" class="exit" role="dialog" aria-modal="true" aria-labelledby="exitTitle">
+    <div class="exit__overlay" data-exit-close></div>
+    <div class="exit__box">
+      <button type="button" class="exit__x" data-exit-close aria-label="閉じる">×</button>
+      <p id="exitTitle" class="exit__h">お悩みのまま<br>本当に大丈夫ですか？</p>
+      <p class="exit__p">今なら<b>たった30秒のセルフチェック</b>で<br>あなたの包茎タイプと<br><b class="t-red">55%OFFクーポン</b>を<br>LINEでお受け取りいただけます。</p>
+      <button type="button" class="exit__cta" data-exit-close>無料でセルフチェックを受ける</button>
+      <button type="button" class="exit__no" data-exit-close>いいえ、興味がありません</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var IMG_BASE = 'https://file.mysquadbeyond.com/uploads/article_photo/photo/';
+      var IMG = {
+        fv: IMG_BASE + '7283345/8997a1c0-fc32-4543-af08-982e31120714.png',
+        coupon: IMG_BASE + '7283347/5302099b-a697-454b-b732-e9eaa4af3d14.png',
+        start: IMG_BASE + '7275481/ba5172ba-555c-4659-9bad-a728fe98f25c.png',
+        explain1a: IMG_BASE + '7130699/fc3bf45b-7b6d-4f9e-852a-4d2d4b03b2d4.jpg',
+        explain1b: IMG_BASE + '7130693/31096c58-8cb7-415c-a4ae-94cb605f9d66.png',
+        explain2a: IMG_BASE + '7130711/39490604-f998-4327-88d9-a4fdd186d8f3.png',
+        explain2b: IMG_BASE + '7130718/d06938a2-b91e-4e73-96fc-a13a13136061.jpg',
+        explain3a: IMG_BASE + '7130726/a85943e2-8215-4c2c-a37d-8443a1793226.jpg',
+        explain3b: IMG_BASE + '7130762/d87a6e7d-06ef-44d9-9e68-bb8269cedb2c.png',
+        result: IMG_BASE + '7115893/3010b16b-04d6-4c33-99ba-3f225289fb35.png',
+        lineCta: IMG_BASE + '7275483/13cb84a1-99ea-4c9b-a76b-461b2262401f.png'
+      };
+
+      // 診断タイプ別のLINEオファーURL（現行LPと同一）
+      var LINE_BASE = 'https://liff.line.me/2008012979-MBmEj213?channel_id=e39ad12e-58e6-48c5-bd2c-725427ee7bf8&liff_id=2008012979-MBmEj213&redirect_uri=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40203pbdac&tenant_id=alifexoqodovexuz&inflow_route_id=';
+      var OFFER_URLS = {
+        kasei: LINE_BASE + '6ab61d2d56e5d9f13158452f',   // 仮性：診断85％オファー
+        kanton: LINE_BASE + '6ab61d3b74dfcf23670e6895',  // カントン：診断90％オファー
+        shinsei: LINE_BASE + '6ab61d4a74dfcf23670e68c0'  // 真性：診断95％オファー
+      };
+
+      var answers = { q1: null, q2: null, q3: null };
+
+      function getSegment() {
+        if (answers.q1 === 'no') return 'shinsei';
+        if (answers.q2 === 'yes') return 'kanton';
+        return 'kasei';
+      }
+
+      // 流入時のクエリパラメータをLINEのURLへ引き継ぐ
+      function buildLineUrl(seg) {
+        var url = new URL(OFFER_URLS[seg]);
+        new URLSearchParams(location.search).forEach(function (v, k) {
+          if (!url.searchParams.has(k)) url.searchParams.append(k, v);
+        });
+        return url.toString();
+      }
+
+      var thread = document.getElementById('chatThread');
+      var answerArea = document.getElementById('chatAnswer');
+      var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function wait(ms) {
+        return new Promise(function (r) { setTimeout(r, reduceMotion ? 0 : ms); });
+      }
+
+      function scrollToLatest() {
+        var target = answerArea.childElementCount ? answerArea : thread.lastElementChild;
+        if (!target) return;
+        var rect = target.getBoundingClientRect();
+        var overflow = rect.bottom - window.innerHeight + 24;
+        if (overflow > 0) window.scrollBy({ top: overflow, behavior: reduceMotion ? 'auto' : 'smooth' });
+      }
+
+      var ICON = '<div class="chat__icon" aria-hidden="true"><svg viewBox="0 0 40 40"><circle cx="20" cy="15" r="7" fill="#1a3a6b"/><path d="M6 36c1.5-8 7-12 14-12s12.5 4 14 12z" fill="#2f6fed"/><path d="M17 24l3 5 3-5" fill="#fff"/><rect x="24" y="27" width="6" height="2" rx="1" fill="#fff"/></svg></div>';
+
+      function img(src, alt, size) {
+        return '<img src="' + src + '" alt="' + (alt || '') + '"' + (size ? ' data-size="' + size + '"' : '') + ' loading="eager" decoding="async">';
+      }
+
+      // スタッフ側メッセージ（入力中アニメーション → 表示）
+      async function say(html, opts) {
+        opts = opts || {};
+        var box = document.createElement('div');
+        box.className = 'chat__box';
+        box.innerHTML = ICON + '<div class="chat__item"><div class="typing"><span></span><span></span><span></span></div></div>';
+        thread.appendChild(box);
+        scrollToLatest();
+        await wait(opts.typing || 900);
+        var item = box.querySelector('.chat__item');
+        if (opts.image) item.classList.add('chat__item--img');
+        item.innerHTML = html;
+        item.querySelectorAll('img').forEach(function (el) {
+          el.addEventListener('load', scrollToLatest, { once: true });
+        });
+        scrollToLatest();
+        await wait(opts.after || 500);
+      }
+
+      function sayImage(html, opts) {
+        opts = opts || {};
+        opts.image = true;
+        opts.typing = opts.typing || 600;
+        return say(html, opts);
+      }
+
+      function reply(text) {
+        var box = document.createElement('div');
+        box.className = 'chat__box';
+        box.dataset.state = 'user';
+        var item = document.createElement('div');
+        item.className = 'chat__item';
+        item.dataset.state = 'user';
+        item.textContent = text;
+        box.appendChild(item);
+        thread.appendChild(box);
+        scrollToLatest();
+      }
+
+      // 回答ボタンを表示し、選択された選択肢を返す
+      function ask(options, cols) {
+        return new Promise(function (resolve) {
+          var list = document.createElement('div');
+          list.className = 'chat__answer__list';
+          if (cols) list.dataset.cols = cols;
+          options.forEach(function (opt) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'chat__answer__item';
+            btn.textContent = opt.label;
+            btn.addEventListener('click', function () {
+              answerArea.innerHTML = '';
+              reply(opt.label);
+              resolve(opt);
+            }, { once: true });
+            list.appendChild(btn);
+          });
+          answerArea.innerHTML = '';
+          answerArea.appendChild(list);
+          scrollToLatest();
+        });
+      }
+
+      function askStart() {
+        return new Promise(function (resolve) {
+          var wrap = document.createElement('div');
+          wrap.className = 'cta';
+          wrap.innerHTML =
+            '<p class="cta__lead">以下をタップして今すぐ「セルフチェック」スタート！</p>' +
+            '<p class="cta__arrows" aria-hidden="true">▼▼▼</p>' +
+            '<button type="button" class="img-btn">' + img(IMG.start, 'あなたの治療推奨レベルを無料診断 セルフチェックを開始する 55%OFFクーポン付き') + '</button>';
+          wrap.querySelector('button').addEventListener('click', function () {
+            answerArea.innerHTML = '';
+            reply('セルフチェックを始める');
+            resolve();
+          }, { once: true });
+          answerArea.innerHTML = '';
+          answerArea.appendChild(wrap);
+          scrollToLatest();
+        });
+      }
+
+      function showLineCta() {
+        var wrap = document.createElement('div');
+        wrap.className = 'cta';
+        wrap.innerHTML =
+          '<p class="cta__lead">診断結果とクーポンはこちらから</p>' +
+          '<p class="cta__arrows" aria-hidden="true">▼▼▼</p>' +
+          '<a id="line-cta" class="img-btn" href="' + buildLineUrl(getSegment()) + '" data-segment="' + getSegment() + '">' +
+          img(IMG.lineCta, '55％OFFクーポン付き LINE追加で診断結果を受け取る') + '</a>' +
+          '<p class="cta__note">セルフチェックは無料です。<br>クーポンと診断結果を受け取るにはLINE友だち追加が必要です。</p>';
+        answerArea.innerHTML = '';
+        answerArea.appendChild(wrap);
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ event: 'selfcheck_complete', segment: getSegment(), concern: answers.q3 });
+        scrollToLatest();
+      }
+
+      var CONCERN_MESSAGES = {
+        soro: '「早さ」のお悩みも、包茎の状態とあわせてご相談いただけます。',
+        smell: '「ニオイ」や衛生面のお悩みも、包茎の状態とあわせてご相談いただけます。',
+        confidence: '「自信が持てない」というお悩みも、まずは今の状態を知ることが第一歩です。',
+        risk: '「病気のリスク」が気になる方こそ、早めに今の状態を確認しておくと安心です。'
+      };
+
+      async function start() {
+        await sayImage(img(IMG.fv, 'メンズライフクリニック', 's'), { typing: 400 });
+        await say('こんなお悩み、ありませんか？' +
+          '<ul class="worry-list">' +
+          '<li>彼女やパートナーの視線が気になり、自信が持てない</li>' +
+          '<li>包茎によるニオイなど衛生面が不安</li>' +
+          '<li>服装や髪型を整えても、最後の最後で引け目を感じてしまう</li>' +
+          '<li>プールや温泉など、周囲の目が気になってしまう</li>' +
+          '</ul>', { after: 700 });
+        await say('<span class="t-blue">1つでも心当たりがあるなら、解決のチャンス！</span><br><br>' +
+          'たった3問の<span class="marker t-big">セルフチェック診断</span>に回答いただくだけで、<span class="t-red">治療推奨レベル</span>が把握できます！');
+        await say('さらに、回答いただけた方限定で…' +
+          '<div class="coupon">治療がお得になる<b>55%OFFの<br>LINE限定クーポン</b>を発行いたします！</div>');
+        await sayImage(img(IMG.coupon, '55%OFF LINE限定クーポン', 's'));
+        await askStart();
+
+        // Q1
+        await say('<span class="q-label">Q1</span><br><span class="q-text">普段、皮はかぶっているが、剥くことはできますか？</span>');
+        var a1 = await ask([{ label: 'はい', value: 'yes' }, { label: 'いいえ', value: 'no' }]);
+        answers.q1 = a1.value;
+        await say('ご回答ありがとうございます。<br>普段は剥けるという方も、剥けない方も、<span class="marker">皮の余り方や形状は一人ひとり異なります。</span>');
+        await sayImage(img(IMG.explain1a, '皮の余り方や形状は一人ひとり異なります'));
+        await sayImage(img(IMG.explain1b, 'オーダーメイドの施術'));
+        await say('機械的な一律の施術ではなく、熟練のスタッフがミリ単位で微調整する<span class="t-red">「オーダーメイド」</span>を採用。<br>傷跡が目立ちにくい、どこから見ても<span class="marker">自然な仕上がり</span>を実現します。', { after: 800 });
+
+        // Q2
+        await say('<span class="q-label">Q2</span><br><span class="q-text">露茎した際に、締め付けを感じますか？</span>');
+        var a2 = await ask([{ label: 'はい', value: 'yes' }, { label: 'いいえ', value: 'no' }]);
+        answers.q2 = a2.value;
+        await sayImage(img(IMG.explain2a, '締め付け感について'));
+        await say('露茎した際に締め付け感がある方は、実は<span class="t-red">重症化リスクの可能性</span>があるため、無理に剥かないようにしてください。<br><br>メンズライフクリニックでは、一人ひとりの締め付け状況に応じて<span class="marker">緻密な計算をして治療</span>します。');
+        await sayImage(img(IMG.explain2b, 'お気軽にご相談ください'));
+        await say('まずは今の状態をお気軽にご相談ください。<br><span class="t-blue">次が最後の質問です！</span>', { after: 800 });
+
+        // Q3
+        await say('<span class="q-label">Q3</span><br><span class="q-text">一番気になるお悩みは？</span>');
+        var a3 = await ask([
+          { label: '早漏を改善したい', value: 'soro' },
+          { label: '臭いが気になる', value: 'smell' },
+          { label: '自信を持てない', value: 'confidence' },
+          { label: '病気のリスク', value: 'risk' }
+        ]);
+        answers.q3 = a3.value;
+        await say(CONCERN_MESSAGES[a3.value]);
+        await sayImage(img(IMG.explain3a, '完全プライベート空間'));
+        await say('メンズライフクリニックでは、周囲の目が一切気にならない<span class="marker">完全プライベート空間</span>を徹底。<br>さらに<span class="t-red">スタッフは全員男性のみ</span>ですので、デリケートなお悩みも安心してリラックスしてご相談いただけます。');
+        await sayImage(img(IMG.explain3b, 'スタッフは全員男性'));
+
+        // 結果
+        await say('<span class="t-big t-blue">診断が完了しました！</span><br>ご回答ありがとうございます。', { typing: 1600 });
+        await sayImage(img(IMG.result, '診断結果'));
+        await say('さあ、あなた専用の<span class="marker">『診断結果』</span>と、今すぐ使える<span class="t-red">『55%OFFクーポン』</span>を受け取ってください！');
+        await sayImage(img(IMG.coupon, '55%OFF LINE限定クーポン', 's'), { after: 300 });
+        showLineCta();
+      }
+
+      // 離脱防止ポップアップ（ブラウザバック時に1回だけ表示）
+      var exitPopup = document.getElementById('exitPopup');
+      var exitShown = false;
+      try { history.pushState({ mlc: 1 }, '', location.href); } catch (e) { }
+      window.addEventListener('popstate', function () {
+        if (exitShown) return;
+        exitShown = true;
+        exitPopup.classList.add('show');
+        try { history.pushState({ mlc: 1 }, '', location.href); } catch (e) { }
+      });
+      exitPopup.addEventListener('click', function (e) {
+        if (!e.target.closest('[data-exit-close]')) return;
+        exitPopup.classList.remove('show');
+        scrollToLatest();
+      });
+
+      start();
+    })();
+  </script>
+</body>
+
+</html>
