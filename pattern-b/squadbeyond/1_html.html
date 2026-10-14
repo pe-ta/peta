@@ -1,0 +1,44 @@
+<div class="lp-top">
+  <header class="lp-header">
+    <p class="lp-header__logo"><small>MEN'S LIFE CLINIC</small>メンズライフクリニック</p>
+    <div class="lp-header__chips">
+      <span class="lp-chip">無料</span>
+      <span class="lp-chip">30秒</span>
+      <span class="lp-chip lp-chip--red">55%OFF</span>
+    </div>
+  </header>
+  <div class="progress" aria-hidden="true">
+    <p class="progress__label"><span id="progressLabel">セルフチェック</span><span id="progressRest">残り<b>3</b>問</span></p>
+    <div class="progress__bar"><div id="progressFill" class="progress__fill"></div></div>
+  </div>
+</div>
+
+<main class="lp-main">
+  <section class="chat" aria-label="セルフチェック">
+    <div id="chatThread" class="chat__inner" aria-live="polite"></div>
+    <div id="chatAnswer" class="chat__answer"></div>
+  </section>
+</main>
+
+<footer class="lp-footer">
+  <p class="lp-footer__name">メンズライフクリニック</p>
+  <p class="lp-footer__note">
+    ※本セルフチェックは状態の目安を確認するためのもので、医師による診断ではありません。<br>
+    ※強い締め付けや痛みがある場合は無理に剥かず、医療機関へご相談ください。<br>
+    ※クーポンの利用条件・対象内容は、LINE友だち追加後のご案内をご確認ください。
+  </p>
+  <p class="lp-footer__copy">&copy; メンズライフクリニック All Rights Reserved.</p>
+</footer>
+
+<div id="stickyCta" class="sticky-cta" aria-hidden="true"></div>
+
+<div id="exitPopup" class="exit" role="dialog" aria-modal="true" aria-labelledby="exitTitle">
+  <div class="exit__overlay" data-exit-close></div>
+  <div class="exit__box">
+    <button type="button" class="exit__x" data-exit-close aria-label="閉じる">×</button>
+    <p id="exitTitle" class="exit__h"></p>
+    <p id="exitText" class="exit__p"></p>
+    <div id="exitAction"></div>
+    <button type="button" class="exit__no" data-exit-close>いいえ、興味がありません</button>
+  </div>
+</div>
