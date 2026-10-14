@@ -9,7 +9,13 @@ export type AppealAxis =
   | "social" // 社会的証明・実績
   | "benefit"; // 特典・プレゼント
 
-export type VisualAxis = "image" | "text";
+export type VisualAxis = "image" | "text" | "coupon";
+
+export const VISUAL_AXES: { id: VisualAxis; label: string; hint: string }[] = [
+  { id: "text", label: "テキスト主体型", hint: "ブランド色の面に大きな見出し。数字が主役" },
+  { id: "image", label: "画像主体型", hint: "LPのOG画像や商品写真を上半分に。画像が無ければ装飾" },
+  { id: "coupon", label: "クーポン型", hint: "チケット風。割引・特典の受け取りを直感的に" },
+];
 export type Motion = "static" | "pop" | "slide" | "pulse";
 
 export const APPEAL_AXES: { id: AppealAxis; label: string; hint: string }[] = [

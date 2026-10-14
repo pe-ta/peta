@@ -4,37 +4,100 @@ import { db } from "@/lib/store";
 import { runPreflight } from "@/lib/preflight";
 import { reviewToken } from "@/lib/review-token";
 import { addLearningAction, critiqueAllAction, regenerateAction, startExperimentAction, submitForReviewAction } from "@/lib/actions";
+import { aiAvailable } from "@/lib/ai";
 import { REJECT_REASONS, WIN_METRICS } from "@/lib/types";
 import { CreativeCard } from "@/components/CreativeCard";
 import { CopyButton } from "@/components/CopyButton";
 import { ExperimentTable } from "@/components/ExperimentTable";
 import { LearningLog } from "@/components/LearningLog";
+import { NextStep } from "@/components/NextStep";
+import { Flash, readFlash } from "@/components/Flash";
+import { ConfirmButton } from "@/components/ConfirmButton";
+import { PendingButton } from "@/components/PendingButton";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
-export default async function BriefPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function BriefPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ [k: string]: string | string[] | undefined }> }) {
   const { id } = await params;
   const brief = await db.briefs.get(id);
   if (!brief) notFound();
+  const flash = readFlash(await searchParams);
   const creatives = (await db.creatives.listByBrief(id)).sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id));
   const reviews = (await db.reviews.listByBrief(id)).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const learnings = (await db.learnings.listByBrief(id)).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const token = reviewToken(id);
+  const reviewPath = `/review/${token}`;
   const metric = WIN_METRICS.find((m) => m.id === brief.winMetric)!;
 
   const approved = creatives.filter((c) => c.status === "approved");
   const candidates = creatives.filter((c) => !["live", "ended"].includes(c.status));
   const unanalyzed = candidates.filter((c) => !c.critique).length;
   const ended = creatives.filter((c) => c.status === "ended");
+  const hasExperiment = Boolean(brief.championId) || creatives.some((c) => c.status === "live");
+
+  const experimentSection = (
+    <section className="card flex flex-col gap-4 p-4">
+      <div>
+        <h2 className="text-lg font-black">実験: チャンピオン vs 挑戦者</h2>
+        <p className="text-xs text-muted">結果を入力すると {metric.label} をベイズ推定で比較し、勝ち判定が出た挑戦者だけ昇格できます。</p>
+      </div>
+      <ExperimentTable brief={brief} creatives={creatives} />
+      {approved.length > 0 && (
+        <div className="rounded-md border border-dashed border-accent/50 bg-accent-soft/30 p-3">
+          <div className="text-xs font-black text-accent">承認済み・未配信（{approved.length}）</div>
+          <ul className="mt-2 flex flex-col gap-2">
+            {approved.map((c) => (
+              <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                <Link href={`/creatives/${c.id}`} className="min-w-0 truncate font-bold hover:underline">{c.slots.headline}</Link>
+                <form action={startExperimentAction}>
+                  <input type="hidden" name="creativeId" value={c.id} />
+                  <PendingButton pendingText="投入中…" className="btn-primary py-1 text-xs">配信開始（挑戦者として投入）</PendingButton>
+                </form>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-[11px] text-muted">書き出した PNG/GIF を配信基盤に入稿したら「配信開始」を押してください。最初の案は自動でチャンピオンになります。</p>
+        </div>
+      )}
+    </section>
+  );
+
+  const candidatesSection = (
+    <form action={submitForReviewAction} className="flex flex-col gap-4">
+      <input type="hidden" name="briefId" value={brief.id} />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-black">挑戦者候補（{candidates.length}）</h2>
+          <p className="text-xs text-muted">各案は「仮説」です。辛口分析で 70 点以上を提出し、承認後に配信へ投入します。{!aiAvailable() && " 現在は簡易判定（API キー未設定）。"}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <PendingButton formAction={critiqueAllAction} pendingText="分析中…（AI の場合 3 案で約 30 秒）" className="btn-ghost" disabled={unanalyzed === 0}>
+            未分析 {unanalyzed} 案を辛口分析
+          </PendingButton>
+          <PendingButton pendingText="提出中…">チェックした案をクライアントに提出</PendingButton>
+        </div>
+      </div>
+      {candidates.length === 0 ? (
+        <p className="rounded-md border border-dashed border-line p-6 text-center text-sm text-muted">候補がありません。右上の「下書きを再生成」で作れます。</p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {candidates.map((c) => (
+            <CreativeCard key={c.id} creative={c} preflight={runPreflight(brief, c)} deviceSize={brief.deviceSize} selectable isChampion={c.id === brief.championId} briefUpdatedAt={brief.updatedAt} />
+          ))}
+        </div>
+      )}
+    </form>
+  );
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       <section className="flex flex-col gap-3">
         <div className="text-xs text-muted">
           <Link href="/" className="hover:underline">実験ボード</Link> / {brief.clientName}
         </div>
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
+          <div className="min-w-0">
             <h1 className="text-2xl font-black tracking-tight">{brief.clientName}</h1>
             <p className="mt-1 text-sm text-muted">
               {brief.offer} ・ {brief.target}
@@ -54,9 +117,10 @@ export default async function BriefPage({ params }: { params: Promise<{ id: stri
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Link href={`/briefs/${brief.id}/edit`} className="btn-ghost">ブリーフを編集</Link>
             <form action={regenerateAction}>
               <input type="hidden" name="briefId" value={brief.id} />
-              <button className="btn-ghost" type="submit">下書きを再生成</button>
+              <ConfirmButton message="下書き状態の候補をすべて削除して作り直します。提出済み・承認済み・配信中の案は残ります。よろしいですか？">下書きを再生成</ConfirmButton>
             </form>
             <a className="btn-ghost" href={`/api/briefs/${brief.id}/export`}>
               {approved.length > 0 ? `承認済み ${approved.length} 案を書き出し` : "全案を書き出し（ZIP）"}
@@ -65,61 +129,21 @@ export default async function BriefPage({ params }: { params: Promise<{ id: stri
         </div>
       </section>
 
-      {/* 1. Experiment: champion vs challengers */}
-      <section className="card flex flex-col gap-4 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 className="text-lg font-black">実験: チャンピオン vs 挑戦者</h2>
-            <p className="text-xs text-muted">結果を入力すると {metric.label} をベイズ推定で比較し、勝ち判定が出た挑戦者だけ昇格できます。</p>
-          </div>
-        </div>
-        <ExperimentTable brief={brief} creatives={creatives} />
-        {approved.length > 0 && (
-          <div className="rounded-md border border-dashed border-accent/50 bg-accent-soft/30 p-3">
-            <div className="text-xs font-black text-accent">承認済み・未配信（{approved.length}）</div>
-            <ul className="mt-2 flex flex-col gap-2">
-              {approved.map((c) => (
-                <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                  <Link href={`/creatives/${c.id}`} className="min-w-0 truncate font-bold hover:underline">{c.slots.headline}</Link>
-                  <form action={startExperimentAction}>
-                    <input type="hidden" name="creativeId" value={c.id} />
-                    <button type="submit" className="btn-primary py-1 text-xs">配信開始（挑戦者として投入）</button>
-                  </form>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-2 text-[11px] text-muted">書き出した PNG/GIF を配信基盤に入稿したら「配信開始」を押してください。最初の案は自動でチャンピオンになります。</p>
-          </div>
-        )}
-      </section>
+      <Flash {...flash} />
+      <NextStep brief={brief} creatives={creatives} reviewPath={reviewPath} />
 
-      {/* 2. Challenger candidates */}
-      <form action={submitForReviewAction} className="flex flex-col gap-4">
-        <input type="hidden" name="briefId" value={brief.id} />
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-black">挑戦者候補（{candidates.length}）</h2>
-            <p className="text-xs text-muted">各案は「仮説」です。辛口分析で 70 点以上をクライアントに提出し、承認後に配信へ投入します。</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button type="submit" formAction={critiqueAllAction} className="btn-ghost" disabled={unanalyzed === 0}>
-              未分析 {unanalyzed} 案を辛口分析
-            </button>
-            <button type="submit" className="btn-primary">チェックした案をクライアントに提出</button>
-          </div>
-        </div>
-        {candidates.length === 0 ? (
-          <p className="text-sm text-muted">候補がありません。「下書きを再生成」を押してください。</p>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {candidates.map((c) => (
-              <CreativeCard key={c.id} creative={c} preflight={runPreflight(brief, c)} deviceSize={brief.deviceSize} selectable isChampion={c.id === brief.championId} />
-            ))}
-          </div>
-        )}
-      </form>
+      {hasExperiment ? (
+        <>
+          {experimentSection}
+          {candidatesSection}
+        </>
+      ) : (
+        <>
+          {candidatesSection}
+          {experimentSection}
+        </>
+      )}
 
-      {/* 3. Client portal + feedback */}
       <section className="grid gap-6 lg:grid-cols-2">
         <div className="card flex flex-col gap-3 p-4">
           <div>
@@ -127,9 +151,9 @@ export default async function BriefPage({ params }: { params: Promise<{ id: stri
             <div className="mt-0.5 text-xs text-muted">提出済みの案を実機プレビュー付きで確認・承認してもらうリンク。ログイン不要・署名付き。</div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <code className="rounded bg-bg px-2 py-1 text-xs">/review/{token}</code>
-            <CopyButton text={`${process.env.NEXT_PUBLIC_APP_URL ?? ""}/review/${token}`} label="リンクをコピー" />
-            <Link href={`/review/${token}`} className="btn-ghost" target="_blank">開く</Link>
+            <code className="min-w-0 truncate rounded bg-bg px-2 py-1 text-xs">{reviewPath}</code>
+            <CopyButton text={`${process.env.NEXT_PUBLIC_APP_URL ?? ""}${reviewPath}`} label="リンクをコピー" />
+            <Link href={reviewPath} className="btn-ghost" target="_blank">開く</Link>
           </div>
           <h3 className="mt-2 text-sm font-black">フィードバック（{reviews.length}）</h3>
           {reviews.length === 0 ? (
@@ -170,7 +194,7 @@ export default async function BriefPage({ params }: { params: Promise<{ id: stri
             <input name="nextHypothesis" className="input text-xs" placeholder="次に試すこと（任意）" />
             <div className="flex items-center gap-2">
               <input name="author" className="input w-32 text-xs" placeholder="記入者" />
-              <button type="submit" className="btn-ghost py-1 text-xs">記録する</button>
+              <PendingButton pendingText="記録中…" className="btn-ghost py-1 text-xs">記録する</PendingButton>
             </div>
           </form>
           {ended.length > 0 && (

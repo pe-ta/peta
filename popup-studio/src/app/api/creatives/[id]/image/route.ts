@@ -21,10 +21,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const out = await renderCreative(brief, creative, { format: fmt, scale });
     const ext = out.contentType === "image/gif" ? "gif" : "png";
     const filename = `${brief.clientName}_${creative.appealAxis}_${creative.visualAxis}_${creative.motion}_v${creative.version}.${ext}`;
+    // URLs carry the creative version, so a rendered image never changes for a given URL:
+    // let the CDN cache it for a year. Unversioned requests stay short-lived.
+    // A degraded render (image host unreachable) must not be pinned at the CDN.
+    const versioned = req.nextUrl.searchParams.has("v") && !out.degraded;
     const headers: Record<string, string> = {
       "content-type": out.contentType,
-      "cache-control": "private, max-age=300",
+      "cache-control": versioned ? "public, max-age=3600, s-maxage=31536000, immutable" : "private, max-age=60",
       "x-frames": String(out.frames),
+      "x-degraded": out.degraded ? "1" : "0",
     };
     if (download) headers["content-disposition"] = `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`;
     return new Response(Buffer.from(out.bytes), { headers });

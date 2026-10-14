@@ -28,8 +28,8 @@ export function runPreflight(brief: Brief, creative: Creative, bytes?: { format:
   const s = creative.slots;
 
   // Contrast ---------------------------------------------------------------
-  const headlineBg = template.visualAxis === "text" ? c.primary : c.background;
-  const headlineFg = template.visualAxis === "text" ? c.onPrimary : c.text;
+  const headlineBg = template.visualAxis === "text" ? c.primary : template.visualAxis === "coupon" ? "#ffffff" : c.background;
+  const headlineFg = template.visualAxis === "text" ? c.onPrimary : template.visualAxis === "coupon" ? "#1a1a1a" : c.text;
   const contrastHeadline = contrast(headlineFg, headlineBg);
   if (contrastHeadline < 4.5) {
     issues.push({
@@ -39,13 +39,13 @@ export function runPreflight(brief: Brief, creative: Creative, bytes?: { format:
       suggestion: "文字色または背景色を調整する",
     });
   }
-  const ctaBg = template.visualAxis === "text" ? (contrast(c.accent, c.primary) >= 2.5 ? c.accent : readableOn(c.primary)) : c.cta;
+  const ctaBg = template.visualAxis === "text" ? c.ctaOnPrimary : c.cta;
   const contrastCta = contrast(readableOn(ctaBg), ctaBg);
   if (contrastCta < 4.5) {
     issues.push({ code: "contrast.cta", severity: "warn", message: `CTA文字のコントラスト比 ${contrastCta.toFixed(1)}:1`, suggestion: "CTAの色をより濃く/明るくする" });
   }
   if (template.visualAxis === "text" && contrast(c.accent, c.primary) < 2.5) {
-    issues.push({ code: "cta.blend", severity: "warn", message: "CTAボタンが背景に埋もれています（アクセント色と主色が近い）", suggestion: "アクセント色を補色方向に変える" });
+    issues.push({ code: "cta.blend", severity: "info", message: "アクセント色が主色に近いため、CTAは白/黒で代替しています", suggestion: "補色方向のアクセント色を指定すると目立ちます" });
   }
 
   // Text length ------------------------------------------------------------
@@ -55,13 +55,13 @@ export function runPreflight(brief: Brief, creative: Creative, bytes?: { format:
     issues.push({
       code: "text.headline.long",
       severity: headlineChars > spec.headlineMaxChars * 1.3 ? "error" : "warn",
-      message: `見出しが ${headlineChars} 字（全角換算）（推奨 ${spec.headlineMaxChars} 文字以内）`,
+      message: `見出しが全角換算 ${headlineChars} 字（推奨 ${spec.headlineMaxChars} 字以内）`,
       suggestion: "数字と便益を残し、修飾語を削る",
     });
   }
   const subChars = fullWidthLength(s.sub);
   if (subChars > spec.subMaxChars) {
-    issues.push({ code: "text.sub.long", severity: "warn", message: `サブコピーが ${subChars} 文字（推奨 ${spec.subMaxChars} 文字以内）` });
+    issues.push({ code: "text.sub.long", severity: "warn", message: `サブコピーが全角換算 ${subChars} 字（推奨 ${spec.subMaxChars} 字以内）` });
   }
   if (fullWidthLength(s.cta) > 14) {
     issues.push({ code: "text.cta.long", severity: "warn", message: "CTAが長すぎます（14文字以内推奨）", suggestion: "動詞で終える短い命令形にする（例: LINEで受け取る）" });

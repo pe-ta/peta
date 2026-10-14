@@ -4,6 +4,7 @@ import type { Brief, Creative } from "@/lib/types";
 import { WIN_METRICS } from "@/lib/types";
 import { compare, formatRate, rate } from "@/lib/stats";
 import { concludeAction, saveResultsAction } from "@/lib/actions";
+import { creativeImageUrl } from "@/lib/urls";
 
 /**
  * Champion vs challengers with manual result entry and the Bayesian verdict.
@@ -70,14 +71,13 @@ function Row({
     role === "challenger"
       ? compare(brief.winMetric, c.results, champion?.results)
       : null;
-  const fmt = c.motion === "static" ? "png" : "gif";
   return (
     <div
       className={`grid gap-4 rounded-lg border p-4 lg:grid-cols-[96px_minmax(0,1fr)_minmax(0,1fr)] ${role === "champion" ? "border-accent bg-accent-soft/30" : "border-line"}`}
     >
       <Link href={`/creatives/${c.id}`} className="block">
         <img
-          src={`/api/creatives/${c.id}/image?fmt=${fmt}&v=${c.version}`}
+          src={creativeImageUrl(c, brief, "png")}
           alt=""
           className="w-24 rounded-md bg-bg"
         />

@@ -4,6 +4,7 @@ import { db } from "@/lib/store";
 import { WIN_METRICS } from "@/lib/types";
 import { leadTimeDays, rate, formatRate } from "@/lib/stats";
 import { LearningLog } from "@/components/LearningLog";
+import { creativeImageUrl } from "@/lib/urls";
 
 export const dynamic = "force-dynamic";
 
@@ -80,7 +81,7 @@ export default async function Board() {
                 <li key={r.brief.id} className="card grid gap-4 p-4 lg:grid-cols-[88px_minmax(0,1fr)_auto]">
                   <Link href={`/briefs/${r.brief.id}`} className="block">
                     {r.champion ? (
-                      <img src={`/api/creatives/${r.champion.id}/image?fmt=png&v=${r.champion.version}`} alt="" className="w-[88px] rounded-md bg-bg" />
+                      <img src={creativeImageUrl(r.champion, r.brief, "png")} alt="" className="w-[88px] rounded-md bg-bg" />
                     ) : (
                       <div className="flex aspect-[4/5] w-[88px] items-center justify-center rounded-md border border-dashed border-line text-[10px] text-muted">未配信</div>
                     )}

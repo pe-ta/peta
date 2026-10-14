@@ -4,12 +4,16 @@ import { verifyReviewToken } from "@/lib/review-token";
 import { clientDecisionAction } from "@/lib/actions";
 import { APPEAL_AXES, REJECT_REASONS } from "@/lib/types";
 import { DevicePreview } from "@/components/DevicePreview";
+import { creativeImageUrl } from "@/lib/urls";
+import { Flash, readFlash } from "@/components/Flash";
+import { PendingButton } from "@/components/PendingButton";
 import { StatusChip } from "@/components/StatusChip";
 
 export const dynamic = "force-dynamic";
 
-export default async function ReviewPage({ params }: { params: Promise<{ token: string }> }) {
+export default async function ReviewPage({ params, searchParams }: { params: Promise<{ token: string }>; searchParams: Promise<{ [k: string]: string | string[] | undefined }> }) {
   const { token } = await params;
+  const flash = readFlash(await searchParams);
   const briefId = verifyReviewToken(token);
   if (!briefId) notFound();
   const brief = await db.briefs.get(briefId);
@@ -29,13 +33,15 @@ export default async function ReviewPage({ params }: { params: Promise<{ token: 
         </p>
       </section>
 
+      <Flash {...flash} />
+
       {creatives.length === 0 ? (
         <p className="card p-6 text-sm text-muted">現在ご確認いただく案はありません。</p>
       ) : (
         <ol className="flex flex-col gap-8">
           {creatives.map((c, idx) => {
             const fmt = c.motion === "static" ? "png" : "gif";
-            const img = `/api/creatives/${c.id}/image?fmt=${fmt}&v=${c.version}`;
+            const img = creativeImageUrl(c, brief, fmt);
             const history = reviews.filter((r) => r.creativeId === c.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
             return (
               <li key={c.id} className="card grid gap-6 p-5 lg:grid-cols-[auto_minmax(0,1fr)]">
@@ -77,9 +83,9 @@ export default async function ReviewPage({ params }: { params: Promise<{ token: 
                         <textarea id={`comment-${c.id}`} name="comment" rows={2} className="input" placeholder="具体的な修正箇所や、気になった点" />
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        <button type="submit" name="decision" value="approved" className="btn-primary">この案を承認</button>
-                        <button type="submit" name="decision" value="rejected" className="btn-danger">修正を依頼</button>
-                        <button type="submit" name="decision" value="comment" className="btn-ghost">コメントのみ送る</button>
+                        <PendingButton pendingText="送信中…" name="decision" value="approved">この案を承認</PendingButton>
+                        <PendingButton pendingText="送信中…" name="decision" value="rejected" className="btn-danger">修正を依頼</PendingButton>
+                        <PendingButton pendingText="送信中…" name="decision" value="comment" className="btn-ghost">コメントのみ送る</PendingButton>
                       </div>
                     </form>
                   )}

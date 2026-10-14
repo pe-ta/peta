@@ -98,11 +98,15 @@ export function fallbackCopy(brief: Brief, axes: AppealAxis[]): CopyVariant[] {
   const offerChars = [...offerCore].length;
   // Keep the offer whole in the headline when it fits; otherwise lead with the number.
   const offer = offerChars <= 12 ? offerCore : badge ? `${badge}の特典` : "限定特典";
+  // "30代男性、初めて検討、価格を比較中" -> "30代男性" (the first segment is the persona; the rest is context).
+  const persona = brief.target.split(/[、,，/／・\u3000 ]/)[0]?.trim() || "あなた";
+  const medical = /医療|美容|クリニック|薬|歯科|サプリ/.test(`${brief.industry} ${brief.clientName}`);
+  const thing = medical ? "治療" : /EC|通販|化粧品|食品/.test(brief.industry) ? "商品" : "サービス";
   const base: Record<AppealAxis, Omit<CopyVariant, "appealAxis">> = {
     price: {
       eyebrow: "LINE限定",
       headline: `${offer}はLINEで受け取れます`,
-      sub: "友だち追加で、今見ていた内容の割引クーポンをすぐお届けします。",
+      sub: `友だち追加で、今見ていた${thing}に使える割引クーポンをすぐお届けします。`,
       cta: "LINEでクーポンを受け取る",
       badge,
       hypothesis: "価格メリットを数字で明示すると、料金比較で離脱する層のクリック率が上がる",
@@ -111,7 +115,7 @@ export function fallbackCopy(brief: Brief, axes: AppealAxis[]): CopyVariant[] {
     scarcity: {
       eyebrow: "お見逃しなく",
       headline: "この特典はLINE登録者だけ",
-      sub: "サイトには載っていない特典をLINEでご案内しています。",
+      sub: `サイトには載せていない${offer}を、LINEでご案内しています。`,
       cta: "LINEで特典を見る",
       badge,
       hypothesis: "限定性を示すと、様子見で離脱する層の行動が前倒しされる",
@@ -119,8 +123,8 @@ export function fallbackCopy(brief: Brief, axes: AppealAxis[]): CopyVariant[] {
     },
     anxiety: {
       eyebrow: "まだ迷っている方へ",
-      headline: "LINEで気軽に相談できます",
-      sub: "匿名OK。質問に答えるだけで、あなたに合う選択肢をご案内します。",
+      headline: medical ? "LINEで匿名のまま相談できます" : "LINEで気軽に相談できます",
+      sub: medical ? "名前も顔も出さずに質問できます。無理に来院を勧めることはありません。" : "質問に答えるだけで、あなたに合う選択肢をご案内します。",
       cta: "LINEで相談してみる",
       badge: "",
       hypothesis: "不安解消型は、情報収集段階の離脱者で友だち追加後の継続率が高い",
@@ -128,8 +132,8 @@ export function fallbackCopy(brief: Brief, axes: AppealAxis[]): CopyVariant[] {
     },
     diagnosis: {
       eyebrow: "30秒セルフチェック",
-      headline: "3問であなたに合うか分かる",
-      sub: "LINEで質問に答えると、おすすめと特典をすぐにお届けします。",
+      headline: `3問で${medical ? "治療が必要か" : "あなたに合うか"}分かる`,
+      sub: "LINEで質問に答えると、結果と特典をその場でお届けします。",
       cta: "LINEで診断をはじめる",
       badge: "3問",
       hypothesis: "診断型は参加ハードルが低く、クリック率とボット起動率の両方で勝つ",
@@ -137,17 +141,17 @@ export function fallbackCopy(brief: Brief, axes: AppealAxis[]): CopyVariant[] {
     },
     social: {
       eyebrow: "多くの方に選ばれています",
-      headline: `${brief.target}に選ばれる理由`,
-      sub: "利用者の声と実績をLINEでまとめてご紹介。特典付きです。",
-      cta: "LINEで詳しく見る",
+      headline: `${persona}に選ばれている理由`,
+      sub: `同じ悩みで来られた方の声と実績を、LINEでまとめてご紹介します。${badge ? `${badge}の特典付き。` : ""}`,
+      cta: "LINEで体験談を見る",
       badge: "",
       hypothesis: "社会的証明は、比較検討で離脱する層の信頼獲得に効く",
       rationale: "他者の選択が判断コストを下げる",
     },
     benefit: {
       eyebrow: "LINE友だち限定",
-      headline: "追加するだけで特典GET",
-      sub: `${brief.offer}。LINEで受け取って、好きなタイミングで使えます。`,
+      headline: "友だち追加だけで特典が届く",
+      sub: `${offerCore}。LINEで受け取って、好きなタイミングで使えます。`,
       cta: "LINEで特典を受け取る",
       badge,
       hypothesis: "即時の特典提示は、離脱直前の『今は要らない』を『取っておく』に変える",

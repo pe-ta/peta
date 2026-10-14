@@ -19,36 +19,55 @@ export function rate(metric: WinMetric, r?: CreativeResults) {
   return numerator(metric, r) / r.impressions;
 }
 
+// Deterministic PRNG (mulberry32) seeded from the inputs, so the same counts always give
+// the same verdict: the button that enables promotion and the server guard must agree.
+function mulberry32(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 // Marsaglia & Tsang gamma sampler -> Beta sampler.
-function randn() {
-  let u = 0;
-  let v = 0;
-  while (u === 0) u = Math.random();
-  while (v === 0) v = Math.random();
-  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+function makeSamplers(rand: () => number) {
+  const randn = () => {
+    let u = 0;
+    let v = 0;
+    while (u === 0) u = rand();
+    while (v === 0) v = rand();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  };
+  const gamma = (shape: number): number => {
+    if (shape < 1) return gamma(shape + 1) * Math.pow(rand(), 1 / shape);
+    const d = shape - 1 / 3;
+    const c = 1 / Math.sqrt(9 * d);
+    for (;;) {
+      let x: number;
+      let v: number;
+      do {
+        x = randn();
+        v = 1 + c * x;
+      } while (v <= 0);
+      v = v * v * v;
+      const u = rand();
+      if (u < 1 - 0.0331 * x * x * x * x) return d * v;
+      if (Math.log(u) < 0.5 * x * x + d * (1 - v + Math.log(v))) return d * v;
+    }
+  };
+  const beta = (a: number, b: number) => {
+    const x = gamma(a);
+    const y = gamma(b);
+    return x / (x + y);
+  };
+  return { beta };
 }
-function gamma(shape: number): number {
-  if (shape < 1) return gamma(shape + 1) * Math.pow(Math.random(), 1 / shape);
-  const d = shape - 1 / 3;
-  const c = 1 / Math.sqrt(9 * d);
-  for (;;) {
-    let x: number;
-    let v: number;
-    do {
-      x = randn();
-      v = 1 + c * x;
-    } while (v <= 0);
-    v = v * v * v;
-    const u = Math.random();
-    if (u < 1 - 0.0331 * x * x * x * x) return d * v;
-    if (Math.log(u) < 0.5 * x * x + d * (1 - v + Math.log(v))) return d * v;
-  }
-}
-function beta(a: number, b: number) {
-  const x = gamma(a);
-  const y = gamma(b);
-  return x / (x + y);
-}
+
+// Memo so a page that compares the same pair several times pays once.
+const memo = new Map<string, Comparison>();
 
 export interface Comparison {
   /** P(challenger rate > champion rate) */
@@ -78,6 +97,10 @@ export function compare(metric: WinMetric, challenger?: CreativeResults, champio
   const b1 = 1 + Math.max(0, challenger.impressions - numerator(metric, challenger));
   const a2 = 1 + numerator(metric, champion);
   const b2 = 1 + Math.max(0, champion.impressions - numerator(metric, champion));
+  const key = [metric, a1, b1, a2, b2, samples].join(":");
+  const cached = memo.get(key);
+  if (cached) return cached;
+  const { beta } = makeSamplers(mulberry32((a1 * 73856093) ^ (b1 * 19349663) ^ (a2 * 83492791) ^ (b2 * 2654435761)));
   let wins = 0;
   let loss = 0;
   for (let i = 0; i < samples; i++) {
@@ -97,7 +120,10 @@ export function compare(metric: WinMetric, challenger?: CreativeResults, champio
     verdict = "lost";
     reason = `挑戦者が勝つ確率 ${(pWin * 100).toFixed(0)}%。チャンピオンの維持`;
   }
-  return { pWin, expectedLoss, challengerRate: cr, championRate: pr, verdict, reason };
+  const result: Comparison = { pWin, expectedLoss, challengerRate: cr, championRate: pr, verdict, reason };
+  if (memo.size > 500) memo.clear();
+  memo.set(key, result);
+  return result;
 }
 
 export function formatRate(r: number | null) {

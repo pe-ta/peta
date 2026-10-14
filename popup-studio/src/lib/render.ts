@@ -47,6 +47,8 @@ export interface Rendered {
   width: number;
   height: number;
   frames: number;
+  /** True when the external image could not be fetched and the fallback art was used. */
+  degraded: boolean;
 }
 
 async function renderSvg(brief: Brief, creative: Creative, t: number, allowImages: boolean) {
@@ -57,14 +59,14 @@ async function renderSvg(brief: Brief, creative: Creative, t: number, allowImage
   return satori(element, { width: spec.width, height: spec.height, fonts });
 }
 
-async function renderSvgSafe(brief: Brief, creative: Creative, t: number) {
+async function renderSvgSafe(brief: Brief, creative: Creative, t: number): Promise<{ svg: string; degraded: boolean }> {
   try {
-    return await renderSvg(brief, creative, t, true);
+    return { svg: await renderSvg(brief, creative, t, true), degraded: false };
   } catch (err) {
     // Typically an unreachable image URL. Render without external images.
     if (creative.slots.imageUrl) {
       console.warn("render: retrying without image", (err as Error).message);
-      return renderSvg(brief, creative, t, false);
+      return { svg: await renderSvg(brief, creative, t, false), degraded: true };
     }
     throw err;
   }
@@ -109,8 +111,11 @@ export async function renderCreative(brief: Brief, creative: Creative, opts: Ren
   const hit = cache.get(key);
   if (hit) return hit;
   const out = await renderUncached(brief, creative, opts);
-  if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value as string);
-  cache.set(key, out);
+  // Don't pin a degraded render in memory: the image host may be back on the next request.
+  if (!out.degraded) {
+    if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value as string);
+    cache.set(key, out);
+  }
   return out;
 }
 
@@ -120,19 +125,21 @@ async function renderUncached(brief: Brief, creative: Creative, opts: RenderOpti
   const effectiveFormat = opts.format === "gif" && creative.motion === "static" ? "png" : opts.format;
 
   if (effectiveFormat === "png") {
-    const svg = await renderSvgSafe(brief, creative, 1);
+    const { svg, degraded } = await renderSvgSafe(brief, creative, 1);
     const img = rasterize(svg, spec.width, scale);
-    return { bytes: img.asPng(), contentType: "image/png", width: img.width, height: img.height, frames: 1 };
+    return { bytes: img.asPng(), contentType: "image/png", width: img.width, height: img.height, frames: 1, degraded };
   }
 
   const schedule = frameSchedule(creative.motion);
   const gif = GIFEncoder();
   let width = 0;
   let height = 0;
+  let degraded = false;
   for (let i = 0; i < schedule.length; i++) {
     const [t, delay] = schedule[i];
-    const svg = await renderSvgSafe(brief, creative, t);
-    const img = rasterize(svg, spec.width, scale);
+    const r = await renderSvgSafe(brief, creative, t);
+    degraded ||= r.degraded;
+    const img = rasterize(r.svg, spec.width, scale);
     width = img.width;
     height = img.height;
     const rgba = img.pixels;
@@ -150,5 +157,5 @@ async function renderUncached(brief: Brief, creative: Creative, opts: RenderOpti
     gif.writeFrame(index, width, height, { palette, delay, repeat: 0 });
   }
   gif.finish();
-  return { bytes: gif.bytes(), contentType: "image/gif", width, height, frames: schedule.length };
+  return { bytes: gif.bytes(), contentType: "image/gif", width, height, frames: schedule.length, degraded };
 }
