@@ -93,9 +93,11 @@ function offerNumber(offer: string) {
 
 export function fallbackCopy(brief: Brief, axes: AppealAxis[]): CopyVariant[] {
   const badge = offerNumber(brief.offer);
-  const offerChars = [...brief.offer].length;
+  // Drop a leading "LINE限定" so headlines don't say LINE twice ("LINE限定…はLINEで").
+  const offerCore = brief.offer.replace(/^\s*LINE\s*(限定|友だち限定|登録者限定)\s*/i, "").trim() || brief.offer;
+  const offerChars = [...offerCore].length;
   // Keep the offer whole in the headline when it fits; otherwise lead with the number.
-  const offer = offerChars <= 12 ? brief.offer : badge ? `${badge}の特典` : "LINE限定特典";
+  const offer = offerChars <= 12 ? offerCore : badge ? `${badge}の特典` : "限定特典";
   const base: Record<AppealAxis, Omit<CopyVariant, "appealAxis">> = {
     price: {
       eyebrow: "LINE限定",
