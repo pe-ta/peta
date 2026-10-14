@@ -1,0 +1,139 @@
+import "server-only";
+import type { Brief, Creative, Review } from "./types";
+
+/**
+ * Document store with two backends:
+ * - MemoryStore: local dev / preview without a database (not durable on Vercel).
+ * - PostgresStore: when DATABASE_URL or POSTGRES_URL is set (Neon / Vercel Postgres).
+ * Each entity is stored as a JSON document in a single `documents` table.
+ */
+
+type Kind = "brief" | "creative" | "review";
+
+export interface Store {
+  readonly durable: boolean;
+  get<T>(kind: Kind, id: string): Promise<T | null>;
+  list<T>(kind: Kind, filter?: (doc: T) => boolean): Promise<T[]>;
+  put<T extends { id: string }>(kind: Kind, doc: T): Promise<T>;
+  delete(kind: Kind, id: string): Promise<void>;
+}
+
+class MemoryStore implements Store {
+  readonly durable = false;
+  private data = new Map<Kind, Map<string, unknown>>();
+
+  private table(kind: Kind) {
+    let t = this.data.get(kind);
+    if (!t) {
+      t = new Map();
+      this.data.set(kind, t);
+    }
+    return t;
+  }
+  async get<T>(kind: Kind, id: string) {
+    return (this.table(kind).get(id) as T) ?? null;
+  }
+  async list<T>(kind: Kind, filter?: (doc: T) => boolean) {
+    const all = [...this.table(kind).values()] as T[];
+    return filter ? all.filter(filter) : all;
+  }
+  async put<T extends { id: string }>(kind: Kind, doc: T) {
+    this.table(kind).set(doc.id, doc);
+    return doc;
+  }
+  async delete(kind: Kind, id: string) {
+    this.table(kind).delete(id);
+  }
+}
+
+class PostgresStore implements Store {
+  readonly durable = true;
+  private sqlPromise: Promise<import("postgres").Sql> | null = null;
+
+  constructor(private url: string) {}
+
+  private async sql() {
+    if (!this.sqlPromise) {
+      this.sqlPromise = (async () => {
+        const postgres = (await import("postgres")).default;
+        const sql = postgres(this.url, { max: 3, ssl: "require", prepare: false });
+        await sql`
+          CREATE TABLE IF NOT EXISTS documents (
+            kind TEXT NOT NULL,
+            id TEXT NOT NULL,
+            data JSONB NOT NULL,
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            PRIMARY KEY (kind, id)
+          )`;
+        return sql;
+      })();
+    }
+    return this.sqlPromise;
+  }
+
+  async get<T>(kind: Kind, id: string) {
+    const sql = await this.sql();
+    const rows = await sql<{ data: T }[]>`SELECT data FROM documents WHERE kind = ${kind} AND id = ${id}`;
+    return rows[0]?.data ?? null;
+  }
+  async list<T>(kind: Kind, filter?: (doc: T) => boolean) {
+    const sql = await this.sql();
+    const rows = await sql<{ data: T }[]>`SELECT data FROM documents WHERE kind = ${kind} ORDER BY updated_at DESC`;
+    const all = rows.map((r) => r.data);
+    return filter ? all.filter(filter) : all;
+  }
+  async put<T extends { id: string }>(kind: Kind, doc: T) {
+    const sql = await this.sql();
+    await sql`
+      INSERT INTO documents (kind, id, data, updated_at)
+      VALUES (${kind}, ${doc.id}, ${sql.json(doc as never)}, now())
+      ON CONFLICT (kind, id) DO UPDATE SET data = EXCLUDED.data, updated_at = now()`;
+    return doc;
+  }
+  async delete(kind: Kind, id: string) {
+    const sql = await this.sql();
+    await sql`DELETE FROM documents WHERE kind = ${kind} AND id = ${id}`;
+  }
+}
+
+declare global {
+  var __popupStudioStore: Store | undefined;
+}
+
+export function getStore(): Store {
+  if (!globalThis.__popupStudioStore) {
+    const url = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+    globalThis.__popupStudioStore = url ? new PostgresStore(url) : new MemoryStore();
+  }
+  return globalThis.__popupStudioStore;
+}
+
+// Typed helpers -------------------------------------------------------------
+
+export const db = {
+  briefs: {
+    get: (id: string) => getStore().get<Brief>("brief", id),
+    list: () => getStore().list<Brief>("brief"),
+    put: (b: Brief) => getStore().put("brief", b),
+  },
+  creatives: {
+    get: (id: string) => getStore().get<Creative>("creative", id),
+    listByBrief: (briefId: string) =>
+      getStore().list<Creative>("creative", (c) => c.briefId === briefId),
+    put: (c: Creative) => getStore().put("creative", c),
+    delete: (id: string) => getStore().delete("creative", id),
+  },
+  reviews: {
+    listByBrief: (briefId: string) =>
+      getStore().list<Review>("review", (r) => r.briefId === briefId),
+    put: (r: Review) => getStore().put("review", r),
+  },
+};
+
+export function newId(prefix: string) {
+  return `${prefix}_${crypto.randomUUID().replace(/-/g, "").slice(0, 12)}`;
+}
+
+export function nowIso() {
+  return new Date().toISOString();
+}

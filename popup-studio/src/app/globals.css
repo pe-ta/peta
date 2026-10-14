@@ -1,0 +1,69 @@
+@import "tailwindcss";
+@import "@fontsource/noto-sans-jp/japanese-400.css";
+@import "@fontsource/noto-sans-jp/japanese-700.css";
+@import "@fontsource/noto-sans-jp/japanese-900.css";
+
+:root {
+  --bg: #f5f6f3;
+  --surface: #ffffff;
+  --fg: #1c231f;
+  --muted: #5f6964;
+  --line: #d8ddd7;
+  --accent: #0b6e4f;
+  --accent-soft: #dff0e7;
+  --warn: #b8571b;
+  --warn-soft: #f7e6d9;
+  --danger: #b3261e;
+  --danger-soft: #f9dedc;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --font-sans: "Noto Sans JP", system-ui, -apple-system, sans-serif;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-feature-settings: "palt";
+}
+
+.input {
+  @apply w-full rounded-md border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20;
+}
+.label {
+  @apply block text-xs font-bold text-muted mb-1;
+}
+.btn,
+.btn-primary,
+.btn-ghost,
+.btn-danger {
+  @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-bold transition-colors disabled:opacity-50;
+}
+.btn-primary {
+  @apply bg-accent text-white hover:bg-accent/90;
+}
+.btn-ghost {
+  @apply border border-line bg-surface hover:bg-bg;
+}
+.btn-danger {
+  @apply border border-danger/40 text-danger bg-surface hover:bg-danger-soft;
+}
+.chip {
+  @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold;
+}
+.card {
+  @apply rounded-lg border border-line bg-surface;
+}
