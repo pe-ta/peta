@@ -7,7 +7,10 @@ import { extractLp } from "./lp-extract";
 import { expandBrief } from "./generate";
 import { normalizeHex, readableOn } from "./color";
 import { verifyReviewToken } from "./review-token";
-import type { AppealAxis, Brief, CreativeStatus, Motion, RejectReason, Review, VisualAxis } from "./types";
+import { critiqueCreative } from "./critique";
+import { compare, formatRate } from "./stats";
+import { WIN_METRICS } from "./types";
+import type { AppealAxis, Brief, CreativeStatus, Learning, Motion, RejectReason, Review, VisualAxis, WinMetric } from "./types";
 
 function str(fd: FormData, key: string, fallback = "") {
   const v = fd.get(key);
@@ -28,6 +31,7 @@ export async function createBriefAction(formData: FormData) {
     id: newId("br"),
     createdAt: nowIso(),
     updatedAt: nowIso(),
+    winMetric: (WIN_METRICS.some((m) => m.id === str(formData, "winMetric")) ? str(formData, "winMetric") : "line_add_rate") as WinMetric,
     clientName: str(formData, "clientName", "無題のクライアント"),
     industry: str(formData, "industry", "その他"),
     lpUrl,
@@ -130,6 +134,147 @@ export async function deleteCreativeAction(formData: FormData) {
   await db.creatives.delete(id);
   revalidatePath(`/briefs/${creative.briefId}`);
   redirect(`/briefs/${creative.briefId}`);
+}
+
+// Experiment loop -----------------------------------------------------------
+
+export async function critiqueAction(formData: FormData) {
+  const id = str(formData, "creativeId");
+  const creative = await db.creatives.get(id);
+  if (!creative) return;
+  const brief = await db.briefs.get(creative.briefId);
+  if (!brief) return;
+  const champion = brief.championId ? await db.creatives.get(brief.championId) : null;
+  creative.critique = await critiqueCreative(brief, creative, champion ?? undefined);
+  creative.updatedAt = nowIso();
+  await db.creatives.put(creative);
+  revalidatePath(`/creatives/${id}`);
+  revalidatePath(`/briefs/${creative.briefId}`);
+}
+
+export async function critiqueAllAction(formData: FormData) {
+  const briefId = str(formData, "briefId");
+  const brief = await db.briefs.get(briefId);
+  if (!brief) return;
+  const creatives = await db.creatives.listByBrief(briefId);
+  const champion = brief.championId ? creatives.find((c) => c.id === brief.championId) : undefined;
+  const targets = creatives.filter((c) => !c.critique && c.status !== "ended");
+  // Sequential on purpose: keeps API concurrency low on serverless.
+  for (const c of targets) {
+    c.critique = await critiqueCreative(brief, c, champion);
+    c.updatedAt = nowIso();
+    await db.creatives.put(c);
+  }
+  revalidatePath(`/briefs/${briefId}`);
+}
+
+export async function startExperimentAction(formData: FormData) {
+  const id = str(formData, "creativeId");
+  const creative = await db.creatives.get(id);
+  if (!creative) return;
+  const brief = await db.briefs.get(creative.briefId);
+  if (!brief) return;
+  creative.status = "live";
+  creative.experiment = { startedAt: nowIso() };
+  creative.results ??= { impressions: 0, clicks: 0, lineAdds: 0, conversions: 0, updatedAt: nowIso() };
+  creative.updatedAt = nowIso();
+  await db.creatives.put(creative);
+  // First live creative becomes the champion (the control) automatically.
+  if (!brief.championId) {
+    brief.championId = creative.id;
+    brief.updatedAt = nowIso();
+    await db.briefs.put(brief);
+  }
+  revalidatePath(`/briefs/${creative.briefId}`);
+  revalidatePath(`/creatives/${id}`);
+  revalidatePath("/");
+}
+
+export async function saveResultsAction(formData: FormData) {
+  const id = str(formData, "creativeId");
+  const creative = await db.creatives.get(id);
+  if (!creative) return;
+  const num = (k: string) => Math.max(0, Math.round(Number(str(formData, k, "0")) || 0));
+  creative.results = {
+    impressions: num("impressions"),
+    clicks: num("clicks"),
+    lineAdds: num("lineAdds"),
+    conversions: num("conversions"),
+    blocks: num("blocks") || undefined,
+    updatedAt: nowIso(),
+  };
+  creative.updatedAt = nowIso();
+  await db.creatives.put(creative);
+  revalidatePath(`/briefs/${creative.briefId}`);
+  revalidatePath("/");
+}
+
+/** Conclude a challenger: promote to champion (won) or retire it (lost / inconclusive). Writes a learning entry. */
+export async function concludeAction(formData: FormData) {
+  const id = str(formData, "creativeId");
+  const outcome = str(formData, "outcome") as "won" | "lost" | "inconclusive";
+  if (!["won", "lost", "inconclusive"].includes(outcome)) return;
+  const creative = await db.creatives.get(id);
+  if (!creative) return;
+  const brief = await db.briefs.get(creative.briefId);
+  if (!brief) return;
+  const champion = brief.championId ? await db.creatives.get(brief.championId) : null;
+  const cmp = compare(brief.winMetric, creative.results, champion?.results);
+  const metricLabel = WIN_METRICS.find((m) => m.id === brief.winMetric)?.label ?? brief.winMetric;
+  const evidence = `${metricLabel} ${formatRate(cmp.challengerRate)} vs チャンピオン ${formatRate(cmp.championRate)}（勝つ確率 ${(cmp.pWin * 100).toFixed(0)}%）`;
+
+  creative.experiment = { ...(creative.experiment ?? { startedAt: nowIso() }), endedAt: nowIso(), outcome };
+  if (outcome === "won") {
+    creative.status = "live";
+    if (champion && champion.id !== creative.id) {
+      champion.status = "ended";
+      champion.experiment = { ...(champion.experiment ?? { startedAt: nowIso() }), endedAt: nowIso(), outcome: "lost" };
+      champion.updatedAt = nowIso();
+      await db.creatives.put(champion);
+    }
+    brief.championId = creative.id;
+    brief.updatedAt = nowIso();
+    await db.briefs.put(brief);
+  } else {
+    creative.status = "ended";
+  }
+  creative.updatedAt = nowIso();
+  await db.creatives.put(creative);
+
+  const learning: Learning = {
+    id: newId("ln"),
+    briefId: brief.id,
+    creativeId: creative.id,
+    createdAt: nowIso(),
+    hypothesis: creative.hypothesis,
+    outcome,
+    evidence,
+    nextHypothesis: str(formData, "nextHypothesis") || undefined,
+    author: str(formData, "author", "AP"),
+  };
+  await db.learnings.put(learning);
+  revalidatePath(`/briefs/${brief.id}`);
+  revalidatePath("/");
+}
+
+export async function addLearningAction(formData: FormData) {
+  const briefId = str(formData, "briefId");
+  const brief = await db.briefs.get(briefId);
+  if (!brief) return;
+  const hypothesis = str(formData, "hypothesis");
+  if (!hypothesis) return;
+  await db.learnings.put({
+    id: newId("ln"),
+    briefId,
+    createdAt: nowIso(),
+    hypothesis,
+    outcome: "note",
+    evidence: str(formData, "evidence") || undefined,
+    nextHypothesis: str(formData, "nextHypothesis") || undefined,
+    author: str(formData, "author", "AP"),
+  });
+  revalidatePath(`/briefs/${briefId}`);
+  revalidatePath("/");
 }
 
 /** Client portal decision. Authorized by the signed token, not a login. */

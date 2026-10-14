@@ -1,6 +1,7 @@
 import type { Brief, Creative, PreflightIssue, PreflightResult } from "./types";
 import { getTemplate, resolveColors, SPECS } from "./templates";
 import { contrast, readableOn } from "./color";
+import { fullWidthLength } from "./text";
 
 /**
  * Rule-based preflight. Runs synchronously on the slot data so it can be shown
@@ -48,21 +49,21 @@ export function runPreflight(brief: Brief, creative: Creative, bytes?: { format:
   }
 
   // Text length ------------------------------------------------------------
-  const headlineChars = [...s.headline].length;
+  const headlineChars = fullWidthLength(s.headline);
   if (headlineChars === 0) issues.push({ code: "text.headline.empty", severity: "error", message: "見出しが空です" });
   if (headlineChars > spec.headlineMaxChars) {
     issues.push({
       code: "text.headline.long",
       severity: headlineChars > spec.headlineMaxChars * 1.3 ? "error" : "warn",
-      message: `見出しが ${headlineChars} 文字（推奨 ${spec.headlineMaxChars} 文字以内）`,
+      message: `見出しが ${headlineChars} 字（全角換算）（推奨 ${spec.headlineMaxChars} 文字以内）`,
       suggestion: "数字と便益を残し、修飾語を削る",
     });
   }
-  const subChars = [...s.sub].length;
+  const subChars = fullWidthLength(s.sub);
   if (subChars > spec.subMaxChars) {
     issues.push({ code: "text.sub.long", severity: "warn", message: `サブコピーが ${subChars} 文字（推奨 ${spec.subMaxChars} 文字以内）` });
   }
-  if ([...s.cta].length > 14) {
+  if (fullWidthLength(s.cta) > 14) {
     issues.push({ code: "text.cta.long", severity: "warn", message: "CTAが長すぎます（14文字以内推奨）", suggestion: "動詞で終える短い命令形にする（例: LINEで受け取る）" });
   }
   if (!/LINE|ライン/i.test(`${s.cta} ${s.eyebrow} ${s.sub}`)) {

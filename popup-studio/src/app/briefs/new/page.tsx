@@ -1,13 +1,29 @@
 import { createBriefAction } from "@/lib/actions";
-import { APPEAL_AXES, MOTIONS } from "@/lib/types";
+import { APPEAL_AXES, MOTIONS, WIN_METRICS } from "@/lib/types";
 
 export default function NewBriefPage() {
   return (
     <form action={createBriefAction} className="mx-auto flex max-w-3xl flex-col gap-8">
       <div>
-        <h1 className="text-2xl font-black tracking-tight">新しいブリーフ</h1>
-        <p className="mt-1 text-sm text-muted">入力は3分。送信すると LP を読み取り、選んだ組み合わせでポップアップ案を生成します。</p>
+        <h1 className="text-2xl font-black tracking-tight">新しいブリーフ（実験の設計）</h1>
+        <p className="mt-1 text-sm text-muted">入力は3分。送信すると LP を読み取り、選んだ組み合わせで挑戦者候補を生成します。</p>
       </div>
+
+      <section className="card flex flex-col gap-4 p-5">
+        <h2 className="text-sm font-black">勝ちの定義</h2>
+        <p className="text-xs text-muted">挑戦者がチャンピオンに勝ったかを判定する指標。成果報酬の計算根拠と揃えてください。</p>
+        <div className="grid gap-2 sm:grid-cols-3">
+          {WIN_METRICS.map((m, i) => (
+            <label key={m.id} className="flex cursor-pointer items-start gap-2 rounded-md border border-line p-2.5 text-sm has-checked:border-accent has-checked:bg-accent-soft">
+              <input type="radio" name="winMetric" value={m.id} defaultChecked={i === 0} className="mt-1 accent-accent" />
+              <span>
+                <span className="font-bold">{m.label}</span>
+                <span className="block text-xs text-muted">{m.hint}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </section>
 
       <section className="card flex flex-col gap-4 p-5">
         <h2 className="text-sm font-black">クライアントと LP</h2>
@@ -138,7 +154,7 @@ export default function NewBriefPage() {
 
       <div className="flex items-center justify-end gap-3">
         <button type="submit" className="btn-primary">
-          案を生成する
+          挑戦者候補を生成する
         </button>
       </div>
     </form>

@@ -1,5 +1,5 @@
 import "server-only";
-import type { Brief, Creative, Review } from "./types";
+import type { Brief, Creative, Learning, Review } from "./types";
 
 /**
  * Document store with two backends:
@@ -8,7 +8,7 @@ import type { Brief, Creative, Review } from "./types";
  * Each entity is stored as a JSON document in a single `documents` table.
  */
 
-type Kind = "brief" | "creative" | "review";
+type Kind = "brief" | "creative" | "review" | "learning";
 
 export interface Store {
   readonly durable: boolean;
@@ -127,6 +127,12 @@ export const db = {
     listByBrief: (briefId: string) =>
       getStore().list<Review>("review", (r) => r.briefId === briefId),
     put: (r: Review) => getStore().put("review", r),
+  },
+  learnings: {
+    list: () => getStore().list<Learning>("learning"),
+    listByBrief: (briefId: string) =>
+      getStore().list<Learning>("learning", (l) => l.briefId === briefId),
+    put: (l: Learning) => getStore().put("learning", l),
   },
 };
 

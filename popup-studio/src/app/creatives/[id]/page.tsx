@@ -3,11 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/store";
 import { runPreflight } from "@/lib/preflight";
-import { deleteCreativeAction, setStatusAction, updateCreativeAction } from "@/lib/actions";
+import { critiqueAction, deleteCreativeAction, setStatusAction, updateCreativeAction } from "@/lib/actions";
 import { APPEAL_AXES, MOTIONS } from "@/lib/types";
 import { getTemplate } from "@/lib/templates";
 import { PreflightList } from "@/components/PreflightList";
 import { StatusChip } from "@/components/StatusChip";
+import { CritiquePanel } from "@/components/CritiquePanel";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,7 @@ export default async function CreativePage({ params }: { params: Promise<{ id: s
   return (
     <div className="flex flex-col gap-6">
       <div className="text-xs text-muted">
-        <Link href="/" className="hover:underline">ブリーフ一覧</Link> / <Link href={`/briefs/${brief.id}`} className="hover:underline">{brief.clientName}</Link> / 案の編集
+        <Link href="/" className="hover:underline">実験ボード</Link> / <Link href={`/briefs/${brief.id}`} className="hover:underline">{brief.clientName}</Link> / 挑戦者の編集
       </div>
 
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -51,15 +52,29 @@ export default async function CreativePage({ params }: { params: Promise<{ id: s
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <section className="card flex flex-col gap-4 p-4">
+          <div className="rounded-md border border-line p-3 text-sm">
+            <div className="text-xs font-bold text-accent">検証仮説</div>
+            <div className="font-bold">{creative.hypothesis}</div>
+            {creative.rationale && <div className="mt-1 text-xs text-muted">根拠: {creative.rationale}</div>}
+          </div>
           <div className="rounded-md bg-bg p-3">
             <img src={img} alt={creative.slots.headline} className="mx-auto max-h-[560px] w-auto max-w-full rounded-md" />
           </div>
-          <PreflightList result={preflight} />
-          <div className="rounded-md border border-line p-3 text-sm">
-            <div className="text-xs font-bold text-muted">検証仮説</div>
-            <div>{creative.hypothesis}</div>
-            {creative.rationale && <div className="mt-1 text-xs text-muted">根拠: {creative.rationale}</div>}
+          <div className="rounded-md border border-line p-4">
+            {creative.critique ? (
+              <CritiquePanel critique={creative.critique} />
+            ) : (
+              <div className="flex flex-col items-start gap-2">
+                <h3 className="text-sm font-black">辛口分析</h3>
+                <p className="text-xs text-muted">画像を見て 6 軸で採点し、ダメな理由と直し方を文言レベルで出します。チャンピオンがいる場合は勝敗予測も。</p>
+              </div>
+            )}
+            <form action={critiqueAction} className="mt-3">
+              <input type="hidden" name="creativeId" value={creative.id} />
+              <button type="submit" className="btn-primary">{creative.critique ? "もう一度、辛口分析する" : "辛口分析を実行"}</button>
+            </form>
           </div>
+          <PreflightList result={preflight} />
         </section>
 
         <section className="card p-4">

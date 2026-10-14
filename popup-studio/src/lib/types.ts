@@ -38,10 +38,23 @@ export interface BrandKit {
   tone: string; // 例: 丁寧・親しみ・医療らしい信頼感
 }
 
+/** What "winning" means for this client. Aligned with the success-fee basis. */
+export type WinMetric = "ctr" | "line_add_rate" | "cvr";
+
+export const WIN_METRICS: { id: WinMetric; label: string; numerator: string; hint: string }[] = [
+  { id: "line_add_rate", label: "LINE友だち追加率", numerator: "lineAdds", hint: "表示あたりの友だち追加。成果報酬の母数に最も近い" },
+  { id: "ctr", label: "クリック率", numerator: "clicks", hint: "表示あたりのクリック。早く結論が出るが、追加後の離脱を見逃す" },
+  { id: "cvr", label: "CV率", numerator: "conversions", hint: "表示あたりの最終CV。最も正しいが結論まで時間がかかる" },
+];
+
 export interface Brief {
   id: string;
   createdAt: string;
   updatedAt: string;
+  /** Metric used to judge challengers against the champion. */
+  winMetric: WinMetric;
+  /** Creative id currently serving as the champion (control). */
+  championId?: string;
   clientName: string;
   industry: string;
   lpUrl: string;
@@ -83,6 +96,46 @@ export type CreativeStatus =
   | "live"
   | "ended";
 
+/** Observed results for a creative while it is live. Entered manually until the delivery platform exports them. */
+export interface CreativeResults {
+  impressions: number;
+  clicks: number;
+  lineAdds: number;
+  conversions: number;
+  blocks?: number;
+  updatedAt: string;
+}
+
+export interface ExperimentState {
+  startedAt: string;
+  endedAt?: string;
+  outcome?: "won" | "lost" | "inconclusive";
+}
+
+/** Blunt, structured critique in the style of the short-video analyzer: score + verdict + fixes. */
+export interface Critique {
+  createdAt: string;
+  source: "ai" | "rules";
+  overall: number; // 0-100
+  verdict: string; // 一言の辛口総評
+  scores: {
+    attention: number; // 注目: 0.5秒で目に入るか
+    clarity: number; // 訴求の明確さ: 何が得か1秒で分かるか
+    fit: number; // 離脱文脈との適合: 離脱直前の心理に答えているか
+    cta: number; // CTA: 次の行動が具体的で低負荷か
+    trust: number; // 信頼・ブランド整合
+    risk: number; // 表現リスクの低さ（高いほど安全）
+  };
+  problems: string[]; // 容赦ない指摘（原因まで）
+  fixes: string[]; // 具体的な直し方（文言レベル）
+  vsChampion?: {
+    championId: string;
+    challengerWins: boolean;
+    confidence: number; // 0-1
+    reason: string;
+  };
+}
+
 export interface Creative {
   id: string;
   briefId: string;
@@ -97,6 +150,22 @@ export interface Creative {
   slots: CreativeSlots;
   status: CreativeStatus;
   version: number;
+  critique?: Critique;
+  results?: CreativeResults;
+  experiment?: ExperimentState;
+}
+
+/** Learning log: what we tried, what happened, what we try next. */
+export interface Learning {
+  id: string;
+  briefId: string;
+  creativeId?: string;
+  createdAt: string;
+  hypothesis: string;
+  outcome: "won" | "lost" | "inconclusive" | "note";
+  evidence?: string; // 例: 友だち追加率 3.1% vs 2.4%（P=0.97）
+  nextHypothesis?: string;
+  author: string;
 }
 
 export type RejectReason =
