@@ -17,7 +17,9 @@ let fontsPromise: Promise<FontOptions[]> | null = null;
 async function loadFonts(): Promise<FontOptions[]> {
   if (!fontsPromise) {
     fontsPromise = (async () => {
-      const dir = path.join(process.cwd(), "node_modules/@fontsource/noto-sans-jp/files");
+      // Fonts are vendored under assets/ so Vercel's file tracing bundles them with the
+      // render functions (node_modules paths are not reliably traced for runtime reads).
+      const dir = path.join(process.cwd(), "assets/fonts");
       const weights: Array<400 | 700 | 900> = [400, 700, 900];
       const fonts = await Promise.all(
         weights.map(async (w) => ({

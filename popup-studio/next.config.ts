@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   // Classic rendering model for the MVP (no Cache Components yet).
   serverExternalPackages: ["@resvg/resvg-js", "postgres"],
   outputFileTracingIncludes: {
-    "/*": ["./node_modules/@fontsource/noto-sans-jp/files/*-japanese-*-normal.woff"],
+    "/*": ["./assets/fonts/*.woff"],
   },
   turbopack: {
     rules: {
