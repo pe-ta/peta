@@ -3,6 +3,7 @@ import { z } from "zod";
 import { APPEAL_AXES, type AppealAxis, type Brief } from "./types";
 import { generateJson, providerLabel, resolveProvider } from "./llm";
 import { BUTTON_PAIRS, EYEBROWS, BADGES } from "./corpus";
+import { describeEntry, findSimilar } from "./library";
 
 /**
  * Copy generation for the five-band popup structure (ribbon / question /
@@ -62,6 +63,11 @@ export async function generateCopy(brief: Brief, axes: AppealAxis[]): Promise<{ 
     return { variants: fallbackCopy(brief, axes), source: "fallback", note: "生成AIの API キー未設定のためルールベースで生成" };
   }
   const axisLabels = axes.map((a) => `${a}（${APPEAL_AXES.find((x) => x.id === a)?.label}: ${APPEAL_AXES.find((x) => x.id === a)?.hint}）`).join("\n- ");
+  // Few-shot from the past-popup library: same industry / hook. OCR text, so treat as style reference only.
+  const examples = axes.flatMap((a) => findSimilar(brief, a, 2)).filter((e, i, arr) => arr.findIndex((x) => x.id === e.id) === i).slice(0, 6);
+  const exampleText = examples.length
+    ? `\n# 同業種・同フックの過去実績（OCR 抽出のため誤字あり。文体と構造の参考にし、文言はコピーしない）\n${examples.map((e) => `- [${e.industry} / ${e.hook}] ${describeEntry(e)}`).join("\n")}\n`
+    : "";
   const user = `# ブリーフ
 クライアント: ${brief.clientName}（業種: ${brief.industry}）
 LP: ${brief.lpUrl}
@@ -73,7 +79,7 @@ LP概要: ${brief.lpDescription ?? "不明"}
 トーン: ${brief.brand.tone}
 NGワード: ${brief.brand.ngWords.join("、") || "なし"}
 補足: ${brief.notes ?? "なし"}
-
+${exampleText}
 # 依頼
 以下のフックそれぞれについて1案ずつ、合計${axes.length}案を作成してください:
 - ${axisLabels}

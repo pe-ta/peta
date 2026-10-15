@@ -14,6 +14,8 @@ import { NextStep } from "@/components/NextStep";
 import { Flash, readFlash } from "@/components/Flash";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { PendingButton } from "@/components/PendingButton";
+import { SimilarCases } from "@/components/SimilarCases";
+import { findSimilar } from "@/lib/library";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -35,6 +37,7 @@ export default async function BriefPage({ params, searchParams }: { params: Prom
   const unanalyzed = candidates.filter((c) => !c.critique).length;
   const ended = creatives.filter((c) => c.status === "ended");
   const hasExperiment = Boolean(brief.championId) || creatives.some((c) => c.status === "live");
+  const similar = findSimilar(brief, brief.appealAxes[0], 6);
 
   const experimentSection = (
     <section className="card flex flex-col gap-4 p-4">
@@ -143,6 +146,8 @@ export default async function BriefPage({ params, searchParams }: { params: Prom
           {experimentSection}
         </>
       )}
+
+      <SimilarCases entries={similar} />
 
       <section className="grid gap-6 lg:grid-cols-2">
         <div className="card flex flex-col gap-3 p-4">

@@ -26,18 +26,32 @@ POSITIVE = re.compile(r"はい|YES|診断|チェック|知りたい|やってみ
 NEGATIVE = re.compile(r"いいえ|NO|また今度|やらない|今じゃない|しない|興味ない|けっこう|結構")
 BADGE = re.compile(r"30秒|無料|簡単|かんたん|カンタン|\d+問|\d+分|LINE")
 HOOK_RULES = [
-    ("invitation", re.compile(r"招待状")),
-    ("compatibility", re.compile(r"相性|ぴったり|ピッタリ|合う|合って|あって")),
-    ("diagnosis", re.compile(r"診断|チェック|タイプ")),
-    ("campaign", re.compile(r"キャンペーン|プレゼント|OFF|％|%|円|無料体験|モニター|特典|クーポン")),
-    ("quiz", re.compile(r"でしょうか|どれ|どっち|何%|いくら|クイズ")),
-    ("pain", re.compile(r"不安|悩|困|迷|モヤモヤ|疲れ|薄く|生えて|痛|続かない|気になる")),
-    ("price", re.compile(r"いくら|価格|料金|費用|かかる")),
+    ("invitation", re.compile(r"招待状|招待")),
+    ("campaign", re.compile(r"キャンペーン|プレゼント|OFF|％|%|万円|無料体験|モニター|特典|クーポン|0円")),
+    ("price", re.compile(r"いくら|価格|料金|費用|かかる|安く")),
+    ("quiz", re.compile(r"でしょうか|クイズ|Q\.|答え")),
+    ("type_choice", re.compile(r"どっち|どれ|どちら|タイプ")),
+    ("pain", re.compile(r"不安|悩|困|迷|モヤモヤ|疲れ|薄く|生えて|痛|続かない|しんどい|面倒")),
+    ("compatibility", re.compile(r"相性|ぴったり|ピッタリ|合う|合って|あって|合った|診断|チェック")),
+]
+
+# Frequent OCR confusions in this corpus (EasyOCR, Japanese display fonts).
+OCR_FIX = [
+    (re.compile(r"また今慶"), "また今度"),
+    (re.compile(r"秘"), "秒"),
+    (re.compile(r"チェツク"), "チェック"),
+    (re.compile(r"\[NE|LNE|L1NE|LlNE"), "LINE"),
+    (re.compile(r"Al(?=[^a-z])"), "AI"),
+    (re.compile(r"[』『「」:：;；・.]+$"), ""),
+    (re.compile(r"^[』『「」:：;；・.]+"), ""),
 ]
 
 
 def norm(t: str) -> str:
-    return re.sub(r"\s+", "", t).replace("！", "!").replace("？", "?")
+    t = re.sub(r"\s+", "", t).replace("！", "!").replace("？", "?")
+    for rx, rep in OCR_FIX:
+        t = rx.sub(rep, t)
+    return t
 
 
 def main() -> int:
@@ -63,7 +77,7 @@ def main() -> int:
             if "boxes" not in rec:
                 continue
             n_ok += 1
-            boxes = [b for b in rec["boxes"] if b["conf"] >= 0.3 and norm(b["text"])]
+            boxes = [b for b in rec["boxes"] if b["conf"] >= 0.55 and norm(b["text"])]
             top = [b for b in boxes if b["y1"] <= 0.16]
             bottom = [b for b in boxes if b["y0"] >= 0.76 and len(norm(b["text"])) <= 12]
             middle = [b for b in boxes if b not in top and b not in bottom]
@@ -79,7 +93,11 @@ def main() -> int:
             if len(btn_labels) >= 3 and not neg:
                 structure = "multi_choice"
             alltext = norm(" ".join(b["text"] for b in boxes))
-            hook = next((h for h, rx in HOOK_RULES if rx.search(eyebrow + " " + headline)), "other")
+            hook = next((h for h, rx in HOOK_RULES if rx.search(eyebrow + " " + headline)), None)
+            if hook is None:
+                hook = next((h for h, rx in HOOK_RULES if rx.search(alltext)), "other")
+            if structure == "multi_choice" and hook in ("other", "compatibility"):
+                hook = "type_choice"
             hook_all = [h for h, rx in HOOK_RULES if rx.search(alltext)]
             inv_row = inv.get(rec["name"], {})
             tags = {
