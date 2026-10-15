@@ -117,6 +117,36 @@ def analyse_video(path: Path) -> dict:
 
 
 NAME_TOKENS = re.compile(r"[\s_\-()（）【】\[\]・.]+")
+JOB_RE = re.compile(r"^(?P<client>.+?)_(?P<job>\d{4,7})(?:_(?P<rest>.*))?$")
+KIND_ALIASES = {
+    "popup": "popup", "pop": "popup", "pu": "popup", "poup": "popup", "popup1": "popup", "popup2": "popup",
+    "offer": "offer", "question": "question", "設問": "question", "q": "question",
+    "linebg": "linebg", "rm": "richmenu", "im": "imagemap", "cta": "cta", "icon": "icon",
+    "banner": "banner", "バナー": "banner", "campaign": "campaign", "other": "other", "fv": "fv",
+    "flex": "flex", "cpf": "cpf",
+}
+
+
+def parse_name(name: str) -> dict:
+    """ZEALS naming: <client>_<7-digit job>_<kind>_<variant...>.<ext>. Unparsable names get kind 'unknown'."""
+    stem = Path(name).stem
+    stem = stem.split("__", 1)[1] if "__" in stem and len(stem.split("__", 1)[0]) >= 25 else stem  # strip "<driveId>__"
+    m = JOB_RE.match(stem)
+    if not m:
+        return {"client": stem.split("_")[0], "job": "", "kind": "unknown", "variant": stem}
+    rest = m.group("rest") or ""
+    tokens = [t for t in rest.split("_") if t]
+    kind = "unknown"
+    variant_tokens = tokens
+    for i, t in enumerate(tokens):
+        key = t.lower()
+        if key in KIND_ALIASES:
+            kind = KIND_ALIASES[key]
+            variant_tokens = tokens[:i] + tokens[i + 1:]
+            break
+    if kind == "unknown":
+        kind = "unlabeled"  # job id present but no kind token; the delivered set is popups, so treated as popup downstream
+    return {"client": m.group("client"), "job": m.group("job"), "kind": kind, "variant": "_".join(variant_tokens)}
 
 
 def name_tokens(name: str) -> list[str]:
@@ -140,18 +170,21 @@ def main() -> int:
         ext = p.suffix.lower()
         try:
             if ext in IMAGE_EXT:
-                rows.append(analyse_image(p, thumb_dir))
+                row = analyse_image(p, thumb_dir)
             elif ext in VIDEO_EXT:
-                rows.append(analyse_video(p))
+                row = analyse_video(p)
             else:
                 errors.append({"name": p.name, "error": f"unsupported extension {ext}"})
+                continue
+            row.update(parse_name(p.name))
+            rows.append(row)
         except Exception as e:  # noqa: BLE001 - we want to keep going on corrupt files
             errors.append({"name": p.name, "error": str(e)[:200]})
         if i % 100 == 0:
             print(f"{i}/{len(files)}", file=sys.stderr)
 
     # CSV
-    cols = ["name", "format", "ext", "width", "height", "aspect", "bucket", "bytes", "frames", "duration_ms", "loop", "edge_density", "palette", "layout"]
+    cols = ["name", "client", "job", "kind", "variant", "format", "ext", "width", "height", "aspect", "bucket", "bytes", "frames", "duration_ms", "loop", "edge_density", "palette", "layout"]
     with (out / "inventory.csv").open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore")
         w.writeheader()
@@ -176,10 +209,22 @@ def main() -> int:
         for c in r["palette"][:2]:
             palette[c["hex"]] += 1
 
+    by_kind = Counter(r["kind"] for r in rows)
+    by_client = Counter(r["client"] for r in rows)
+    jobs = {r["job"] for r in rows if r["job"]}
+    bucket_by_kind: dict[str, Counter] = defaultdict(Counter)
+    for r in imgs:
+        bucket_by_kind[r["kind"]][r["bucket"]] += 1
+
     summary = {
         "files": len(files),
         "analysed": len(rows),
         "errors": len(errors),
+        "kinds": dict(by_kind.most_common()),
+        "clients": len(by_client),
+        "jobs": len(jobs),
+        "clients_top": by_client.most_common(40),
+        "size_buckets_by_kind": {k: c.most_common(6) for k, c in bucket_by_kind.items()},
         "formats": dict(by_format.most_common()),
         "aspect": dict(by_aspect.most_common()),
         "size_buckets_top": by_bucket.most_common(15),
@@ -195,7 +240,7 @@ def main() -> int:
     }
     (out / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
     (out / "errors.json").write_text(json.dumps(errors, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(json.dumps({k: summary[k] for k in ("files", "analysed", "errors", "formats", "aspect", "gif")}, ensure_ascii=False, indent=2))
+    print(json.dumps({k: summary[k] for k in ("files", "analysed", "errors", "kinds", "clients", "jobs", "formats", "aspect", "gif")}, ensure_ascii=False, indent=2))
     return 0
 
 
