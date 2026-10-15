@@ -55,6 +55,26 @@ export async function GET() {
       });
     }
   }
+  // Every brief, the way the board and brief pages read them: surfaces data-shape problems per document.
+  await step("allBriefs", async () => {
+    const problems: string[] = [];
+    for (const b of briefs) {
+      try {
+        const cs = await db.creatives.listByBrief(b.id);
+        for (const c of cs) {
+          try {
+            runPreflight(b, c);
+            dnaOf(c);
+          } catch (err) {
+            problems.push(`${b.id}/${c.id}: ${err instanceof Error ? err.message : String(err)}`);
+          }
+        }
+      } catch (err) {
+        problems.push(`${b.id}: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+    return { briefs: briefs.length, problems };
+  });
   report.totalMs = Date.now() - t0;
   return Response.json(report, { headers: { "cache-control": "no-store" } });
 }

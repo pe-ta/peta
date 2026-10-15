@@ -1,5 +1,5 @@
 import "server-only";
-import type { Brief, Creative, Learning, Review } from "./types";
+import { normalizeAppeal, normalizeMotion, normalizeVisual, WIN_METRICS, type Brief, type Creative, type Learning, type Review } from "./types";
 
 /**
  * Document store with two backends:
@@ -110,16 +110,53 @@ export function getStore(): Store {
 
 // Typed helpers -------------------------------------------------------------
 
+/**
+ * Documents written by earlier versions lack fields added later (v0.1 briefs have no
+ * winMetric; v0.3 ids for axes/motions/templates were renamed in v0.4). Reads go
+ * through these upgraders so every page sees the current shape.
+ */
+export function upgradeBrief(b: Brief): Brief {
+  return {
+    ...b,
+    winMetric: WIN_METRICS.some((m) => m.id === b.winMetric) ? b.winMetric : "line_add_rate",
+    deviceSize: b.deviceSize === "pc" ? "pc" : "sp",
+    appealAxes: [...new Set((b.appealAxes ?? []).map((a) => normalizeAppeal(a)))],
+    visualAxes: [...new Set((b.visualAxes ?? []).map((v) => normalizeVisual(v)))],
+    motions: [...new Set((b.motions ?? []).map((m) => normalizeMotion(m)))],
+    brand: { primary: "#0b6e4f", accent: "#e5484d", background: "#ffffff", text: "#1a1a1a", logoText: b.clientName ?? "", ngWords: [], tone: "", ...(b.brand ?? {}) },
+    offer: b.offer ?? "",
+    target: b.target ?? "",
+    exitContext: b.exitContext ?? "",
+    copySource: b.copySource ?? "fallback",
+  };
+}
+
+export function upgradeCreative(c: Creative): Creative {
+  return {
+    ...c,
+    appealAxis: normalizeAppeal(c.appealAxis),
+    visualAxis: normalizeVisual(c.visualAxis),
+    motion: normalizeMotion(c.motion),
+    version: c.version ?? 1,
+    slots: { eyebrow: "", headline: "", sub: "", cta: "", ...(c.slots ?? {}) },
+  };
+}
+
 export const db = {
   briefs: {
-    get: (id: string) => getStore().get<Brief>("brief", id),
-    list: () => getStore().list<Brief>("brief"),
+    get: async (id: string) => {
+      const b = await getStore().get<Brief>("brief", id);
+      return b ? upgradeBrief(b) : null;
+    },
+    list: async () => (await getStore().list<Brief>("brief")).map(upgradeBrief),
     put: (b: Brief) => getStore().put("brief", b),
   },
   creatives: {
-    get: (id: string) => getStore().get<Creative>("creative", id),
-    listByBrief: (briefId: string) =>
-      getStore().list<Creative>("creative", (c) => c.briefId === briefId),
+    get: async (id: string) => {
+      const c = await getStore().get<Creative>("creative", id);
+      return c ? upgradeCreative(c) : null;
+    },
+    listByBrief: async (briefId: string) => (await getStore().list<Creative>("creative", (c) => c.briefId === briefId)).map(upgradeCreative),
     put: (c: Creative) => getStore().put("creative", c),
     delete: (id: string) => getStore().delete("creative", id),
   },

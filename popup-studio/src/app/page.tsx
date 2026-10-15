@@ -76,7 +76,7 @@ export default async function Board() {
           <h2 className="text-lg font-black">クライアント別</h2>
           <ul className="flex flex-col gap-3">
             {rows.map((r) => {
-              const metric = WIN_METRICS.find((m) => m.id === r.brief.winMetric)!;
+              const metric = WIN_METRICS.find((m) => m.id === r.brief.winMetric) ?? WIN_METRICS[0];
               return (
                 <li key={r.brief.id} className="card grid gap-4 p-4 lg:grid-cols-[88px_minmax(0,1fr)_auto]">
                   <Link href={`/briefs/${r.brief.id}`} className="block">

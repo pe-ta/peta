@@ -20,7 +20,7 @@ export function ExperimentTable({
   const live = creatives.filter(
     (c) => c.status === "live" && c.id !== brief.championId,
   );
-  const metric = WIN_METRICS.find((m) => m.id === brief.winMetric)!;
+  const metric = WIN_METRICS.find((m) => m.id === brief.winMetric) ?? WIN_METRICS[0];
 
   if (!champion && live.length === 0) {
     return (
@@ -65,7 +65,7 @@ function Row({
   c: Creative;
   role: "champion" | "challenger";
 }) {
-  const metric = WIN_METRICS.find((m) => m.id === brief.winMetric)!;
+  const metric = WIN_METRICS.find((m) => m.id === brief.winMetric) ?? WIN_METRICS[0];
   const r = c.results;
   const cmp =
     role === "challenger"

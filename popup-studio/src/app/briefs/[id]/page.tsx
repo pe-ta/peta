@@ -30,7 +30,7 @@ export default async function BriefPage({ params, searchParams }: { params: Prom
   const learnings = (await db.learnings.listByBrief(id)).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const token = reviewToken(id);
   const reviewPath = `/review/${token}`;
-  const metric = WIN_METRICS.find((m) => m.id === brief.winMetric)!;
+  const metric = WIN_METRICS.find((m) => m.id === brief.winMetric) ?? WIN_METRICS[0];
 
   const approved = creatives.filter((c) => c.status === "approved");
   const candidates = creatives.filter((c) => !["live", "ended"].includes(c.status));
