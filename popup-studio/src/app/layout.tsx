@@ -40,7 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           )}
         </header>
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">{children}</main>
-        <footer className="border-t border-line py-4 text-center text-xs text-muted">Popup Lab v0.3 — ZEALS 離脱時ポップアップ検証速度 3x プロジェクト</footer>
+        <footer className="border-t border-line py-4 text-center text-xs text-muted">Popup Lab v0.4 — ZEALS 離脱時ポップアップ検証速度 3x プロジェクト</footer>
       </body>
     </html>
   );
