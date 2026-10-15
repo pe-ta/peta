@@ -67,7 +67,7 @@ export function normalizeMotion(id: string): Motion {
 }
 
 /** レイアウト（テンプレート）。実績構造の 4 型。 */
-export type LayoutId = "question" | "invitation" | "campaign" | "choice";
+export type LayoutId = "question" | "invitation" | "campaign" | "choice" | "photo-full" | "bubble" | "tiles";
 
 export interface BrandKit {
   primary: string; // hex

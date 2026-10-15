@@ -26,8 +26,8 @@ export async function expandBrief(brief: Brief, opts?: { hypothesis?: Hypothesis
 
   for (const v of variants) {
     const options = v.options?.map((o) => o.trim()).filter(Boolean).slice(0, 3) ?? [];
-    const template = templateFor(v.appealAxis, options.length >= 2);
     for (const visual of visuals) {
+      const template = templateFor(v.appealAxis, { options: options.length, visual });
       // Invitation and choice layouts never show a photo: one cell is enough.
       if (visual === "photo" && !template.usesPhoto) continue;
       for (const motion of motions) {
@@ -48,7 +48,7 @@ export async function expandBrief(brief: Brief, opts?: { hypothesis?: Hypothesis
             headline: v.headline,
             sub: v.sub,
             cta: v.cta,
-            negative: template.id === "choice" ? undefined : v.negative || undefined,
+            negative: template.id === "choice" || template.id === "tiles" ? undefined : v.negative || undefined,
             badge: v.badge || undefined,
             options: options.length >= 2 ? options : undefined,
             imageUrl: visual === "photo" ? brief.lpOgImage : undefined,

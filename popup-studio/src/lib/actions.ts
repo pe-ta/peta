@@ -11,9 +11,10 @@ import { critiqueCreative } from "./critique";
 import { aiAvailable } from "./ai";
 import { compare, formatRate } from "./stats";
 import { APPEAL_AXES, HYPOTHESIS_SOURCES, HYPOTHESIS_STATUS, MOTIONS, VISUAL_AXES, WIN_METRICS } from "./types";
-import type { AppealAxis, Brief, CreativeStatus, Hypothesis, Learning, Motion, RejectReason, ResultSnapshot, Review, VisualAxis, WinMetric } from "./types";
+import type { AppealAxis, Brief, CreativeStatus, Hypothesis, Learning, Motion, RejectReason, Review, VisualAxis, WinMetric } from "./types";
 import { TEMPLATES } from "./templates";
 import { dnaOf } from "./dna";
+import { applyResults, parseResultsText } from "./results";
 
 // Helpers -------------------------------------------------------------------
 
@@ -569,65 +570,12 @@ export async function importResultsAction(formData: FormData) {
   if (!brief) back("/", { err: "ブリーフが見つかりません" });
   const text = str(formData, "csv");
   if (!text) back(`/briefs/${briefId}`, { err: "CSV を貼り付けてください" });
-  const creatives = await db.creatives.listByBrief(briefId);
-  const byId = new Map(creatives.map((c) => [c.id, c]));
-  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-  const sep = lines[0].includes("\t") ? "\t" : ",";
-  const header = lines[0].split(sep).map((h) => h.trim().toLowerCase().replace(/^"|"$/g, ""));
-  const col = (...names: string[]) => header.findIndex((h) => names.some((n) => h === n || h.includes(n)));
-  const ci = col("creative_id", "creative", "zc", "案id", "案 id", "id");
-  const di = col("date", "日付", "日");
-  const ii = col("impressions", "表示", "imp");
-  const ki = col("clicks", "タップ", "クリック", "click");
-  const li = col("line_adds", "lineadds", "友だち", "line追加", "追加");
-  const vi = col("conversions", "cv", "コンバージョン");
-  const bi = col("blocks", "ブロック");
-  if (ci < 0 || ii < 0) back(`/briefs/${briefId}`, { err: "ヘッダーに 案ID（creative_id）と 表示（impressions）の列が必要です" });
-  const today = new Date().toISOString().slice(0, 10);
-  const num = (cells: string[], i: number) => (i >= 0 ? Math.max(0, Math.round(Number(String(cells[i] ?? "").replace(/[,"]/g, "")) || 0)) : 0);
-  let imported = 0;
-  const unknown = new Set<string>();
-  const latest = new Map<string, ResultSnapshot>();
-  for (const line of lines.slice(1)) {
-    const cells = line.split(sep).map((c) => c.trim());
-    const raw = (cells[ci] ?? "").replace(/^"|"$/g, "");
-    const id = raw.replace(/^zc=/, "").trim();
-    const c = byId.get(id) ?? creatives.find((x) => id.endsWith(x.id));
-    if (!c) {
-      if (id) unknown.add(id);
-      continue;
-    }
-    const date = di >= 0 && /^\d{4}-\d{2}-\d{2}/.test(cells[di] ?? "") ? cells[di].slice(0, 10) : today;
-    const snap: ResultSnapshot = {
-      id: `sn_${c.id}_${date}`,
-      briefId,
-      creativeId: c.id,
-      date,
-      impressions: num(cells, ii),
-      clicks: num(cells, ki),
-      lineAdds: num(cells, li),
-      conversions: num(cells, vi),
-      blocks: bi >= 0 ? num(cells, bi) : undefined,
-      source: "csv",
-      createdAt: nowIso(),
-    };
-    await db.snapshots.put(snap);
-    imported++;
-    const prev = latest.get(c.id);
-    if (!prev || prev.date <= snap.date) latest.set(c.id, snap);
-  }
-  for (const [cid, snap] of latest) {
-    const c = byId.get(cid)!;
-    // Keep the creative's results at the newest snapshot we know of (across imports).
-    const all = await db.snapshots.listByCreative(cid);
-    const newest = all.sort((a, b) => b.date.localeCompare(a.date))[0] ?? snap;
-    c.results = { impressions: newest.impressions, clicks: newest.clicks, lineAdds: newest.lineAdds, conversions: newest.conversions, blocks: newest.blocks, updatedAt: nowIso() };
-    c.updatedAt = nowIso();
-    await db.creatives.put(c);
-  }
+  const parsed = parseResultsText(text);
+  if (parsed.error) back(`/briefs/${briefId}`, { err: parsed.error });
+  const r = await applyResults(briefId, parsed.rows, "csv");
   revalidatePath(`/briefs/${briefId}`);
   revalidatePath("/");
-  const warn = unknown.size ? `。未知の案ID ${unknown.size} 件は無視（${[...unknown].slice(0, 3).join(", ")}）` : "";
-  if (imported === 0) back(`/briefs/${briefId}`, { err: `取り込める行がありませんでした${warn}` });
-  back(`/briefs/${briefId}`, { msg: `${imported} 行を取り込み、${latest.size} 案の結果を更新しました${warn}` });
+  const warn = r.unknown.length ? `。未知の案ID ${r.unknown.length} 件は無視（${r.unknown.slice(0, 3).join(", ")}）` : "";
+  if (r.imported === 0) back(`/briefs/${briefId}`, { err: `取り込める行がありませんでした${warn}` });
+  back(`/briefs/${briefId}`, { msg: `${r.imported} 行を取り込み、${r.updated} 案の結果を更新しました${warn}` });
 }

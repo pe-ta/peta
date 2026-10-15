@@ -28,7 +28,7 @@ export function runPreflight(brief: Brief, creative: Creative, bytes?: { format:
   const f = template.fontSizes(brief.deviceSize);
   const c = resolveColors(brief, creative.slots);
   const s = creative.slots;
-  const isChoice = template.id === "choice";
+  const isChoice = template.id === "choice" || template.id === "tiles";
 
   // Contrast ---------------------------------------------------------------
   const surfaces = templateSurfaces(template.id, c);

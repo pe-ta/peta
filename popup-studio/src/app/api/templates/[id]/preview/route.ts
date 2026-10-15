@@ -41,7 +41,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     visualAxis: "art",
     motion: "static",
     hypothesis: v.hypothesis,
-    slots: { eyebrow: v.eyebrow, headline: v.headline, sub: v.sub, cta: v.cta, negative: template.id === "choice" ? undefined : v.negative || undefined, badge: v.badge || undefined, options: template.id === "choice" ? (v.options?.length ? v.options : ["価格の安さ", "サポートの手厚さ"]) : undefined },
+    slots: { eyebrow: v.eyebrow, headline: v.headline, sub: v.sub, cta: v.cta, negative: template.id === "choice" || template.id === "tiles" ? undefined : v.negative || undefined, badge: v.badge || undefined, options: template.id === "choice" || template.id === "tiles" ? (v.options?.length ? v.options : ["価格の安さ", "サポートの手厚さ"]) : undefined },
     status: "draft",
     version: 1,
   };

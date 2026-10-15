@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import type { ReactElement } from "react";
-import type { Brief, Creative, CreativeSlots, Motion, LayoutId, AppealAxis } from "../types";
+import type { Brief, Creative, CreativeSlots, Motion, LayoutId, AppealAxis, VisualAxis } from "../types";
 import { normalizeAppeal, normalizeMotion, normalizeVisual } from "../types";
 import { complementaryButton, contrast, ensureButtonColor, hueDistance, mix, normalizeHex, readableOn, saturation } from "../color";
 
@@ -507,7 +507,166 @@ const choice: Template = {
   },
 };
 
-export const TEMPLATES: Template[] = [question, invitation, campaign, choice];
+
+// Template 5: full-bleed photo ------------------------------------------------
+
+const photoFull: Template = {
+  id: "photo-full",
+  name: "全面写真型",
+  description: "写真を全面に敷き、下部の暗い帯に質問とボタン対。人物・店舗・商品の写真が強いクライアント向け（実績: ジム・サロン・宅配食）。",
+  hooks: ["pain", "compatibility", "price"],
+  usesPhoto: true,
+  spec: SPECS,
+  fontSizes(size) {
+    const L = layoutFor(size);
+    return { headline: Math.round(L.f.headline * 0.95), sub: L.f.sub, cta: L.f.cta, eyebrow: L.f.eyebrow };
+  },
+  render({ brief, creative, size, t, allowImages }) {
+    const L = layoutFor(size);
+    const c = resolveColors(brief, creative.slots);
+    const s = creative.slots;
+    const lit = blinkOn(creative.motion, t);
+    const isCursor = normalizeMotion(creative.motion) === "cursor";
+    const url = allowImages ? s.imageUrl : undefined;
+    const panelH = Math.round(L.H * 0.46);
+    const dark = mix(c.primary, "#000000", 0.72);
+    return (
+      <Frame L={L} background={dark} m={motionStyle(creative.motion, t)}>
+        {/* photo or brand gradient filling the top */}
+        <div style={{ display: "flex", position: "absolute", left: 0, top: 0, width: L.W, height: L.H - panelH + Math.round(L.H * 0.08), overflow: "hidden" }}>
+          {url ? (
+            <img src={url} alt="" width={L.W} height={L.H} style={{ width: L.W, height: L.H - panelH + Math.round(L.H * 0.08), objectFit: "cover" }} />
+          ) : (
+            <div style={{ display: "flex", width: L.W, height: L.H, background: `linear-gradient(160deg, ${mix(c.primary, "#ffffff", 0.3)} 0%, ${c.primary} 60%, ${dark} 100%)` }} />
+          )}
+        </div>
+        {/* dark panel with the question */}
+        <div style={{ display: "flex", position: "absolute", left: 0, bottom: 0, width: L.W, height: panelH, background: `linear-gradient(180deg, ${dark}00 0%, ${dark} 18%, ${dark} 100%)` }} />
+        <div style={{ display: "flex", position: "absolute", left: 0, top: Math.round(L.pad * 0.7), width: L.W, justifyContent: "center" }}>
+          <BadgePill text={s.eyebrow || "LINEで無料診断！"} bg={c.cta} L={L} />
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", position: "absolute", left: 0, bottom: L.bottom, width: L.W, gap: Math.round(L.pad * 0.5) }}>
+          <Headline text={s.headline} color="#ffffff" L={L} size={photoFull.fontSizes(size).headline} />
+          {s.sub ? <div style={{ display: "flex", justifyContent: "center", width: L.W - L.pad * 2, fontSize: L.f.sub, fontWeight: 700, color: mix("#ffffff", dark, 0.25), textAlign: "center" }}>{s.sub}</div> : null}
+          {s.badge ? <BadgePill text={s.badge} bg="#ffffff" L={L} /> : null}
+          <ButtonPair positive={s.cta} negative={s.negative} posBg={c.cta} negBg="#6b6b6b" L={L} lit={lit} pressed={pressedOn(creative.motion, t)} />
+          <Logo text={brief.brand.logoText} color={mix("#ffffff", dark, 0.45)} L={L} />
+        </div>
+        {isCursor ? <Cursor L={L} t={t} hasNegative={!!s.negative} /> : <div style={{ display: "flex" }} />}
+      </Frame>
+    );
+  },
+};
+
+// Template 6: speech-bubble question ------------------------------------------
+
+const bubble: Template = {
+  id: "bubble",
+  name: "吹き出し質問型",
+  description: "大きな吹き出しの中に質問、その下にビジュアルと小バッジ、ボタン対。「私たちにあなたのお悩みを相談してみませんか？」の実績構造。",
+  hooks: ["pain", "compatibility", "quiz"],
+  usesPhoto: true,
+  spec: SPECS,
+  fontSizes(size) {
+    const L = layoutFor(size);
+    return { headline: Math.round(L.f.headline * 0.9), sub: L.f.sub, cta: L.f.cta, eyebrow: L.f.eyebrow };
+  },
+  render({ brief, creative, size, t, allowImages }) {
+    const L = layoutFor(size);
+    const c = resolveColors(brief, creative.slots);
+    const s = creative.slots;
+    const lit = blinkOn(creative.motion, t);
+    const isCursor = normalizeMotion(creative.motion) === "cursor";
+    const url = allowImages && normalizeVisual(creative.visualAxis) === "photo" ? s.imageUrl : undefined;
+    const bg = mix(c.primary, "#ffffff", 0.9);
+    const innerW = L.W - L.pad * 2;
+    const d = Math.round(L.W * 0.36);
+    return (
+      <Frame L={L} background={bg} m={motionStyle(creative.motion, t)}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexGrow: 1, width: L.W, paddingTop: L.pad, paddingBottom: Math.round(L.pad * 0.5), justifyContent: "space-between" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: innerW }}>
+            <div style={{ display: "flex", fontSize: L.f.eyebrow, fontWeight: 900, color: c.primary, letterSpacing: 1 }}>{s.eyebrow || "そんなあなたへ"}</div>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: Math.round(L.pad * 0.5) }}>
+              <div style={{ display: "flex", justifyContent: "center", width: innerW, paddingTop: Math.round(L.pad * 0.8), paddingBottom: Math.round(L.pad * 0.8), paddingLeft: Math.round(L.pad * 0.7), paddingRight: Math.round(L.pad * 0.7), borderRadius: Math.round(L.pad * 0.9), background: "#ffffff", color: c.text, fontSize: bubble.fontSizes(size).headline, fontWeight: 900, lineHeight: 1.3, textAlign: "center", boxShadow: "0 14px 30px rgba(0,0,0,0.12)" }}>
+                {s.headline}
+              </div>
+              <div style={{ display: "flex", marginTop: -Math.round(L.pad * 0.35), width: Math.round(L.pad * 0.9), height: Math.round(L.pad * 0.9), background: "#ffffff", transform: "rotate(45deg)", borderRadius: 6 }} />
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            {url ? <PhotoVisual url={url} primary={c.primary} diameter={d} /> : <ArtVisual primary={c.primary} accent={c.accent} label={artLabel(normalizeAppeal(creative.appealAxis))} diameter={d} />}
+            {s.badge ? (
+              <div style={{ display: "flex", marginTop: -Math.round(L.f.badge * 1.1) }}>
+                <BadgePill text={s.badge} bg={c.cta} L={L} />
+              </div>
+            ) : null}
+            {s.sub ? <div style={{ display: "flex", justifyContent: "center", width: innerW, marginTop: Math.round(L.pad * 0.4), fontSize: L.f.sub, fontWeight: 700, color: mix(c.text, bg, 0.3), textAlign: "center" }}>{s.sub}</div> : null}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: Math.round(L.f.logo * 0.6) }}>
+            <ButtonPair positive={s.cta} negative={s.negative} posBg={c.cta} negBg={c.negative} L={L} lit={lit} pressed={pressedOn(creative.motion, t)} />
+            <Logo text={brief.brand.logoText} color={mix(c.text, bg, 0.5)} L={L} />
+          </div>
+        </div>
+        {isCursor ? <Cursor L={L} t={t} hasNegative={!!s.negative} /> : <div style={{ display: "flex" }} />}
+      </Frame>
+    );
+  },
+};
+
+// Template 7: two tiles -------------------------------------------------------
+
+const tiles: Template = {
+  id: "tiles",
+  name: "二択タイル型",
+  description: "「あなたはどっち？」の 2 択を大きなタイルで横に並べる。選択肢がそのまま会話の最初の分岐になる（実績: 塾・化粧品）。",
+  hooks: ["type_choice"],
+  usesPhoto: false,
+  spec: SPECS,
+  fontSizes(size) {
+    const L = layoutFor(size);
+    return { headline: L.f.headline, sub: L.f.sub, cta: Math.round(L.f.cta * 0.9), eyebrow: L.f.eyebrow };
+  },
+  render({ brief, creative, size, t }) {
+    const L = layoutFor(size);
+    const c = resolveColors(brief, creative.slots);
+    const s = creative.slots;
+    const lit = blinkOn(creative.motion, t);
+    const options = (s.options?.length ? s.options : [s.cta, s.negative].filter(Boolean) as string[]).slice(0, 2);
+    const innerW = L.W - L.pad * 2;
+    const tileW = Math.round((innerW - L.gap) / 2);
+    const tileH = Math.round(L.H * 0.3);
+    const fills = [c.primary, c.cta];
+    return (
+      <Frame L={L} background={c.background} m={motionStyle(creative.motion, t)}>
+        <Ribbon text={s.eyebrow || "あなたはどっち？"} bg={c.primary} fg={c.onPrimary} L={L} lit={lit} />
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexGrow: 1, width: L.W, paddingTop: L.pad, paddingBottom: Math.round(L.pad * 0.5), justifyContent: "space-between" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: Math.round(L.pad * 0.4) }}>
+            <Headline text={s.headline} color={c.text} L={L} />
+            {s.sub ? <div style={{ display: "flex", justifyContent: "center", width: innerW, fontSize: L.f.sub, fontWeight: 700, color: mix(c.text, c.background, 0.3), textAlign: "center" }}>{s.sub}</div> : null}
+          </div>
+          <div style={{ display: "flex", width: innerW, gap: L.gap }}>
+            {options.map((o, i) => {
+              const fill = i === 1 && lit ? mix(fills[i], "#ffffff", 0.2) : fills[i] ?? c.primary;
+              return (
+                <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: tileW, height: tileH, borderRadius: Math.round(L.pad * 0.6), background: fill, color: readableOn(fill), boxShadow: `0 10px 0 ${mix(fill, "#000000", 0.28)}, 0 16px 28px rgba(0,0,0,0.16)`, paddingLeft: Math.round(L.pad * 0.4), paddingRight: Math.round(L.pad * 0.4) }}>
+                  <div style={{ display: "flex", fontSize: Math.round(L.f.eyebrow * 0.8), fontWeight: 700, opacity: 0.85, marginBottom: Math.round(L.pad * 0.3) }}>{i === 0 ? "A" : "B"}</div>
+                  <div style={{ display: "flex", justifyContent: "center", fontSize: tiles.fontSizes(size).cta, fontWeight: 900, lineHeight: 1.3, textAlign: "center" }}>{o}</div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: Math.round(L.f.logo * 0.6) }}>
+            <BadgePill text={s.badge || "タップして診断スタート"} bg={c.cta} L={L} />
+            <Logo text={brief.brand.logoText} color={mix(c.text, c.background, 0.5)} L={L} />
+          </div>
+        </div>
+        <div style={{ display: "flex" }} />
+      </Frame>
+    );
+  },
+};
+
+export const TEMPLATES: Template[] = [question, invitation, campaign, choice, photoFull, bubble, tiles];
 
 const LEGACY_TEMPLATE: Record<string, LayoutId> = { "image-hero": "question", "text-bold": "question", coupon: "campaign" };
 
@@ -517,9 +676,13 @@ export function getTemplate(id: string): Template {
 }
 
 /** Layout for a hook. A copy variant that carries 2+ options always goes to the choice layout. */
-export function templateFor(hook: AppealAxis, hasOptions = false): Template {
-  if (hasOptions) return choice;
-  return TEMPLATES.find((t) => t.id !== "choice" && t.hooks.includes(hook)) ?? question;
+export function templateFor(hook: AppealAxis, opts: { options?: number; visual?: VisualAxis } = {}): Template {
+  const n = opts.options ?? 0;
+  if (n === 2 && hook === "type_choice") return tiles;
+  if (n >= 2) return choice;
+  // A photo cell for a pain / price hook reads best full-bleed; invitation and campaign keep their frames.
+  if (opts.visual === "photo" && (hook === "pain" || hook === "price")) return photoFull;
+  return TEMPLATES.find((t) => !["choice", "tiles", "photo-full", "bubble"].includes(t.id) && t.hooks.includes(hook)) ?? question;
 }
 
 /** The surfaces preflight has to check contrast on, per layout (kept next to the render code so they cannot drift). */

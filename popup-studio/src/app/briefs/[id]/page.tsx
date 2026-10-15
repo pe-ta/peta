@@ -18,6 +18,7 @@ import { SimilarCases } from "@/components/SimilarCases";
 import { findSimilar } from "@/lib/library";
 import { HypothesisBacklog } from "@/components/HypothesisBacklog";
 import { ResultsImport } from "@/components/ResultsImport";
+import { resultsToken } from "@/lib/results";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -34,6 +35,15 @@ export default async function BriefPage({ params, searchParams }: { params: Prom
   const snapshots = await db.snapshots.listByBrief(id);
   // Hypothesis suggestions: "next" lines from the learning log and the brief's unused hooks.
   const suggested = [...new Set([...learnings.map((l) => l.nextHypothesis).filter((x): x is string => !!x)])].slice(0, 6);
+  // Win rate per hook across all clients, shown next to the hook picker so priorities start from evidence.
+  const allLearnings = await db.learnings.list();
+  const hookStats: Record<string, { won: number; lost: number }> = {};
+  for (const l of allLearnings) {
+    if (!l.dna || (l.outcome !== "won" && l.outcome !== "lost")) continue;
+    const st = (hookStats[l.dna.hook] ??= { won: 0, lost: 0 });
+    if (l.outcome === "won") st.won++;
+    else st.lost++;
+  }
   const token = reviewToken(id);
   const reviewPath = `/review/${token}`;
   const metric = WIN_METRICS.find((m) => m.id === brief.winMetric) ?? WIN_METRICS[0];
@@ -52,7 +62,7 @@ export default async function BriefPage({ params, searchParams }: { params: Prom
         <p className="text-xs text-muted">結果を入力すると {metric.label} をベイズ推定で比較し、勝ち判定が出た挑戦者だけ昇格できます。</p>
       </div>
       <ExperimentTable brief={brief} creatives={creatives} snapshots={snapshots} />
-      {(hasExperiment || creatives.some((c) => c.status === "live")) && <ResultsImport briefId={brief.id} creativeIds={creatives.filter((c) => c.status === "live").map((c) => c.id)} />}
+      {(hasExperiment || creatives.some((c) => c.status === "live")) && <ResultsImport briefId={brief.id} creativeIds={creatives.filter((c) => c.status === "live").map((c) => c.id)} pushUrl={`${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/briefs/${brief.id}/results`} pushToken={resultsToken(brief.id)} />}
       {approved.length > 0 && (
         <div className="rounded-md border border-dashed border-accent/50 bg-accent-soft/30 p-3">
           <div className="text-xs font-black text-accent">承認済み・未配信（{approved.length}）</div>
@@ -145,13 +155,13 @@ export default async function BriefPage({ params, searchParams }: { params: Prom
       {hasExperiment ? (
         <>
           {experimentSection}
-          <HypothesisBacklog briefId={brief.id} hypotheses={hypotheses} creatives={creatives} suggested={suggested} />
+          <HypothesisBacklog briefId={brief.id} hypotheses={hypotheses} creatives={creatives} suggested={suggested} hookStats={hookStats} />
           {candidatesSection}
         </>
       ) : (
         <>
           {candidatesSection}
-          <HypothesisBacklog briefId={brief.id} hypotheses={hypotheses} creatives={creatives} suggested={suggested} />
+          <HypothesisBacklog briefId={brief.id} hypotheses={hypotheses} creatives={creatives} suggested={suggested} hookStats={hookStats} />
           {experimentSection}
         </>
       )}

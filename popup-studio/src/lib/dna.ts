@@ -25,7 +25,7 @@ export function dnaOf(creative: Creative): Dna {
   const hook = normalizeAppeal(creative.appealAxis);
   const s = creative.slots;
   const layout = getTemplate(creative.templateId).id;
-  const structure: Dna["structure"] = layout === "choice" && s.options && s.options.length >= 2 ? "multi_choice" : s.negative ? "two_buttons" : "single_cta";
+  const structure: Dna["structure"] = (layout === "choice" || layout === "tiles") && s.options && s.options.length >= 2 ? "multi_choice" : s.negative ? "two_buttons" : "single_cta";
   const text = [s.eyebrow, s.headline, s.sub, s.badge ?? "", s.cta, s.negative ?? "", ...(s.options ?? [])].join(" ");
   const tags = new Set<string>(APPEAL_AXES.find((a) => a.id === hook)?.be ?? []);
   for (const [re, tag] of TEXT_TAGS) if (re.test(text)) tags.add(tag);

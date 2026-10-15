@@ -16,7 +16,12 @@ const STATUS_CLASS: Record<Hypothesis["status"], string> = {
  * The hypothesis backlog: the unit of experimentation. Each entry becomes draft
  * creatives with one click, follows them through testing, and ends with an outcome.
  */
-export function HypothesisBacklog({ briefId, hypotheses, creatives, suggested }: { briefId: string; hypotheses: Hypothesis[]; creatives: Creative[]; suggested: string[] }) {
+export function HypothesisBacklog({ briefId, hypotheses, creatives, suggested, hookStats = {} }: { briefId: string; hypotheses: Hypothesis[]; creatives: Creative[]; suggested: string[]; hookStats?: Record<string, { won: number; lost: number }> }) {
+  const hookHint = (id: string) => {
+    const st = hookStats[id];
+    if (!st || st.won + st.lost === 0) return "";
+    return `（勝率 ${Math.round((st.won / (st.won + st.lost)) * 100)}% / ${st.won + st.lost} 件）`;
+  };
   const open = hypotheses.filter((h) => h.status !== "concluded" && h.status !== "dropped").sort((a, b) => a.priority - b.priority || a.createdAt.localeCompare(b.createdAt));
   const closed = hypotheses.filter((h) => h.status === "concluded" || h.status === "dropped").sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   const row = (h: Hypothesis) => {
@@ -103,7 +108,7 @@ export function HypothesisBacklog({ briefId, hypotheses, creatives, suggested }:
         <div className="grid gap-2 sm:grid-cols-4">
           <select name="hook" className="input text-xs" defaultValue="compatibility">
             {APPEAL_AXES.map((a) => (
-              <option key={a.id} value={a.id}>{a.label}</option>
+              <option key={a.id} value={a.id}>{a.label}{hookHint(a.id)}</option>
             ))}
           </select>
           <select name="priority" className="input text-xs" defaultValue="2">
