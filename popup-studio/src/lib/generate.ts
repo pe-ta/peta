@@ -1,7 +1,7 @@
 import "server-only";
 import { normalizeAppeal, normalizeMotion, normalizeVisual, type AppealAxis, type Brief, type Creative, type Hypothesis, type Motion, type VisualAxis } from "./types";
 import { generateCopy } from "./ai";
-import { templateFor } from "./templates";
+import { resolveMotion, templateFor } from "./templates";
 import { db, newId, nowIso } from "./store";
 
 /**
@@ -32,8 +32,8 @@ export async function expandBrief(brief: Brief, opts?: { hypothesis?: Hypothesis
       if (visual === "photo" && !template.usesPhoto) continue;
       for (const requested of motions) {
         // Stacked options and tiles have no finger animation: cursor becomes blink, and the cell is not duplicated.
-        const motion: Motion = requested === "cursor" && (template.id === "choice" || template.id === "tiles") ? "blink" : requested;
-        if (motion !== requested && motions.includes("blink")) continue;
+        const motion = resolveMotion(template.id, requested);
+        if (motion !== requested && motions.includes(motion)) continue; // same cell already generated
         const creative: Creative = {
           id: newId("cr"),
           briefId: brief.id,

@@ -45,6 +45,8 @@ export interface Template {
   hooks: AppealAxis[];
   /** Whether the layout can show a photo (otherwise a photo cell duplicates the art cell). */
   usesPhoto: boolean;
+  /** Whether the layout draws the finger cursor. Layouts without it render "cursor" as "blink". */
+  supportsCursor: boolean;
   spec: Record<"sp" | "pc", TemplateSpec>;
   fontSizes(size: "sp" | "pc"): { headline: number; sub: number; cta: number; eyebrow: number };
   render(args: RenderArgs): ReactElement;
@@ -300,6 +302,7 @@ const question: Template = {
   description: "帯 + 質問見出し + ビジュアル + 小バッジ + いいえ／はい。実績の主流構造。",
   hooks: ["compatibility", "pain", "price", "quiz"],
   usesPhoto: true,
+  supportsCursor: true,
   spec: SPECS,
   fontSizes(size) {
     const L = layoutFor(size);
@@ -367,6 +370,7 @@ const invitation: Template = {
   description: "「◯◯から招待状が届きました」の帯と封筒ビジュアル。特別扱いで自分事化する。",
   hooks: ["invitation"],
   usesPhoto: false,
+  supportsCursor: true,
   spec: SPECS,
   fontSizes(size) {
     const L = layoutFor(size);
@@ -412,6 +416,7 @@ const campaign: Template = {
   description: "帯 + 大きな数字（バッジ）+ 質問見出し + いいえ／はい。特典・価格の数字が主役。",
   hooks: ["campaign", "price"],
   usesPhoto: true,
+  supportsCursor: true,
   spec: SPECS,
   fontSizes(size) {
     const L = layoutFor(size);
@@ -463,6 +468,7 @@ const choice: Template = {
   description: "質問見出しの下に選択肢ボタンを 2〜3 本。会話の最初の質問をそのまま置く。",
   hooks: ["type_choice", "quiz"],
   usesPhoto: false,
+  supportsCursor: false,
   spec: SPECS,
   fontSizes(size) {
     const L = layoutFor(size);
@@ -473,7 +479,7 @@ const choice: Template = {
     const c = resolveColors(brief, creative.slots);
     const s = creative.slots;
     // No finger on stacked options: a cursor motion lights the first option instead.
-    const lit = blinkOn(creative.motion, t) || pressedOn(creative.motion, t);
+    const lit = blinkOn(creative.motion, t);
     const options = (s.options?.length ? s.options : [s.cta, s.negative].filter(Boolean) as string[]).slice(0, 3);
     const innerW = L.W - L.pad * 2;
     const optH = Math.round(L.buttonH * 0.92);
@@ -517,6 +523,7 @@ const photoFull: Template = {
   description: "写真を全面に敷き、下部の暗い帯に質問とボタン対。人物・店舗・商品の写真が強いクライアント向け（実績: ジム・サロン・宅配食）。",
   hooks: ["pain", "compatibility", "price"],
   usesPhoto: true,
+  supportsCursor: true,
   spec: SPECS,
   fontSizes(size) {
     const L = layoutFor(size);
@@ -567,6 +574,7 @@ const bubble: Template = {
   description: "大きな吹き出しの中に質問、その下にビジュアルと小バッジ、ボタン対。「私たちにあなたのお悩みを相談してみませんか？」の実績構造。",
   hooks: ["pain", "compatibility", "quiz"],
   usesPhoto: true,
+  supportsCursor: true,
   spec: SPECS,
   fontSizes(size) {
     const L = layoutFor(size);
@@ -622,6 +630,7 @@ const tiles: Template = {
   description: "「あなたはどっち？」の 2 択を大きなタイルで横に並べる。選択肢がそのまま会話の最初の分岐になる（実績: 塾・化粧品）。",
   hooks: ["type_choice"],
   usesPhoto: false,
+  supportsCursor: false,
   spec: SPECS,
   fontSizes(size) {
     const L = layoutFor(size);
@@ -632,7 +641,7 @@ const tiles: Template = {
     const c = resolveColors(brief, creative.slots);
     const s = creative.slots;
     // No finger on tiles: a cursor motion lights tile B instead.
-    const lit = blinkOn(creative.motion, t) || pressedOn(creative.motion, t);
+    const lit = blinkOn(creative.motion, t);
     const options = (s.options?.length ? s.options : [s.cta, s.negative].filter(Boolean) as string[]).slice(0, 2);
     const innerW = L.W - L.pad * 2;
     const tileW = Math.round((innerW - L.gap) / 2);
@@ -677,6 +686,12 @@ export function getTemplate(id: string): Template {
   return TEMPLATES.find((t) => t.id === mapped) ?? question;
 }
 
+/** The motion a layout actually renders: "cursor" degrades to "blink" where no finger is drawn. */
+export function resolveMotion(templateId: string, motion: Motion): Motion {
+  const m = normalizeMotion(motion);
+  return m === "cursor" && !getTemplate(templateId).supportsCursor ? "blink" : m;
+}
+
 /** Layout for a hook. A copy variant that carries 2+ options always goes to the choice layout. */
 export function templateFor(hook: AppealAxis, opts: { options?: number; visual?: VisualAxis } = {}): Template {
   const n = opts.options ?? 0;
@@ -689,13 +704,13 @@ export function templateFor(hook: AppealAxis, opts: { options?: number; visual?:
   return TEMPLATES.find((t) => !["choice", "tiles", "photo-full", "bubble"].includes(t.id) && t.hooks.includes(hook)) ?? question;
 }
 
-/** The surfaces preflight has to check contrast on, per layout (kept next to the render code so they cannot drift). */
 /** Text colour each layout draws its headline in (photo-full is white on a dark panel). */
 export function templateHeadlineColor(id: string, c: ResolvedColors) {
   const t = getTemplate(id).id;
   return t === "photo-full" ? "#ffffff" : c.text;
 }
 
+/** The surfaces preflight has to check contrast on, per layout (kept next to the render code so they cannot drift). */
 export function templateSurfaces(id: string, c: ResolvedColors): { ribbonBg: string; ribbonFg: string; headlineBg: string } {
   const t = getTemplate(id).id;
   if (t === "campaign") return { ribbonBg: c.accent, ribbonFg: c.onAccent, headlineBg: c.background };

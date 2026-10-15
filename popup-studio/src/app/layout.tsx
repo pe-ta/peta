@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import "./globals.css";
 import { getStore } from "@/lib/store";
 import { aiAvailable, aiProviderName } from "@/lib/ai";
+import { weakSecretInProduction } from "@/lib/secret";
+import { AppChrome, AppFooter } from "@/components/AppChrome";
 
 export const metadata: Metadata = {
   title: "Popup Lab",
@@ -13,37 +14,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const durable = getStore().durable;
   const ai = aiAvailable();
   const providerName = aiProviderName();
-  const weakSecret = process.env.NODE_ENV === "production" && !process.env.REVIEW_SECRET;
+  const weakSecret = weakSecretInProduction();
   return (
     <html lang="ja" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
-        <header className="border-b border-line bg-surface">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-            <Link href="/" className="flex items-baseline gap-2">
-              <span className="text-lg font-black tracking-tight">Popup Lab</span>
-              <span className="text-xs font-bold text-muted">勝ちポップアップ発見エンジン{providerName ? ` · AI: ${providerName}` : ""}</span>
-            </Link>
-            <nav className="flex items-center gap-3 text-sm">
-              <Link href="/" className="text-xs font-bold text-muted hover:text-ink">実験ボード</Link>
-              <Link href="/learnings" className="text-xs font-bold text-muted hover:text-ink">学び</Link>
-              <Link href="/templates" className="text-xs font-bold text-muted hover:text-ink">型</Link>
-              <Link href="/briefs/new" className="btn-primary">
-                新しい実験（ブリーフ）
-              </Link>
-            </nav>
-          </div>
-          {(!durable || !ai || weakSecret) && (
-            <div className="border-t border-warn/30 bg-warn-soft text-warn">
-              <div className="mx-auto max-w-6xl px-4 py-1.5 text-xs font-bold">
-                {!durable && <span className="mr-4">データベース未接続: データはインスタンスのメモリに保持され、再起動で消えます（DATABASE_URL を設定してください）。</span>}
-                {!ai && <span className="mr-4">生成AI未接続: コピー生成と辛口分析はルールベースで動きます（GEMINI_API_KEY / OPENAI_API_KEY / ANTHROPIC_API_KEY のいずれかを設定してください）。</span>}
-                {weakSecret && <span>承認リンクの署名キーが既定値です（REVIEW_SECRET を設定してください）。</span>}
-              </div>
-            </div>
-          )}
-        </header>
+        <AppChrome
+          providerName={providerName}
+          warnings={[
+            ...(!durable ? ["データベース未接続: データはインスタンスのメモリに保持され、再起動で消えます（DATABASE_URL を設定してください）。"] : []),
+            ...(!ai ? ["生成AI未接続: コピー生成と辛口分析はルールベースで動きます（GEMINI_API_KEY / OPENAI_API_KEY / ANTHROPIC_API_KEY のいずれかを設定してください）。"] : []),
+            ...(weakSecret ? ["署名キーが既定値です。承認リンクが偽造でき、結果の自動連携 API は無効です（REVIEW_SECRET を設定してください）。"] : []),
+          ]}
+        />
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">{children}</main>
-        <footer className="border-t border-line py-4 text-center text-xs text-muted">Popup Lab v0.5 — ZEALS 離脱時ポップアップ検証速度 3x プロジェクト</footer>
+        <AppFooter />
       </body>
     </html>
   );

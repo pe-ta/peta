@@ -14,6 +14,8 @@ export interface Store {
   readonly durable: boolean;
   get<T>(kind: Kind, id: string): Promise<T | null>;
   list<T>(kind: Kind, filter?: (doc: T) => boolean): Promise<T[]>;
+  /** Documents whose top-level string field equals value (indexed in Postgres). */
+  listBy<T>(kind: Kind, field: "briefId" | "creativeId", value: string): Promise<T[]>;
   put<T extends { id: string }>(kind: Kind, doc: T): Promise<T>;
   delete(kind: Kind, id: string): Promise<void>;
 }
@@ -37,6 +39,9 @@ class MemoryStore implements Store {
     const all = [...this.table(kind).values()] as T[];
     return filter ? all.filter(filter) : all;
   }
+  async listBy<T>(kind: Kind, field: "briefId" | "creativeId", value: string) {
+    return this.list<T>(kind, (d) => (d as Record<string, unknown>)[field] === value);
+  }
   async put<T extends { id: string }>(kind: Kind, doc: T) {
     this.table(kind).set(doc.id, doc);
     return doc;
@@ -56,7 +61,9 @@ class PostgresStore implements Store {
     if (!this.sqlPromise) {
       this.sqlPromise = (async () => {
         const postgres = (await import("postgres")).default;
-        const sql = postgres(this.url, { max: 3, ssl: "require", prepare: false });
+        // Neon / Vercel Postgres need TLS; a local or private database usually has none.
+        const local = /sslmode=disable/.test(this.url) || /@(localhost|127\.0\.0\.1|\[::1\])(:\d+)?\//.test(this.url);
+        const sql = postgres(this.url, { max: 3, ssl: local ? false : "require", prepare: false });
         await sql`
           CREATE TABLE IF NOT EXISTS documents (
             kind TEXT NOT NULL,
@@ -65,8 +72,14 @@ class PostgresStore implements Store {
             updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
             PRIMARY KEY (kind, id)
           )`;
+        await sql`CREATE INDEX IF NOT EXISTS documents_brief_idx ON documents (kind, (data->>'briefId'))`;
+        await sql`CREATE INDEX IF NOT EXISTS documents_creative_idx ON documents (kind, (data->>'creativeId'))`;
         return sql;
       })();
+      // A failed first connection must not poison the instance until restart.
+      this.sqlPromise.catch(() => {
+        this.sqlPromise = null;
+      });
     }
     return this.sqlPromise;
   }
@@ -81,6 +94,14 @@ class PostgresStore implements Store {
     const rows = await sql<{ data: T }[]>`SELECT data FROM documents WHERE kind = ${kind} ORDER BY updated_at DESC`;
     const all = rows.map((r) => r.data);
     return filter ? all.filter(filter) : all;
+  }
+  async listBy<T>(kind: Kind, field: "briefId" | "creativeId", value: string) {
+    const sql = await this.sql();
+    const rows =
+      field === "briefId"
+        ? await sql<{ data: T }[]>`SELECT data FROM documents WHERE kind = ${kind} AND data->>'briefId' = ${value} ORDER BY updated_at DESC`
+        : await sql<{ data: T }[]>`SELECT data FROM documents WHERE kind = ${kind} AND data->>'creativeId' = ${value} ORDER BY updated_at DESC`;
+    return rows.map((r) => r.data);
   }
   async put<T extends { id: string }>(kind: Kind, doc: T) {
     const sql = await this.sql();
@@ -164,31 +185,29 @@ export const db = {
       const c = await getStore().get<Creative>("creative", id);
       return c ? upgradeCreative(c) : null;
     },
-    listByBrief: async (briefId: string) => (await getStore().list<Creative>("creative", (c) => c.briefId === briefId)).map(upgradeCreative),
+    listByBrief: async (briefId: string) => (await getStore().listBy<Creative>("creative", "briefId", briefId)).map(upgradeCreative),
     put: (c: Creative) => getStore().put("creative", c),
     delete: (id: string) => getStore().delete("creative", id),
   },
   reviews: {
-    listByBrief: (briefId: string) =>
-      getStore().list<Review>("review", (r) => r.briefId === briefId),
+    listByBrief: (briefId: string) => getStore().listBy<Review>("review", "briefId", briefId),
     put: (r: Review) => getStore().put("review", r),
   },
   learnings: {
     list: () => getStore().list<Learning>("learning"),
-    listByBrief: (briefId: string) =>
-      getStore().list<Learning>("learning", (l) => l.briefId === briefId),
+    listByBrief: (briefId: string) => getStore().listBy<Learning>("learning", "briefId", briefId),
     put: (l: Learning) => getStore().put("learning", l),
   },
   hypotheses: {
     get: (id: string) => getStore().get<Hypothesis>("hypothesis", id),
     list: () => getStore().list<Hypothesis>("hypothesis"),
-    listByBrief: (briefId: string) => getStore().list<Hypothesis>("hypothesis", (h) => h.briefId === briefId),
+    listByBrief: (briefId: string) => getStore().listBy<Hypothesis>("hypothesis", "briefId", briefId),
     put: (h: Hypothesis) => getStore().put("hypothesis", h),
     delete: (id: string) => getStore().delete("hypothesis", id),
   },
   snapshots: {
-    listByBrief: (briefId: string) => getStore().list<ResultSnapshot>("snapshot", (s) => s.briefId === briefId),
-    listByCreative: (creativeId: string) => getStore().list<ResultSnapshot>("snapshot", (s) => s.creativeId === creativeId),
+    listByBrief: (briefId: string) => getStore().listBy<ResultSnapshot>("snapshot", "briefId", briefId),
+    listByCreative: (creativeId: string) => getStore().listBy<ResultSnapshot>("snapshot", "creativeId", creativeId),
     put: (s: ResultSnapshot) => getStore().put("snapshot", s),
   },
 };

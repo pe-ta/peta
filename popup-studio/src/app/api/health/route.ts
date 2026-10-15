@@ -11,12 +11,12 @@ export const maxDuration = 60;
 /**
  * Diagnostics for production incidents: runs each subsystem against the live
  * data and reports timings and error messages as JSON instead of a blank 500.
- * No secrets are echoed; only booleans for configuration.
+ * Public endpoint: returns only counts, timings and error messages; no client content or secrets.
  */
 export async function GET() {
   const t0 = Date.now();
   const report: Record<string, unknown> = {
-    version: "0.4",
+    version: "0.5",
     node: process.version,
     db: getStore().durable ? "postgres" : "memory",
     ai: aiProviderName() ?? "none",
@@ -43,12 +43,12 @@ export async function GET() {
   const sample = briefs[0];
   if (sample) {
     await step("creatives", async () => (await db.creatives.listByBrief(sample.id)).length);
-    await step("similar", async () => findSimilar(sample, undefined, 3).map((e) => e.headline));
+    await step("similar", async () => findSimilar(sample, undefined, 3).length);
     const creatives = await db.creatives.listByBrief(sample.id).catch(() => []);
     const c = creatives[0];
     if (c) {
       await step("preflight", async () => runPreflight(sample, c).score);
-      await step("dna", async () => dnaOf(c));
+      await step("dna", async () => dnaOf(c).tags.length);
       await step("render", async () => {
         const r = await renderCreative(sample, c, { format: "png", scale: 0.25 });
         return { bytes: r.bytes.byteLength, width: r.width, height: r.height, degraded: r.degraded };

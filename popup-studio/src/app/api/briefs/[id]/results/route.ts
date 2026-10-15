@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/store";
-import { applyResults, parseResultsJson, parseResultsText, secretIsDefault, verifyResultsToken } from "@/lib/results";
+import { applyResults, parseResultsJson, parseResultsText, verifyResultsToken } from "@/lib/results";
+import { weakSecretInProduction } from "@/lib/secret";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -18,10 +19,11 @@ export const maxDuration = 60;
  */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  if (process.env.NODE_ENV === "production" && secretIsDefault()) return Response.json({ error: "REVIEW_SECRET is not configured; the push API is disabled" }, { status: 503 });
   const auth = req.headers.get("authorization") ?? "";
   const token = auth.replace(/^Bearer\s+/i, "").trim();
+  // Authenticate first so anonymous callers learn nothing about the deployment's configuration.
   if (!token || !verifyResultsToken(id, token)) return Response.json({ error: "unauthorized (use Authorization: Bearer <token>)" }, { status: 401 });
+  if (weakSecretInProduction()) return Response.json({ error: "push API is disabled until REVIEW_SECRET is configured" }, { status: 503 });
   const brief = await db.briefs.get(id);
   if (!brief) return Response.json({ error: "brief not found" }, { status: 404 });
 
@@ -33,8 +35,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return Response.json({ error: `could not read body: ${err instanceof Error ? err.message : String(err)}` }, { status: 400 });
   }
   if (parsed.error) return Response.json({ error: parsed.error }, { status: 400 });
-  if (parsed.rows.length === 0) return Response.json({ error: "no rows" }, { status: 400 });
+  if (parsed.rows.length === 0) return Response.json({ error: "no rows", invalid: parsed.skipped ?? [] }, { status: 400 });
   const r = await applyResults(id, parsed.rows, "csv");
+  r.invalid.push(...(parsed.skipped ?? []));
   revalidatePath(`/briefs/${id}`);
   revalidatePath("/");
   return Response.json({ ok: true, ...r });

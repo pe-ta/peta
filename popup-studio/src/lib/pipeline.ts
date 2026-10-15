@@ -54,7 +54,7 @@ export function pipelineOf(brief: Brief, creatives: Creative[], hypotheses: Hypo
   if (submitted.length && since(newest(submitted)) > 3) stale.push(`${submitted.length} 案が提出から 3 日以上、返事なし。リマインドを`);
   if (approved.length && since(newest(approved)) > 2) stale.push(`${approved.length} 案が承認から 2 日以上、未配信`);
   if (live.length && noResults.length && liveDays > 3) stale.push("配信開始から 3 日以上、結果が未入力");
-  if (live.length && !noResults.length && liveDays > 21) stale.push("3 週間判定が出ていない。差が小さい可能性");
+  if (live.length && !decided.length && !noResults.length && liveDays > 21) stale.push("3 週間判定が出ていない。差が小さい可能性");
   if (!live.length && !approved.length && !submitted.length && drafts.length && since(newest(drafts)) > 3) stale.push("下書きのまま 3 日以上");
   if (!live.length && !approved.length && !submitted.length && !drafts.length && champion && since(champion.experiment?.endedAt ?? champion.updatedAt) > 5) stale.push("挑戦者不在のまま 5 日以上");
   const first = stale[0];

@@ -61,12 +61,13 @@ export function DevicePreview({
           </button>
         )}
       </div>
-      <label className="flex flex-col gap-1 text-xs text-muted">
-        <span>LP のスクリーンショットを重ねる（任意・端末内でのみ使用）</span>
+      <label className="flex cursor-pointer flex-wrap items-center gap-2 text-xs text-muted">
+        <span className="btn-ghost py-1 text-xs">LP の画像を重ねる</span>
+        <span>任意。画像は端末内でのみ使われ、送信されません</span>
         <input
           type="file"
           accept="image/*"
-          className="text-xs"
+          className="sr-only"
           onChange={(e) => {
             const f = e.target.files?.[0];
             if (!f) return;

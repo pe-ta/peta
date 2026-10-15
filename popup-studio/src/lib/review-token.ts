@@ -1,7 +1,7 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-const secret = () => process.env.REVIEW_SECRET || "dev-review-secret-change-me";
+import { appSecret as secret } from "./secret";
 
 /** Signed, unguessable path segment for the client approval portal. */
 export function reviewToken(briefId: string) {

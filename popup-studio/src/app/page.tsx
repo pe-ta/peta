@@ -66,7 +66,7 @@ export default async function Board() {
         </p>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-5">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         <div className="card p-4"><div className="text-xs font-bold text-muted">今週、結論の出た仮説</div><div className="mt-1 text-3xl font-black tabular-nums text-accent">{totals.concluded}</div><div className="text-xs text-muted">North Star。現状比 3x が目標</div></div>
         <div className="card p-4"><div className="text-xs font-bold text-muted">検証中の挑戦者</div><div className="mt-1 text-3xl font-black tabular-nums">{totals.live}</div><div className="text-xs text-muted">チャンピオンと同時配信中</div></div>
         <div className="card p-4"><div className="text-xs font-bold text-muted">クライアント確認待ち</div><div className="mt-1 text-3xl font-black tabular-nums text-warn">{totals.awaiting}</div><div className="text-xs text-muted">承認ポータルで滞留している案</div></div>

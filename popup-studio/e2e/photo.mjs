@@ -29,7 +29,9 @@ await page.waitForLoadState("networkidle");
 console.log("flash:", await page.locator('[role="status"]').first().innerText().catch(() => "(none)"));
 console.log("brand chips:", await page.locator("text=/主色 #/").first().innerText());
 const links = await page.locator('a[href^="/creatives/"]').evaluateAll((els) => [...new Set(els.map((e) => e.getAttribute("href")))]);
-console.log("creatives (expect 6 = question x2 + invitation + campaign x2 + choice):", links.length);
+// compatibility: question (art) + bubble (photo); invitation: art only; campaign: art + photo; type_choice: tiles (art only)
+console.log("creatives:", links.length);
+if (links.length !== 6) { console.log("FAIL expected 6 creatives"); process.exitCode = 1; }
 let i = 0;
 for (const href of links) {
   const id = href.split("/").pop();
@@ -52,4 +54,5 @@ const res = await page.request.get(`${BASE}/api/creatives/${id0}/image?fmt=png&v
 fs.writeFileSync(`${OUT}/switched.png`, await res.body());
 await page.screenshot({ path: `${OUT}/editor.png`, fullPage: true });
 console.log("console errors:", errors.length ? errors : "none");
+if (errors.length) process.exitCode = 1;
 await browser.close();

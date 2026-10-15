@@ -19,6 +19,7 @@ import { findSimilar } from "@/lib/library";
 import { HypothesisBacklog } from "@/components/HypothesisBacklog";
 import { ResultsImport } from "@/components/ResultsImport";
 import { resultsToken } from "@/lib/results";
+import { weakSecretInProduction } from "@/lib/secret";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -62,7 +63,7 @@ export default async function BriefPage({ params, searchParams }: { params: Prom
         <p className="text-xs text-muted">結果を入力すると {metric.label} をベイズ推定で比較し、勝ち判定が出た挑戦者だけ昇格できます。</p>
       </div>
       <ExperimentTable brief={brief} creatives={creatives} snapshots={snapshots} />
-      {(hasExperiment || creatives.some((c) => c.status === "live")) && <ResultsImport briefId={brief.id} creativeIds={creatives.filter((c) => c.status === "live").map((c) => c.id)} pushUrl={`${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/briefs/${brief.id}/results`} pushToken={resultsToken(brief.id)} />}
+      {(hasExperiment || creatives.some((c) => c.status === "live")) && <ResultsImport briefId={brief.id} creativeIds={creatives.filter((c) => c.status === "live").map((c) => c.id)} pushUrl={`${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/briefs/${brief.id}/results`} pushToken={resultsToken(brief.id)} pushDisabled={weakSecretInProduction()} />}
       {approved.length > 0 && (
         <div className="rounded-md border border-dashed border-accent/50 bg-accent-soft/30 p-3">
           <div className="text-xs font-black text-accent">承認済み・未配信（{approved.length}）</div>

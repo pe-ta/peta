@@ -5,7 +5,7 @@ import satori, { type Font as FontOptions } from "satori";
 import { Resvg } from "@resvg/resvg-js";
 import { GIFEncoder, quantize, applyPalette } from "gifenc";
 import { normalizeMotion, type Brief, type Creative } from "./types";
-import { getTemplate, SPECS } from "./templates";
+import { getTemplate, resolveMotion, SPECS } from "./templates";
 
 /**
  * Rendering pipeline: JSX template -> Satori (SVG, text as glyph paths)
@@ -55,7 +55,7 @@ async function renderSvg(brief: Brief, creative: Creative, t: number, allowImage
   const template = getTemplate(creative.templateId);
   const spec = SPECS[brief.deviceSize];
   const fonts = await loadFonts();
-  const element = template.render({ brief, creative, size: brief.deviceSize, t, allowImages });
+  const element = template.render({ brief, creative: { ...creative, motion: resolveMotion(template.id, creative.motion) }, size: brief.deviceSize, t, allowImages });
   return satori(element, { width: spec.width, height: spec.height, fonts });
 }
 
@@ -139,7 +139,7 @@ async function renderUncached(brief: Brief, creative: Creative, opts: RenderOpti
     return { bytes: img.asPng(), contentType: "image/png", width: img.width, height: img.height, frames: 1, degraded };
   }
 
-  const schedule = frameSchedule(creative.motion);
+  const schedule = frameSchedule(resolveMotion(creative.templateId, creative.motion));
   const gif = GIFEncoder();
   let width = 0;
   let height = 0;

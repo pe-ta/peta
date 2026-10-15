@@ -15,6 +15,8 @@ import type { AppealAxis, Brief, CreativeStatus, Hypothesis, Learning, Motion, R
 import { TEMPLATES } from "./templates";
 import { dnaOf } from "./dna";
 import { applyResults, parseResultsText, todayJst } from "./results";
+import { reconcileHypotheses } from "./hypotheses";
+import { resolveMotion } from "./templates";
 
 // Helpers -------------------------------------------------------------------
 
@@ -148,7 +150,7 @@ export async function regenerateAction(formData: FormData) {
   try {
     const existing = await db.creatives.listByBrief(briefId);
     for (const c of existing) if (c.status === "draft") await db.creatives.delete(c.id);
-    await detachDeletedCreatives(briefId, existing.filter((c) => c.status === "draft").map((c) => c.id));
+    await reconcileHypotheses(briefId);
     const r = await expandBrief(brief);
     brief.copySource = r.source;
     brief.updatedAt = nowIso();
@@ -196,13 +198,16 @@ export async function updateCreativeAction(formData: FormData) {
   if (TEMPLATES.some((t) => t.id === templateId)) creative.templateId = templateId;
   const visual = str(formData, "visualAxis") as VisualAxis;
   if (VISUAL_IDS.includes(visual)) creative.visualAxis = visual;
+  const requestedMotion = creative.motion;
+  creative.motion = resolveMotion(creative.templateId, creative.motion);
+  const motionNote = creative.motion !== requestedMotion ? "（この型は指カーソルに対応しないため点滅にしました）" : "";
   creative.version += 1;
   creative.critique = undefined; // the critique described the previous version
   creative.updatedAt = nowIso();
   await db.creatives.put(creative);
   revalidatePath(`/creatives/${id}`);
   revalidatePath(`/briefs/${creative.briefId}`);
-  back(`/creatives/${id}`, { msg: `v${creative.version} として保存し、再描画しました。辛口分析は再実行が必要です` });
+  back(`/creatives/${id}`, { msg: `v${creative.version} として保存し、再描画しました${motionNote}。辛口分析は再実行が必要です` });
 }
 
 /** Internal-only status changes. Everything else moves through submit / client decision / experiment actions. */
@@ -239,6 +244,7 @@ export async function submitForReviewAction(formData: FormData) {
     await db.creatives.put(c);
     n++;
   }
+  await reconcileHypotheses(briefId);
   revalidatePath(`/briefs/${briefId}`);
   back(`/briefs/${briefId}`, { msg: `${n} 案をクライアント確認に回しました。承認ポータルのリンクを送ってください` });
 }
@@ -251,7 +257,7 @@ export async function deleteCreativeAction(formData: FormData) {
   if (brief?.championId === id) back(`/creatives/${id}`, { err: "チャンピオンは削除できません。先に別の案を昇格させてください" });
   if (creative.status === "live") back(`/creatives/${id}`, { err: "配信中の案は削除できません。先に実験を終了してください" });
   await db.creatives.delete(id);
-  await detachDeletedCreatives(creative.briefId, [id]);
+  await reconcileHypotheses(creative.briefId, [creative.hypothesisId]);
   revalidatePath(`/briefs/${creative.briefId}`);
   back(`/briefs/${creative.briefId}`, { msg: "案を削除しました" });
 }
@@ -318,15 +324,6 @@ export async function startExperimentAction(formData: FormData) {
   if (creative.status !== "approved") back(`/briefs/${brief.id}`, { err: "クライアント承認済みの案だけ配信に投入できます" });
   creative.status = "live";
   creative.experiment = { startedAt: nowIso() };
-  if (creative.hypothesisId) {
-    const h = await db.hypotheses.get(creative.hypothesisId);
-    if (h) {
-      h.status = "testing";
-      h.outcome = undefined;
-      h.updatedAt = nowIso();
-      await db.hypotheses.put(h);
-    }
-  }
   creative.results ??= { impressions: 0, clicks: 0, lineAdds: 0, conversions: 0, updatedAt: nowIso() };
   creative.updatedAt = nowIso();
   await db.creatives.put(creative);
@@ -337,6 +334,7 @@ export async function startExperimentAction(formData: FormData) {
     await db.briefs.put(brief);
     becameChampion = true;
   }
+  await reconcileHypotheses(brief.id, [creative.hypothesisId]);
   revalidatePath(`/briefs/${brief.id}`);
   revalidatePath(`/creatives/${id}`);
   revalidatePath("/");
@@ -411,22 +409,8 @@ export async function concludeAction(formData: FormData) {
     dna: dnaOf(creative),
   };
   await db.learnings.put(learning);
-  if (creative.hypothesisId) {
-    const h = await db.hypotheses.get(creative.hypothesisId);
-    if (h) {
-      // A hypothesis expands into several cells; it is concluded once none of them is still in flight.
-      const siblings = (await db.creatives.listByBrief(brief.id)).filter((c) => c.hypothesisId === h.id && c.id !== creative.id);
-      const inFlight = siblings.some((c) => ["live", "approved", "submitted"].includes(c.status) && c.id !== brief.championId);
-      const anyWon = outcome === "won" || siblings.some((c) => c.experiment?.outcome === "won");
-      if (!inFlight) {
-        h.status = "concluded";
-        h.outcome = anyWon ? "won" : outcome === "inconclusive" && siblings.every((c) => c.experiment?.outcome !== "lost") ? "inconclusive" : "lost";
-        h.learningId = learning.id;
-      }
-      h.updatedAt = nowIso();
-      await db.hypotheses.put(h);
-    }
-  }
+  // The dethroned champion may belong to another hypothesis: recompute both.
+  await reconcileHypotheses(brief.id, [creative.hypothesisId, champion?.hypothesisId]);
   revalidatePath(`/briefs/${brief.id}`);
   revalidatePath("/");
   back(`/briefs/${brief.id}`, { msg: outcome === "won" ? "新しいチャンピオンに昇格しました。学びログに記録済み" : "挑戦を終了し、学びログに記録しました" });
@@ -485,25 +469,13 @@ export async function clientDecisionAction(formData: FormData) {
   if (decision === "rejected") creative.status = "rejected";
   creative.updatedAt = nowIso();
   await db.creatives.put(creative);
+  await reconcileHypotheses(briefId, [creative.hypothesisId]);
   revalidatePath(`/review/${token}`);
   revalidatePath(`/briefs/${briefId}`);
   back(`/review/${token}`, { msg: decision === "approved" ? "承認を受け付けました。ありがとうございます" : decision === "rejected" ? "修正依頼を受け付けました" : "コメントを送信しました" });
 }
 
 // Hypothesis backlog (v0.5) -------------------------------------------------
-
-/** Deleted creatives leave their hypothesis; one with nothing left returns to the backlog. */
-async function detachDeletedCreatives(briefId: string, deletedIds: string[]) {
-  if (!deletedIds.length) return;
-  const gone = new Set(deletedIds);
-  for (const h of await db.hypotheses.listByBrief(briefId)) {
-    if (!h.creativeIds.some((id) => gone.has(id))) continue;
-    h.creativeIds = h.creativeIds.filter((id) => !gone.has(id));
-    if (h.creativeIds.length === 0 && h.status === "drafting") h.status = "backlog";
-    h.updatedAt = nowIso();
-    await db.hypotheses.put(h);
-  }
-}
 
 const HYPOTHESIS_STATUS_IDS = HYPOTHESIS_STATUS.map((s) => s.id);
 
@@ -544,9 +516,11 @@ export async function setHypothesisStatusAction(formData: FormData) {
   if (!HYPOTHESIS_STATUS_IDS.includes(status as Hypothesis["status"])) back(`/briefs/${h.briefId}`, { err: "不正な状態です" });
   const priority = Number(str(formData, "priority", String(h.priority)));
   if (priority === 1 || priority === 2 || priority === 3) h.priority = priority;
-  h.status = status as Hypothesis["status"];
+  // Only "dropped" and its undo are manual; every other status is derived from the cells.
+  h.status = status === "dropped" ? "dropped" : "backlog";
   h.updatedAt = nowIso();
   await db.hypotheses.put(h);
+  if (h.status !== "dropped") await reconcileHypotheses(h.briefId, [h.id]);
   revalidatePath(`/briefs/${h.briefId}`);
   back(`/briefs/${h.briefId}`, { msg: "仮説を更新しました" });
 }
@@ -561,10 +535,7 @@ export async function generateForHypothesisAction(formData: FormData) {
   let note = "";
   try {
     const r = await expandBrief(brief, { hypothesis: h });
-    h.creativeIds = [...h.creativeIds, ...r.created.map((c) => c.id)];
-    h.status = "drafting";
-    h.updatedAt = nowIso();
-    await db.hypotheses.put(h);
+    await reconcileHypotheses(h.briefId, [h.id]);
     brief.copySource = r.source;
     brief.updatedAt = nowIso();
     await db.briefs.put(brief);
@@ -595,6 +566,7 @@ export async function importResultsAction(formData: FormData) {
   const parsed = parseResultsText(text);
   if (parsed.error) back(`/briefs/${briefId}`, { err: parsed.error });
   const r = await applyResults(briefId, parsed.rows, "csv");
+  r.invalid.push(...(parsed.skipped ?? []));
   revalidatePath(`/briefs/${briefId}`);
   revalidatePath("/");
   const warn = (r.unknown.length ? `。未知の案ID ${r.unknown.length} 件は無視（${r.unknown.slice(0, 3).join(", ")}）` : "") + (r.invalid.length ? `。不正な行 ${r.invalid.length} 件は無視（${r.invalid[0]}）` : "");
