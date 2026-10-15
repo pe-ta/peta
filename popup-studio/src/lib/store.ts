@@ -123,7 +123,15 @@ export function upgradeBrief(b: Brief): Brief {
     appealAxes: [...new Set((b.appealAxes ?? []).map((a) => normalizeAppeal(a)))],
     visualAxes: [...new Set((b.visualAxes ?? []).map((v) => normalizeVisual(v)))],
     motions: [...new Set((b.motions ?? []).map((m) => normalizeMotion(m)))],
-    brand: { primary: "#0b6e4f", accent: "#e5484d", background: "#ffffff", text: "#1a1a1a", logoText: b.clientName ?? "", ngWords: [], tone: "", ...(b.brand ?? {}) },
+    brand: {
+      primary: b.brand?.primary ?? "#0b6e4f",
+      accent: b.brand?.accent ?? "#e5484d",
+      background: b.brand?.background ?? "#ffffff",
+      text: b.brand?.text ?? "#1a1a1a",
+      logoText: b.brand?.logoText ?? b.clientName ?? "",
+      ngWords: b.brand?.ngWords ?? [],
+      tone: b.brand?.tone ?? "",
+    },
     offer: b.offer ?? "",
     target: b.target ?? "",
     exitContext: b.exitContext ?? "",
@@ -138,7 +146,7 @@ export function upgradeCreative(c: Creative): Creative {
     visualAxis: normalizeVisual(c.visualAxis),
     motion: normalizeMotion(c.motion),
     version: c.version ?? 1,
-    slots: { eyebrow: "", headline: "", sub: "", cta: "", ...(c.slots ?? {}) },
+    slots: { ...(c.slots ?? {}), eyebrow: c.slots?.eyebrow ?? "", headline: c.slots?.headline ?? "", sub: c.slots?.sub ?? "", cta: c.slots?.cta ?? "" },
   };
 }
 
