@@ -5,8 +5,10 @@ import { generateJson } from "./llm";
 import { renderCreative } from "./render";
 import { runPreflight } from "./preflight";
 import { fullWidthLength } from "./text";
-import { appealLabel, normalizeAppeal, type Brief, type Creative, type Critique } from "./types";
+import { appealLabel, normalizeAppeal, normalizeMotion, type Brief, type Creative, type Critique } from "./types";
 import { BUTTON_PAIRS } from "./corpus";
+import { getTemplate } from "./templates";
+import { guiltyNegative, isQuestion, mentionsLowCost } from "./rules";
 
 /**
  * 辛口分析: blunt critique of a popup, in the same shape as the short-video
@@ -97,32 +99,28 @@ ${images.length > 1 ? `チャンピオン画像を与えています。チャン
 
 // Rule-based critic ---------------------------------------------------------
 
-const QUESTION_RE = /[？?]$|ませんか|したい[！!]?$|気になる|知りたい|でしょうか|どっち|どれ/;
-const LOW_COST_RE = /LINE|無料|\d+\s*秒|\d+\s*分|\d+\s*問|かんたん|簡単/i;
-const GUILT_RE = /損|いらない|興味ない|結構です|必要ない/;
-
 export function rulesCritique(brief: Brief, creative: Creative, champion?: Creative, note?: string): Critique {
   const pre = runPreflight(brief, creative);
   const s = creative.slots;
   const hook = normalizeAppeal(creative.appealAxis);
-  const isQuestion = QUESTION_RE.test(s.headline.trim());
-  const lowCost = LOW_COST_RE.test(`${s.eyebrow} ${s.badge ?? ""}`);
-  const hasPair = !!s.negative || (s.options?.length ?? 0) >= 2;
+  const question = isQuestion(s.headline);
+  const lowCost = mentionsLowCost(s);
+  const hasPair = !!s.negative || (getTemplate(creative.templateId).id === "choice" && (s.options?.length ?? 0) >= 2);
   const posShort = fullWidthLength(s.cta) <= 8;
-  const guilt = s.negative ? GUILT_RE.test(s.negative) : false;
+  const guilt = guiltyNegative(s);
   const headlineLen = fullWidthLength(s.headline);
   const hasNumber = /\d/.test(`${s.headline} ${s.badge ?? ""} ${s.eyebrow}`);
   const problems: string[] = [];
   const fixes: string[] = [];
 
   let attention = 55 + (s.eyebrow ? 10 : -10) + (creative.motion !== "static" ? 6 : 0) - (headlineLen > 24 ? 12 : 0);
-  let clarity = 50 + (isQuestion ? 20 : -15) + (headlineLen <= 20 ? 8 : 0);
+  let clarity = 50 + (question ? 20 : -15) + (headlineLen <= 20 ? 8 : 0);
   let fit = 50;
   const cta = 40 + (hasPair ? 20 : 0) + (posShort ? 10 : -5) + (lowCost ? 15 : 0) - (guilt ? 20 : 0);
   let trust = 60 + (brief.brand.tone ? 5 : 0);
   let risk = 90;
 
-  if (!isQuestion) {
+  if (!question) {
     problems.push("見出しが質問になっていない。実績の勝ちパターンは『〜しませんか？』『〜知りたい！』の問いかけで、宣伝文には答える動機が生まれない。");
     fixes.push(`見出しを問いかけにする。例: 「${brief.brand.logoText || brief.clientName}との相性をチェックしませんか？」`);
   }
@@ -182,10 +180,10 @@ export function rulesCritique(brief: Brief, creative: Creative, champion?: Creat
     const champ = rulesCritique(brief, { ...champion }, undefined);
     const diffs: string[] = [];
     if (normalizeAppeal(champion.appealAxis) !== hook) diffs.push(`フックが${appealLabel(champion.appealAxis)}→${appealLabel(hook)}`);
-    if (champion.templateId !== creative.templateId) diffs.push("レイアウトが異なる");
+    if (getTemplate(champion.templateId).id !== getTemplate(creative.templateId).id) diffs.push("レイアウトが異なる");
     if (champion.slots.headline !== s.headline) diffs.push("見出しが異なる");
     if ((champion.slots.negative ?? "") !== (s.negative ?? "") || champion.slots.cta !== s.cta) diffs.push("ボタン対が異なる");
-    if (champion.motion !== creative.motion) diffs.push("動きが異なる");
+    if (normalizeMotion(champion.motion) !== normalizeMotion(creative.motion)) diffs.push("動きが異なる");
     const diff = overall - champ.overall;
     vsChampion = {
       championId: champion.id,

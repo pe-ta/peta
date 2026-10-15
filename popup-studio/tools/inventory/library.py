@@ -49,13 +49,16 @@ def main() -> int:
         if t.get("structure") == "no_button_detected" and not t.get("headline"):
             continue  # nothing usable was read from the image
         headline = t.get("headline") or ""
-        if len(headline) < 4 or len(headline) > 60:
+        if len(headline) < 4 or len(headline) > 60 or headline.startswith(("※", "*", "＊")):
             continue
+        client = t.get("client") or ""
+        # Drive ids were prefixed as "<id>__" when files were saved; a title with its own "__" keeps one.
+        client = re.sub(r"^(?:[A-Za-z0-9_-]*__)+", "", client)
         entries.append({
             "id": t["name"].split("__", 1)[0][:12],
-            "client": t.get("client") or "",
+            "client": client,
             "job": t.get("job") or "",
-            "industry": industry_of(f'{t.get("client") or ""} {headline}'),
+            "industry": industry_of(f"{client} {headline}"),
             "hook": t.get("hook") or "other",
             "structure": t.get("structure"),
             "eyebrow": t.get("eyebrow") or "",

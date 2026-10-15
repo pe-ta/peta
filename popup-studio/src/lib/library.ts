@@ -31,15 +31,16 @@ const data = library as { generated_at: string; count: number; industries: Recor
 
 export const LIBRARY_META = { generatedAt: data.generated_at, count: data.count, industries: data.industries, hooks: data.hooks };
 
+// Brief industry (form options) -> library industries (library.py), closest first.
 const INDUSTRY_ALIASES: Record<string, string[]> = {
-  "美容・医療": ["美容・医療"],
-  "健康食品・サプリ": ["健康食品・サプリ"],
+  "美容・医療": ["美容・医療", "フィットネス・美容サロン", "化粧品"],
+  "健康食品・サプリ": ["健康食品・サプリ", "化粧品"],
   化粧品: ["化粧品", "美容・医療"],
   "金融・保険": ["金融・保険"],
-  不動産: ["不動産", "金融・保険"],
-  "教育・スクール": ["教育・スクール"],
+  不動産: ["不動産", "金融・保険", "インフラ・生活"],
+  "教育・スクール": ["教育・スクール", "人材"],
   人材: ["人材", "教育・スクール"],
-  "EC・通販": ["EC・通販", "化粧品", "健康食品・サプリ"],
+  "EC・通販": ["EC・通販", "化粧品", "健康食品・サプリ", "インフラ・生活"],
   その他: [],
 };
 
@@ -53,13 +54,14 @@ function tokens(s: string) {
  * button pair rank higher because they show the whole structure.
  */
 export function findSimilar(brief: Pick<Brief, "industry" | "clientName" | "offer" | "target">, hook?: AppealAxis, limit = 8): LibraryEntry[] {
-  const inds = INDUSTRY_ALIASES[brief.industry] ?? [];
+  const inds = INDUSTRY_ALIASES[brief.industry] ?? [brief.industry];
+  const wanted = hook ? normalizeAppeal(hook) : undefined;
   const words = new Set(tokens(`${brief.clientName} ${brief.offer} ${brief.target}`));
   const scored = data.entries.map((e) => {
     let score = 0;
     if (inds[0] && e.industry === inds[0]) score += 6;
     else if (inds.includes(e.industry)) score += 3;
-    if (hook && normalizeAppeal(e.hook) === hook && e.hook !== "other") score += 4;
+    if (wanted && e.hook !== "other" && normalizeAppeal(e.hook) === wanted) score += 4;
     if (e.structure === "two_buttons" || e.structure === "multi_choice") score += 2;
     if (e.eyebrow) score += 1;
     for (const t of tokens(e.headline + " " + e.client)) if (words.has(t)) score += 2;

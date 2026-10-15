@@ -24,9 +24,9 @@ await page.fill("#exitContext", "料金ページで戻る操作");
 await page.fill("#primary", "#1a3a6b");
 await page.fill("#accent", "#e5484d");
 // fewer cells: 2 axes x text only x static
-await page.uncheck('input[name="appealAxes"][value="anxiety"]');
-await page.uncheck('input[name="visualAxes"][value="image"]');
-await page.uncheck('input[name="motions"][value="pop"]');
+await page.uncheck('input[name="appealAxes"][value="pain"]');
+await page.uncheck('input[name="visualAxes"][value="photo"]');
+await page.uncheck('input[name="motions"][value="blink"]');
 await page.click('button:has-text("挑戦者候補を生成する")');
 await page.waitForURL(/\/briefs\/br_/, { timeout: 60000 });
 const briefUrl = page.url();
@@ -62,10 +62,10 @@ await page.waitForLoadState("networkidle");
 console.log("approved awaiting launch:", await page.locator('button:has-text("配信開始")').count());
 
 // Launch both: first becomes champion
-await post(() => page.locator('button:has-text("配信開始")').first().click());
-await page.waitForSelector("text=チャンピオン", { timeout: 15000 });
-await post(() => page.locator('button:has-text("配信開始")').first().click());
-await page.waitForSelector("text=挑戦者", { timeout: 15000 });
+await Promise.all([page.waitForURL(/msg=/, { timeout: 30000 }), page.locator('button:has-text("配信開始")').first().click()]);
+await page.waitForLoadState("networkidle");
+await Promise.all([page.waitForURL(/msg=.*|err=.*/, { timeout: 30000 }), page.locator('button:has-text("配信開始")').first().click()]);
+await page.waitForLoadState("networkidle");
 await page.screenshot({ path: `${OUT}/03-experiment-live.png`, fullPage: true });
 
 // Enter results: champion 1000/60/24, challenger 1000/80/45 -> challenger should win
@@ -90,8 +90,8 @@ await page.screenshot({ path: `${OUT}/04-results.png`, fullPage: true });
 await page.locator('input[name="nextHypothesis"]').first().fill("数字を大きくして限定性を足す");
 const promote = page.locator('button:has-text("チャンピオンに昇格")').first();
 console.log("promote enabled:", await promote.isEnabled());
-await post(() => promote.click());
-await page.waitForSelector("text=勝ち", { timeout: 15000 });
+await Promise.all([page.waitForURL(/msg=/, { timeout: 30000 }), promote.click()]);
+await page.waitForLoadState("networkidle");
 await page.screenshot({ path: `${OUT}/05-promoted.png`, fullPage: true });
 console.log("learning entries:", await page.locator("text=/^勝ち$/").count());
 

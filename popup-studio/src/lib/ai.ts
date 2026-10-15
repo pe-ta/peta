@@ -1,6 +1,6 @@
 import "server-only";
 import { z } from "zod";
-import { APPEAL_AXES, type AppealAxis, type Brief } from "./types";
+import { APPEAL_AXES, normalizeAppeal, type AppealAxis, type Brief } from "./types";
 import { generateJson, providerLabel, resolveProvider } from "./llm";
 import { BUTTON_PAIRS, EYEBROWS, BADGES } from "./corpus";
 import { describeEntry, findSimilar } from "./library";
@@ -19,8 +19,8 @@ export const CopyVariantSchema = z.object({
   sub: z.string().describe("補足。28文字以内。『あなたに合ったプランをチェック』のような一言。無ければ空文字"),
   badge: z.string().describe("小バッジ。10文字以内。LINE・無料・30秒・◯問 のいずれかを含める。例: LINEで簡単30秒。キャンペーン型ではオファーの数字（例: 最大2万円）"),
   cta: z.string().describe("肯定ボタン。8文字以内。例: はい / 診断する / 知りたい / チェックする"),
-  negative: z.string().describe("否定ボタン。6文字以内。例: いいえ / また今度。多択型では空文字"),
-  options: z.array(z.string()).max(3).describe("多択型（type_choice / quiz）のみ、選択肢を2〜3個、各10文字以内。他の型では空配列"),
+  negative: z.string().describe("否定ボタン。6文字以内。例: いいえ / また今度。type_choice では空文字"),
+  options: z.array(z.string()).describe("type_choice のみ、選択肢を2〜3個、各10文字以内（ボタンとして並ぶ）。他の型（quiz を含む）では空配列。quiz は『答えを見る／また今度』の2ボタン"),
   hypothesis: z.string().describe("この案で検証したい仮説を一文で"),
   rationale: z.string().describe("なぜ離脱直前のユーザーに効くと考えるか。40文字以内"),
 });
@@ -62,6 +62,7 @@ export async function generateCopy(brief: Brief, axes: AppealAxis[]): Promise<{ 
   if (!aiAvailable()) {
     return { variants: fallbackCopy(brief, axes), source: "fallback", note: "生成AIの API キー未設定のためルールベースで生成" };
   }
+  axes = axes.map((a) => normalizeAppeal(a));
   const axisLabels = axes.map((a) => `${a}（${APPEAL_AXES.find((x) => x.id === a)?.label}: ${APPEAL_AXES.find((x) => x.id === a)?.hint}）`).join("\n- ");
   // Few-shot from the past-popup library: same industry / hook. OCR text, so treat as style reference only.
   const examples = axes.flatMap((a) => findSimilar(brief, a, 2)).filter((e, i, arr) => arr.findIndex((x) => x.id === e.id) === i).slice(0, 6);
@@ -116,6 +117,7 @@ function serviceNoun(brief: Brief) {
 }
 
 export function fallbackCopy(brief: Brief, axes: AppealAxis[]): CopyVariant[] {
+  axes = axes.map((a) => normalizeAppeal(a));
   const badge = offerNumber(brief.offer);
   const noun = serviceNoun(brief);
   const name = brief.brand.logoText || brief.clientName;

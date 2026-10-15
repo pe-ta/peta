@@ -5,7 +5,7 @@ import { runPreflight } from "@/lib/preflight";
 import { reviewToken } from "@/lib/review-token";
 import { addLearningAction, critiqueAllAction, regenerateAction, startExperimentAction, submitForReviewAction } from "@/lib/actions";
 import { aiAvailable } from "@/lib/ai";
-import { REJECT_REASONS, WIN_METRICS } from "@/lib/types";
+import { normalizeAppeal, REJECT_REASONS, WIN_METRICS } from "@/lib/types";
 import { CreativeCard } from "@/components/CreativeCard";
 import { CopyButton } from "@/components/CopyButton";
 import { ExperimentTable } from "@/components/ExperimentTable";
@@ -37,7 +37,7 @@ export default async function BriefPage({ params, searchParams }: { params: Prom
   const unanalyzed = candidates.filter((c) => !c.critique).length;
   const ended = creatives.filter((c) => c.status === "ended");
   const hasExperiment = Boolean(brief.championId) || creatives.some((c) => c.status === "live");
-  const similar = findSimilar(brief, brief.appealAxes[0], 6);
+  const similar = findSimilar(brief, brief.appealAxes[0] ? normalizeAppeal(brief.appealAxes[0]) : undefined, 6);
 
   const experimentSection = (
     <section className="card flex flex-col gap-4 p-4">

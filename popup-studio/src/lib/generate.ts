@@ -1,7 +1,7 @@
 import "server-only";
-import type { AppealAxis, Brief, Creative, Motion, VisualAxis } from "./types";
+import { normalizeAppeal, normalizeMotion, normalizeVisual, type AppealAxis, type Brief, type Creative, type Motion, type VisualAxis } from "./types";
 import { generateCopy } from "./ai";
-import { templateForHook } from "./templates";
+import { templateFor } from "./templates";
 import { db, newId, nowIso } from "./store";
 
 /**
@@ -11,19 +11,24 @@ import { db, newId, nowIso } from "./store";
  * The layout follows the hook (question / invitation / campaign / choice).
  */
 export async function expandBrief(brief: Brief) {
-  const axes = brief.appealAxes.length ? brief.appealAxes : (["compatibility"] as AppealAxis[]);
-  const visuals = brief.visualAxes.length ? brief.visualAxes : (["art"] as VisualAxis[]);
-  const motions = brief.motions.length ? brief.motions : (["static"] as Motion[]);
+  // Briefs saved before v0.4 may still carry legacy ids; map them and drop duplicates.
+  const axes = [...new Set((brief.appealAxes.length ? brief.appealAxes : ["compatibility"]).map((a) => normalizeAppeal(a)))] as AppealAxis[];
+  // A photo cell without a photo would only duplicate the art cell, so it is dropped up front.
+  const requested = [...new Set((brief.visualAxes.length ? brief.visualAxes : ["art"]).map((v) => normalizeVisual(v)))] as VisualAxis[];
+  const visuals = requested.filter((v) => v !== "photo" || brief.lpOgImage);
+  if (visuals.length === 0) visuals.push("art");
+  const motions = [...new Set((brief.motions.length ? brief.motions : ["static"]).map((m) => normalizeMotion(m)))] as Motion[];
 
   const { variants, source, note } = await generateCopy(brief, axes);
   const created: Creative[] = [];
   const ts = nowIso();
 
   for (const v of variants) {
-    const template = templateForHook(v.appealAxis);
+    const options = v.options?.map((o) => o.trim()).filter(Boolean).slice(0, 3) ?? [];
+    const template = templateFor(v.appealAxis, options.length >= 2);
     for (const visual of visuals) {
-      // A photo cell without a photo would duplicate the art cell: skip it.
-      if (visual === "photo" && !brief.lpOgImage) continue;
+      // Invitation and choice layouts never show a photo: one cell is enough.
+      if (visual === "photo" && !template.usesPhoto) continue;
       for (const motion of motions) {
         const creative: Creative = {
           id: newId("cr"),
@@ -41,9 +46,9 @@ export async function expandBrief(brief: Brief) {
             headline: v.headline,
             sub: v.sub,
             cta: v.cta,
-            negative: v.negative || undefined,
+            negative: template.id === "choice" ? undefined : v.negative || undefined,
             badge: v.badge || undefined,
-            options: v.options?.length ? v.options : undefined,
+            options: options.length >= 2 ? options : undefined,
             imageUrl: visual === "photo" ? brief.lpOgImage : undefined,
           },
           status: "draft",
@@ -53,11 +58,6 @@ export async function expandBrief(brief: Brief) {
         created.push(creative);
       }
     }
-  }
-  // If every visual cell was skipped (photo requested, no image), fall back to art once.
-  if (created.length === 0 && visuals.length) {
-    const b: Brief = { ...brief, visualAxes: ["art"] };
-    return expandBrief(b);
   }
   return { created, source, note };
 }

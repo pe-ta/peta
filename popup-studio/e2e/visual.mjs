@@ -17,8 +17,8 @@ await page.fill("#target", "30代男性、初めて検討、価格を比較中")
 await page.fill("#exitContext", "料金ページで戻る操作");
 await page.fill("#primary", "#2430a5");
 await page.fill("#accent", "#98bfe6"); // pale accent like the one extracted from the real LP
-await page.check('input[name="visualAxes"][value="coupon"]');
-await page.uncheck('input[name="appealAxes"][value="scarcity"]');
+await page.check('input[name="appealAxes"][value="campaign"]');
+await page.uncheck('input[name="appealAxes"][value="invitation"]');
 await page.click('button:has-text("挑戦者候補を生成する")');
 await page.waitForURL(/\/briefs\/br_/, { timeout: 60000 });
 await page.waitForLoadState("networkidle");

@@ -38,10 +38,10 @@ HOOK_RULES = [
 # Frequent OCR confusions in this corpus (EasyOCR, Japanese display fonts).
 OCR_FIX = [
     (re.compile(r"また今慶"), "また今度"),
-    (re.compile(r"秘"), "秒"),
+    (re.compile(r"(?<=\d)秘"), "秒"),
     (re.compile(r"チェツク"), "チェック"),
     (re.compile(r"\[NE|LNE|L1NE|LlNE"), "LINE"),
-    (re.compile(r"Al(?=[^a-z])"), "AI"),
+    (re.compile(r"Al(?![a-z])"), "AI"),
     (re.compile(r"[』『「」:：;；・.]+$"), ""),
     (re.compile(r"^[』『「」:：;；・.]+"), ""),
 ]

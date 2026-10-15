@@ -1,4 +1,5 @@
 import { APPEAL_AXES, normalizeAppeal, normalizeMotion, normalizeVisual, type Creative, type Dna } from "./types";
+import { getTemplate } from "./templates";
 
 /**
  * DNA tags: the axes the learning log aggregates win rates on. Derived from
@@ -23,12 +24,13 @@ const TEXT_TAGS: Array<[RegExp, string]> = [
 export function dnaOf(creative: Creative): Dna {
   const hook = normalizeAppeal(creative.appealAxis);
   const s = creative.slots;
-  const structure: Dna["structure"] = s.options && s.options.length >= 2 ? "multi_choice" : s.negative ? "two_buttons" : "single_cta";
+  const layout = getTemplate(creative.templateId).id;
+  const structure: Dna["structure"] = layout === "choice" && s.options && s.options.length >= 2 ? "multi_choice" : s.negative ? "two_buttons" : "single_cta";
   const text = [s.eyebrow, s.headline, s.sub, s.badge ?? "", s.cta, s.negative ?? "", ...(s.options ?? [])].join(" ");
   const tags = new Set<string>(APPEAL_AXES.find((a) => a.id === hook)?.be ?? []);
   for (const [re, tag] of TEXT_TAGS) if (re.test(text)) tags.add(tag);
   if (/？|\?/.test(s.headline)) tags.add("質問形");
-  return { hook, structure, visual: normalizeVisual(creative.visualAxis), motion: normalizeMotion(creative.motion), layout: creative.templateId, tags: [...tags] };
+  return { hook, structure, visual: normalizeVisual(creative.visualAxis), motion: normalizeMotion(creative.motion), layout, tags: [...tags] };
 }
 
 export const STRUCTURE_LABEL: Record<Dna["structure"], string> = { two_buttons: "2ボタン", single_cta: "CTA 1本", multi_choice: "多択" };

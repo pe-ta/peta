@@ -1,7 +1,8 @@
 import type { Brief, Creative, PreflightIssue, PreflightResult } from "./types";
-import { getTemplate, resolveColors, SPECS } from "./templates";
+import { getTemplate, resolveColors, SPECS, templateSurfaces } from "./templates";
 import { contrast, readableOn } from "./color";
 import { fullWidthLength } from "./text";
+import { guiltyNegative, isQuestion, mentionsLowCost } from "./rules";
 
 /**
  * Rule-based preflight. Runs synchronously on the slot data so it can be shown
@@ -20,9 +21,6 @@ const RISKY_EXPRESSIONS: Array<{ re: RegExp; label: string; suggestion: string }
   { re: /(今だけ|本日限り|残り\d+)/u, label: "期限・限定の表示", suggestion: "実際の期限・数量と一致していることを確認（有利誤認）" },
 ];
 
-const QUESTION_RE = /[？?]$|ませんか|したい[！!]?$|気になる|知りたい|でしょうか|どっち|どれ/;
-const GUILT_RE = /損|いらない|興味ない|結構です|必要ない/;
-
 export function runPreflight(brief: Brief, creative: Creative, bytes?: { format: "png" | "gif"; size: number }): PreflightResult {
   const issues: PreflightIssue[] = [];
   const spec = SPECS[brief.deviceSize];
@@ -33,8 +31,8 @@ export function runPreflight(brief: Brief, creative: Creative, bytes?: { format:
   const isChoice = template.id === "choice";
 
   // Contrast ---------------------------------------------------------------
-  const headlineBg = template.id === "invitation" ? "#ffffff" : c.background;
-  const contrastHeadline = contrast(c.text, headlineBg);
+  const surfaces = templateSurfaces(template.id, c);
+  const contrastHeadline = contrast(c.text, surfaces.headlineBg);
   if (contrastHeadline < 4.5) {
     issues.push({ code: "contrast.headline", severity: contrastHeadline < 3 ? "error" : "warn", message: `見出しのコントラスト比 ${contrastHeadline.toFixed(1)}:1（推奨 4.5:1 以上）`, suggestion: "文字色または背景色を調整する" });
   }
@@ -42,22 +40,22 @@ export function runPreflight(brief: Brief, creative: Creative, bytes?: { format:
   if (contrastCta < 4.5) {
     issues.push({ code: "contrast.cta", severity: "warn", message: `肯定ボタン文字のコントラスト比 ${contrastCta.toFixed(1)}:1`, suggestion: "アクセント色をより濃く/明るくする" });
   }
-  const contrastRibbon = contrast(c.onPrimary, c.primary);
+  const contrastRibbon = contrast(surfaces.ribbonFg, surfaces.ribbonBg);
   if (contrastRibbon < 3) {
-    issues.push({ code: "contrast.ribbon", severity: "warn", message: `帯の文字コントラスト比 ${contrastRibbon.toFixed(1)}:1`, suggestion: "主色を濃くする" });
+    issues.push({ code: "contrast.ribbon", severity: "warn", message: `帯の文字コントラスト比 ${contrastRibbon.toFixed(1)}:1`, suggestion: template.id === "campaign" ? "アクセント色を濃くする" : "主色を濃くする" });
   }
 
   // Structure --------------------------------------------------------------
-  if (!QUESTION_RE.test(s.headline.trim())) {
+  if (!isQuestion(s.headline)) {
     issues.push({ code: "structure.question", severity: "warn", message: "見出しが問いかけになっていません", suggestion: "実績の勝ち構造は質問形（〜しませんか？ / 〜知りたい！）です" });
   }
   if (!isChoice && !s.negative) {
     issues.push({ code: "structure.negative", severity: "info", message: "否定ボタンがありません（CTA 1本）", suggestion: "実績の主流は『いいえ／はい』の2択。否定の逃げ道があると肯定が押されやすくなります" });
   }
-  if (s.negative && GUILT_RE.test(s.negative)) {
+  if (guiltyNegative(s)) {
     issues.push({ code: "structure.guilt", severity: "warn", message: `否定ボタン「${s.negative}」が罪悪感を煽る文言です`, suggestion: "「いいえ」「また今度」のような中立表現に" });
   }
-  if (!/LINE|ライン|無料|\d+\s*秒|\d+\s*分|\d+\s*問|かんたん|簡単/i.test(`${s.eyebrow} ${s.badge ?? ""} ${s.sub}`)) {
+  if (!mentionsLowCost(s)) {
     issues.push({ code: "structure.cost", severity: "warn", message: "帯・バッジに LINE／無料／30秒 のいずれも現れていません", suggestion: "行動コストの低さを帯かバッジで示す（例: LINEで簡単30秒）" });
   }
   if (isChoice && (s.options?.length ?? 0) < 2) {

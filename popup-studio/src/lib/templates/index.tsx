@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import type { ReactElement } from "react";
-import type { Brief, Creative, CreativeSlots, Motion, VisualAxis, LayoutId, AppealAxis } from "../types";
+import type { Brief, Creative, CreativeSlots, Motion, LayoutId, AppealAxis } from "../types";
 import { normalizeAppeal, normalizeMotion, normalizeVisual } from "../types";
 import { complementaryButton, contrast, ensureButtonColor, hueDistance, mix, normalizeHex, readableOn, saturation } from "../color";
 
@@ -43,6 +43,8 @@ export interface Template {
   description: string;
   /** Hooks this layout serves best (used when expanding a brief). */
   hooks: AppealAxis[];
+  /** Whether the layout can show a photo (otherwise a photo cell duplicates the art cell). */
+  usesPhoto: boolean;
   spec: Record<"sp" | "pc", TemplateSpec>;
   fontSizes(size: "sp" | "pc"): { headline: number; sub: number; cta: number; eyebrow: number };
   render(args: RenderArgs): ReactElement;
@@ -114,9 +116,14 @@ export function motionStyle(motion: Motion, t: number): { transform?: string; op
   return {};
 }
 
-/** Blink phase (second frame of a 2-frame GIF). */
+/** Blink phase (second frame of a 2-frame GIF). t = 1 is always the resting still frame. */
 function blinkOn(motion: Motion, t: number) {
-  return normalizeMotion(motion) === "blink" && t >= 0.5;
+  return normalizeMotion(motion) === "blink" && t >= 0.5 && t < 1;
+}
+
+/** Tap phase of the cursor motion. t = 1 is always the resting still frame. */
+function pressedOn(motion: Motion, t: number) {
+  return normalizeMotion(motion) === "cursor" && t > 0.8 && t < 1;
 }
 
 // Shared pieces -------------------------------------------------------------
@@ -292,6 +299,7 @@ const question: Template = {
   name: "質問・2ボタン型",
   description: "帯 + 質問見出し + ビジュアル + 小バッジ + いいえ／はい。実績の主流構造。",
   hooks: ["compatibility", "pain", "price", "quiz"],
+  usesPhoto: true,
   spec: SPECS,
   fontSizes(size) {
     const L = layoutFor(size);
@@ -320,7 +328,7 @@ const question: Template = {
           </div>
           {s.sub ? <div style={{ display: "flex", justifyContent: "center", width: L.W - L.pad * 2, fontSize: L.f.sub, fontWeight: 700, color: mix(c.text, c.background, 0.3), textAlign: "center", lineHeight: 1.4 }}>{s.sub}</div> : <div style={{ display: "flex" }} />}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: Math.round(L.f.logo * 0.6) }}>
-            <ButtonPair positive={s.cta} negative={s.negative} posBg={c.cta} negBg={c.negative} L={L} lit={lit} pressed={isCursor && t > 0.8} />
+            <ButtonPair positive={s.cta} negative={s.negative} posBg={c.cta} negBg={c.negative} L={L} lit={lit} pressed={pressedOn(creative.motion, t)} />
             <Logo text={brief.brand.logoText} color={mix(c.text, c.background, 0.5)} L={L} />
           </div>
         </div>
@@ -358,6 +366,7 @@ const invitation: Template = {
   name: "招待状型",
   description: "「◯◯から招待状が届きました」の帯と封筒ビジュアル。特別扱いで自分事化する。",
   hooks: ["invitation"],
+  usesPhoto: false,
   spec: SPECS,
   fontSizes(size) {
     const L = layoutFor(size);
@@ -385,7 +394,7 @@ const invitation: Template = {
             ) : null}
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: Math.round(L.f.logo * 0.6) }}>
-            <ButtonPair positive={s.cta} negative={s.negative} posBg={c.cta} negBg={c.negative} L={L} lit={lit} pressed={isCursor && t > 0.8} />
+            <ButtonPair positive={s.cta} negative={s.negative} posBg={c.cta} negBg={c.negative} L={L} lit={lit} pressed={pressedOn(creative.motion, t)} />
             <Logo text={brief.brand.logoText} color={mix(c.text, bg, 0.5)} L={L} />
           </div>
         </div>
@@ -402,6 +411,7 @@ const campaign: Template = {
   name: "キャンペーン型",
   description: "帯 + 大きな数字（バッジ）+ 質問見出し + いいえ／はい。特典・価格の数字が主役。",
   hooks: ["campaign", "price"],
+  usesPhoto: true,
   spec: SPECS,
   fontSizes(size) {
     const L = layoutFor(size);
@@ -435,7 +445,7 @@ const campaign: Template = {
             ) : null}
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: Math.round(L.f.logo * 0.6) }}>
-            <ButtonPair positive={s.cta} negative={s.negative} posBg={c.cta} negBg={c.negative} L={L} lit={lit} pressed={isCursor && t > 0.8} />
+            <ButtonPair positive={s.cta} negative={s.negative} posBg={c.cta} negBg={c.negative} L={L} lit={lit} pressed={pressedOn(creative.motion, t)} />
             <Logo text={brief.brand.logoText} color={mix(c.text, c.background, 0.5)} L={L} />
           </div>
         </div>
@@ -452,6 +462,7 @@ const choice: Template = {
   name: "多択型",
   description: "質問見出しの下に選択肢ボタンを 2〜3 本。会話の最初の質問をそのまま置く。",
   hooks: ["type_choice", "quiz"],
+  usesPhoto: false,
   spec: SPECS,
   fontSizes(size) {
     const L = layoutFor(size);
@@ -505,13 +516,16 @@ export function getTemplate(id: string): Template {
   return TEMPLATES.find((t) => t.id === mapped) ?? question;
 }
 
-/** Layout for a hook. Visual style is orthogonal (art / photo) and handled inside the template. */
-export function templateForHook(hook: AppealAxis): Template {
-  return TEMPLATES.find((t) => t.hooks.includes(hook)) ?? question;
+/** Layout for a hook. A copy variant that carries 2+ options always goes to the choice layout. */
+export function templateFor(hook: AppealAxis, hasOptions = false): Template {
+  if (hasOptions) return choice;
+  return TEMPLATES.find((t) => t.id !== "choice" && t.hooks.includes(hook)) ?? question;
 }
 
-/** Kept for callers that only know the visual axis. */
-export function templateForVisual(visual: VisualAxis): Template {
-  void visual;
-  return question;
+/** The surfaces preflight has to check contrast on, per layout (kept next to the render code so they cannot drift). */
+export function templateSurfaces(id: string, c: ResolvedColors): { ribbonBg: string; ribbonFg: string; headlineBg: string } {
+  const t = getTemplate(id).id;
+  if (t === "campaign") return { ribbonBg: c.accent, ribbonFg: c.onAccent, headlineBg: c.background };
+  if (t === "invitation") return { ribbonBg: c.primary, ribbonFg: c.onPrimary, headlineBg: mix(c.primary, "#ffffff", 0.92) };
+  return { ribbonBg: c.primary, ribbonFg: c.onPrimary, headlineBg: c.background };
 }

@@ -143,12 +143,10 @@ export default async function CreativePage({ params, searchParams }: { params: P
                   <input id="cta" name="cta" defaultValue={creative.slots.cta} className="input" required placeholder="はい / 診断する / 知りたい" maxLength={12} />
                 </div>
               </div>
-              {template.id === "choice" && (
-                <div>
-                  <label className="label" htmlFor="options">選択肢（読点区切り・2〜3 個）</label>
-                  <input id="options" name="options" defaultValue={creative.slots.options?.join("、") ?? ""} className="input" placeholder="体験型、積み上げ型" />
-                </div>
-              )}
+              <div>
+                <label className="label" htmlFor="options">選択肢（多択型で使用・読点区切り・2〜3 個）{template.id !== "choice" && <span className="font-normal text-muted"> レイアウトを多択型にすると表示されます</span>}</label>
+                <input id="options" name="options" defaultValue={creative.slots.options?.join("、") ?? ""} className="input" placeholder="体験型、積み上げ型" />
+              </div>
               <div className="grid gap-3 sm:grid-cols-3">
                 <div>
                   <label className="label" htmlFor="templateId">レイアウト</label>
@@ -185,9 +183,9 @@ export default async function CreativePage({ params, searchParams }: { params: P
                   <input id="accent" name="accent" defaultValue={creative.slots.accent ?? ""} className="input" placeholder={brief.brand.accent} pattern="^#?[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$" />
                 </div>
               </div>
-              {normalizeVisual(creative.visualAxis) === "photo" && (
+              {(normalizeVisual(creative.visualAxis) === "photo" || template.usesPhoto) && (
                 <div>
-                  <label className="label" htmlFor="imageUrl">写真URL（https のみ。空なら装飾ビジュアル）</label>
+                  <label className="label" htmlFor="imageUrl">写真URL（ビジュアル「写真」で使用。https のみ。空なら装飾ビジュアル）</label>
                   <input id="imageUrl" name="imageUrl" type="url" defaultValue={creative.slots.imageUrl ?? ""} className="input" placeholder="https://... (LPのOG画像や商品写真)" />
                 </div>
               )}
