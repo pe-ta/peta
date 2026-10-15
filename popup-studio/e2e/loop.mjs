@@ -90,7 +90,7 @@ await page.screenshot({ path: `${OUT}/04-results.png`, fullPage: true });
 await page.locator('input[name="nextHypothesis"]').first().fill("数字を大きくして限定性を足す");
 const promote = page.locator('button:has-text("チャンピオンに昇格")').first();
 console.log("promote enabled:", await promote.isEnabled());
-await Promise.all([page.waitForURL(/msg=/, { timeout: 30000 }), promote.click()]);
+{ const before = page.url(); await Promise.all([page.waitForURL((u) => u.toString() !== before, { timeout: 30000 }), promote.click()]); }
 await page.waitForLoadState("networkidle");
 await page.screenshot({ path: `${OUT}/05-promoted.png`, fullPage: true });
 console.log("learning entries:", await page.locator("text=/^勝ち$/").count());

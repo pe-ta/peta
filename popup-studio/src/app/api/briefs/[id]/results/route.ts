@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/store";
-import { applyResults, parseResultsJson, parseResultsText, verifyResultsToken } from "@/lib/results";
+import { applyResults, parseResultsJson, parseResultsText, secretIsDefault, verifyResultsToken } from "@/lib/results";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -18,9 +18,10 @@ export const maxDuration = 60;
  */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (process.env.NODE_ENV === "production" && secretIsDefault()) return Response.json({ error: "REVIEW_SECRET is not configured; the push API is disabled" }, { status: 503 });
   const auth = req.headers.get("authorization") ?? "";
-  const token = auth.replace(/^Bearer\s+/i, "").trim() || req.nextUrl.searchParams.get("token") || "";
-  if (!token || !verifyResultsToken(id, token)) return Response.json({ error: "unauthorized" }, { status: 401 });
+  const token = auth.replace(/^Bearer\s+/i, "").trim();
+  if (!token || !verifyResultsToken(id, token)) return Response.json({ error: "unauthorized (use Authorization: Bearer <token>)" }, { status: 401 });
   const brief = await db.briefs.get(id);
   if (!brief) return Response.json({ error: "brief not found" }, { status: 404 });
 

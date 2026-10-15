@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getTemplate } from "@/lib/templates";
+import { getTemplate, TEMPLATES } from "@/lib/templates";
 import { renderCreative } from "@/lib/render";
 import { fallbackCopy } from "@/lib/ai";
 import type { Brief, Creative } from "@/lib/types";
@@ -10,6 +10,7 @@ export const maxDuration = 60;
 /** Gallery preview: each template rendered with a sample brief and rule-based copy. */
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!TEMPLATES.some((t) => t.id === id)) return new Response("unknown template", { status: 404 });
   const template = getTemplate(id);
   const brief: Brief = {
     id: "br_sample",

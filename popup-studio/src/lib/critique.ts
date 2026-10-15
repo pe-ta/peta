@@ -105,7 +105,7 @@ export function rulesCritique(brief: Brief, creative: Creative, champion?: Creat
   const hook = normalizeAppeal(creative.appealAxis);
   const question = isQuestion(s.headline);
   const lowCost = mentionsLowCost(s);
-  const hasPair = !!s.negative || (getTemplate(creative.templateId).id === "choice" && (s.options?.length ?? 0) >= 2);
+  const hasPair = !!s.negative || (["choice", "tiles"].includes(getTemplate(creative.templateId).id) && (s.options?.length ?? 0) >= 2);
   const posShort = fullWidthLength(s.cta) <= 8;
   const guilt = guiltyNegative(s);
   const headlineLen = fullWidthLength(s.headline);

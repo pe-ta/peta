@@ -30,7 +30,10 @@ export async function expandBrief(brief: Brief, opts?: { hypothesis?: Hypothesis
       const template = templateFor(v.appealAxis, { options: options.length, visual });
       // Invitation and choice layouts never show a photo: one cell is enough.
       if (visual === "photo" && !template.usesPhoto) continue;
-      for (const motion of motions) {
+      for (const requested of motions) {
+        // Stacked options and tiles have no finger animation: cursor becomes blink, and the cell is not duplicated.
+        const motion: Motion = requested === "cursor" && (template.id === "choice" || template.id === "tiles") ? "blink" : requested;
+        if (motion !== requested && motions.includes("blink")) continue;
         const creative: Creative = {
           id: newId("cr"),
           briefId: brief.id,

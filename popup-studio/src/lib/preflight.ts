@@ -1,5 +1,5 @@
 import type { Brief, Creative, PreflightIssue, PreflightResult } from "./types";
-import { getTemplate, resolveColors, SPECS, templateSurfaces } from "./templates";
+import { getTemplate, resolveColors, SPECS, templateHeadlineColor, templateSurfaces } from "./templates";
 import { contrast, readableOn } from "./color";
 import { fullWidthLength } from "./text";
 import { guiltyNegative, isQuestion, mentionsLowCost } from "./rules";
@@ -32,7 +32,7 @@ export function runPreflight(brief: Brief, creative: Creative, bytes?: { format:
 
   // Contrast ---------------------------------------------------------------
   const surfaces = templateSurfaces(template.id, c);
-  const contrastHeadline = contrast(c.text, surfaces.headlineBg);
+  const contrastHeadline = contrast(templateHeadlineColor(template.id, c), surfaces.headlineBg);
   if (contrastHeadline < 4.5) {
     issues.push({ code: "contrast.headline", severity: contrastHeadline < 3 ? "error" : "warn", message: `見出しのコントラスト比 ${contrastHeadline.toFixed(1)}:1（推奨 4.5:1 以上）`, suggestion: "文字色または背景色を調整する" });
   }

@@ -42,7 +42,7 @@ export default function TemplatesPage() {
       <section className="card flex flex-col gap-2 p-4 text-sm">
         <h2 className="text-sm font-black">型を増やすとき（デザインチーム向け）</h2>
         <ol className="list-decimal space-y-1 pl-5 text-xs text-muted">
-          <li>過去の勝ち案から、既存の 4 型で表現できない構造（例: 円形写真 + 3 択、横長の特典帯）を 1 つ選ぶ。</li>
+          <li>{`過去の勝ち案から、既存の ${TEMPLATES.length} 型で表現できない構造`}（例: 円形写真 + 3 択、横長の特典帯）を 1 つ選ぶ。</li>
           <li>`src/lib/templates/index.tsx` にテンプレートを 1 つ追加する（帯・見出し・ビジュアル・バッジ・ボタン対の部品は共通）。対応するフックと写真対応の有無を宣言する。</li>
           <li>このページで表示を確認し、プリフライト（文字数・コントラスト）が通る初期値を決める。</li>
           <li>動きは {MOTIONS.map((m) => m.label.replace(/（.*）/, "")).join("・")} の共通実装がそのまま使える。</li>

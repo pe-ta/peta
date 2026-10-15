@@ -1,5 +1,5 @@
 import type { Brief, Creative, Hypothesis } from "./types";
-import { compare } from "./stats";
+import { compare, daysSince } from "./stats";
 
 /**
  * Where a client stands in the experiment loop, derived from its documents.
@@ -21,7 +21,7 @@ export interface PipelineState {
   stage: Stage;
   /** Days the client has been in the current stage (from the newest relevant timestamp). */
   daysInStage: number;
-  /** Something that should not have waited this long. */
+  /** Something that should not have waited this long (checked across all stages, not only the current one). */
   stale?: string;
   nextAction: string;
   champion?: Creative;
@@ -32,8 +32,7 @@ export interface PipelineState {
   backlog: Hypothesis[];
 }
 
-const DAY = 86_400_000;
-const daysSince = (iso?: string) => (iso ? Math.max(0, (Date.now() - new Date(iso).getTime()) / DAY) : 0);
+const since = (iso?: string) => (iso ? daysSince(iso) : 0);
 const newest = (items: Array<{ updatedAt: string }>) => items.map((i) => i.updatedAt).sort().at(-1);
 
 export function pipelineOf(brief: Brief, creatives: Creative[], hypotheses: Hypothesis[]): PipelineState {
@@ -46,30 +45,38 @@ export function pipelineOf(brief: Brief, creatives: Creative[], hypotheses: Hypo
   const base = { champion, live, submitted, approved, drafts, backlog };
 
   const decided = live.filter((c) => ["won", "lost"].includes(compare(brief.winMetric, c.results, champion?.results).verdict));
+  const noResults = live.filter((c) => !c.results || c.results.impressions === 0);
+  const liveDays = since(live.map((c) => c.experiment?.startedAt).sort()[0]);
+
+  // Staleness is checked everywhere a client can be waiting, whatever stage is shown.
+  const stale: string[] = [];
+  if (decided.length && since(decided[0].results?.updatedAt) > 2) stale.push("判定が出てから 2 日以上経過");
+  if (submitted.length && since(newest(submitted)) > 3) stale.push(`${submitted.length} 案が提出から 3 日以上、返事なし。リマインドを`);
+  if (approved.length && since(newest(approved)) > 2) stale.push(`${approved.length} 案が承認から 2 日以上、未配信`);
+  if (live.length && noResults.length && liveDays > 3) stale.push("配信開始から 3 日以上、結果が未入力");
+  if (live.length && !noResults.length && liveDays > 21) stale.push("3 週間判定が出ていない。差が小さい可能性");
+  if (!live.length && !approved.length && !submitted.length && drafts.length && since(newest(drafts)) > 3) stale.push("下書きのまま 3 日以上");
+  if (!live.length && !approved.length && !submitted.length && !drafts.length && champion && since(champion.experiment?.endedAt ?? champion.updatedAt) > 5) stale.push("挑戦者不在のまま 5 日以上");
+  const first = stale[0];
+
   if (decided.length) {
-    const d = daysSince(decided[0].results?.updatedAt);
-    return { ...base, stage: "decided", daysInStage: d, stale: d > 2 ? "判定が出てから 2 日以上経過" : undefined, nextAction: "判定の出た挑戦者を昇格／終了し、学びを記録する" };
+    return { ...base, stage: "decided", daysInStage: since(decided[0].results?.updatedAt), stale: first, nextAction: "判定の出た挑戦者を昇格／終了し、学びを記録する" };
   }
   if (live.length) {
-    const d = daysSince(live.map((c) => c.experiment?.startedAt).sort()[0]);
-    const noResults = live.some((c) => !c.results || c.results.impressions === 0);
-    return { ...base, stage: "live", daysInStage: d, stale: noResults && d > 3 ? "配信開始から 3 日以上、結果が未入力" : d > 21 ? "3 週間判定が出ていない。差が小さい可能性" : undefined, nextAction: noResults ? "配信結果を取り込む" : "結果を更新しながら次の挑戦者を準備する" };
+    const waiting = submitted.length ? `。確認待ち ${submitted.length} 案も追う` : approved.length ? `。承認済み ${approved.length} 案を入稿` : "";
+    return { ...base, stage: "live", daysInStage: liveDays, stale: first, nextAction: (noResults.length ? "配信結果を取り込む" : "結果を更新しながら次の挑戦者を準備する") + waiting };
   }
   if (approved.length) {
-    const d = daysSince(newest(approved));
-    return { ...base, stage: "ready", daysInStage: d, stale: d > 2 ? "承認から 2 日以上、未配信" : undefined, nextAction: "書き出して入稿し、配信開始を押す" };
+    return { ...base, stage: "ready", daysInStage: since(newest(approved)), stale: first, nextAction: "書き出して入稿し、配信開始を押す" };
   }
   if (submitted.length) {
-    const d = daysSince(newest(submitted));
-    return { ...base, stage: "awaiting_client", daysInStage: d, stale: d > 3 ? "提出から 3 日以上、返事なし。リマインドを" : undefined, nextAction: "クライアントの承認を待つ（3 日で催促）" };
+    return { ...base, stage: "awaiting_client", daysInStage: since(newest(submitted)), stale: first, nextAction: "クライアントの承認を待つ（3 日で催促）" };
   }
   if (drafts.length) {
-    const d = daysSince(newest(drafts));
-    return { ...base, stage: "drafting", daysInStage: d, stale: d > 3 ? "下書きのまま 3 日以上" : undefined, nextAction: "辛口分析でふるい、2〜3 案を提出する" };
+    return { ...base, stage: "drafting", daysInStage: since(newest(drafts)), stale: first, nextAction: "辛口分析でふるい、2〜3 案を提出する" };
   }
   if (champion) {
-    const d = daysSince(champion.experiment?.endedAt ?? champion.updatedAt);
-    return { ...base, stage: "idle", daysInStage: d, stale: d > 5 ? "挑戦者不在のまま 5 日以上" : undefined, nextAction: backlog.length ? `バックログの「${backlog[0].title}」を案にする` : "仮説をバックログに追加し、挑戦者を作る" };
+    return { ...base, stage: "idle", daysInStage: since(champion.experiment?.endedAt ?? champion.updatedAt), stale: first, nextAction: backlog.length ? `バックログの「${backlog[0].title}」を案にする` : "仮説をバックログに追加し、挑戦者を作る" };
   }
-  return { ...base, stage: "empty", daysInStage: daysSince(brief.createdAt), nextAction: "候補を生成する" };
+  return { ...base, stage: "empty", daysInStage: since(brief.createdAt), nextAction: "候補を生成する" };
 }

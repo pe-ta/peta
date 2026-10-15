@@ -14,7 +14,7 @@ import { APPEAL_AXES, HYPOTHESIS_SOURCES, HYPOTHESIS_STATUS, MOTIONS, VISUAL_AXE
 import type { AppealAxis, Brief, CreativeStatus, Hypothesis, Learning, Motion, RejectReason, Review, VisualAxis, WinMetric } from "./types";
 import { TEMPLATES } from "./templates";
 import { dnaOf } from "./dna";
-import { applyResults, parseResultsText } from "./results";
+import { applyResults, parseResultsText, todayJst } from "./results";
 
 // Helpers -------------------------------------------------------------------
 
@@ -148,6 +148,7 @@ export async function regenerateAction(formData: FormData) {
   try {
     const existing = await db.creatives.listByBrief(briefId);
     for (const c of existing) if (c.status === "draft") await db.creatives.delete(c.id);
+    await detachDeletedCreatives(briefId, existing.filter((c) => c.status === "draft").map((c) => c.id));
     const r = await expandBrief(brief);
     brief.copySource = r.source;
     brief.updatedAt = nowIso();
@@ -250,6 +251,7 @@ export async function deleteCreativeAction(formData: FormData) {
   if (brief?.championId === id) back(`/creatives/${id}`, { err: "チャンピオンは削除できません。先に別の案を昇格させてください" });
   if (creative.status === "live") back(`/creatives/${id}`, { err: "配信中の案は削除できません。先に実験を終了してください" });
   await db.creatives.delete(id);
+  await detachDeletedCreatives(creative.briefId, [id]);
   revalidatePath(`/briefs/${creative.briefId}`);
   back(`/briefs/${creative.briefId}`, { msg: "案を削除しました" });
 }
@@ -318,8 +320,9 @@ export async function startExperimentAction(formData: FormData) {
   creative.experiment = { startedAt: nowIso() };
   if (creative.hypothesisId) {
     const h = await db.hypotheses.get(creative.hypothesisId);
-    if (h && h.status !== "concluded") {
+    if (h) {
       h.status = "testing";
+      h.outcome = undefined;
       h.updatedAt = nowIso();
       await db.hypotheses.put(h);
     }
@@ -355,7 +358,7 @@ export async function saveResultsAction(formData: FormData) {
   creative.results = { impressions, clicks, lineAdds, conversions, blocks: num("blocks") || undefined, updatedAt: nowIso() };
   creative.updatedAt = nowIso();
   await db.creatives.put(creative);
-  const date = new Date().toISOString().slice(0, 10);
+  const date = todayJst();
   await db.snapshots.put({ id: `sn_${creative.id}_${date}`, briefId: creative.briefId, creativeId: creative.id, date, impressions, clicks, lineAdds, conversions, blocks: num("blocks") || undefined, source: "manual", createdAt: nowIso() });
   revalidatePath(`/briefs/${creative.briefId}`);
   revalidatePath("/");
@@ -404,16 +407,22 @@ export async function concludeAction(formData: FormData) {
     outcome,
     evidence,
     nextHypothesis: str(formData, "nextHypothesis") || undefined,
-    author: str(formData, "author", "AP"),
+    author: str(formData, "author") || "AP",
     dna: dnaOf(creative),
   };
   await db.learnings.put(learning);
   if (creative.hypothesisId) {
     const h = await db.hypotheses.get(creative.hypothesisId);
     if (h) {
-      h.status = "concluded";
-      h.outcome = outcome;
-      h.learningId = learning.id;
+      // A hypothesis expands into several cells; it is concluded once none of them is still in flight.
+      const siblings = (await db.creatives.listByBrief(brief.id)).filter((c) => c.hypothesisId === h.id && c.id !== creative.id);
+      const inFlight = siblings.some((c) => ["live", "approved", "submitted"].includes(c.status) && c.id !== brief.championId);
+      const anyWon = outcome === "won" || siblings.some((c) => c.experiment?.outcome === "won");
+      if (!inFlight) {
+        h.status = "concluded";
+        h.outcome = anyWon ? "won" : outcome === "inconclusive" && siblings.every((c) => c.experiment?.outcome !== "lost") ? "inconclusive" : "lost";
+        h.learningId = learning.id;
+      }
       h.updatedAt = nowIso();
       await db.hypotheses.put(h);
     }
@@ -437,7 +446,7 @@ export async function addLearningAction(formData: FormData) {
     outcome: "note",
     evidence: str(formData, "evidence") || undefined,
     nextHypothesis: str(formData, "nextHypothesis") || undefined,
-    author: str(formData, "author", "AP"),
+    author: str(formData, "author") || "AP",
   });
   revalidatePath(`/briefs/${briefId}`);
   revalidatePath("/");
@@ -483,6 +492,19 @@ export async function clientDecisionAction(formData: FormData) {
 
 // Hypothesis backlog (v0.5) -------------------------------------------------
 
+/** Deleted creatives leave their hypothesis; one with nothing left returns to the backlog. */
+async function detachDeletedCreatives(briefId: string, deletedIds: string[]) {
+  if (!deletedIds.length) return;
+  const gone = new Set(deletedIds);
+  for (const h of await db.hypotheses.listByBrief(briefId)) {
+    if (!h.creativeIds.some((id) => gone.has(id))) continue;
+    h.creativeIds = h.creativeIds.filter((id) => !gone.has(id));
+    if (h.creativeIds.length === 0 && h.status === "drafting") h.status = "backlog";
+    h.updatedAt = nowIso();
+    await db.hypotheses.put(h);
+  }
+}
+
 const HYPOTHESIS_STATUS_IDS = HYPOTHESIS_STATUS.map((s) => s.id);
 
 export async function addHypothesisAction(formData: FormData) {
@@ -506,7 +528,7 @@ export async function addHypothesisAction(formData: FormData) {
     priority: priority === 1 || priority === 3 ? priority : 2,
     status: "backlog",
     creativeIds: [],
-    author: str(formData, "author", "AP"),
+    author: str(formData, "author") || "AP",
   };
   await db.hypotheses.put(h);
   revalidatePath(`/briefs/${briefId}`);
@@ -575,7 +597,7 @@ export async function importResultsAction(formData: FormData) {
   const r = await applyResults(briefId, parsed.rows, "csv");
   revalidatePath(`/briefs/${briefId}`);
   revalidatePath("/");
-  const warn = r.unknown.length ? `。未知の案ID ${r.unknown.length} 件は無視（${r.unknown.slice(0, 3).join(", ")}）` : "";
+  const warn = (r.unknown.length ? `。未知の案ID ${r.unknown.length} 件は無視（${r.unknown.slice(0, 3).join(", ")}）` : "") + (r.invalid.length ? `。不正な行 ${r.invalid.length} 件は無視（${r.invalid[0]}）` : "");
   if (r.imported === 0) back(`/briefs/${briefId}`, { err: `取り込める行がありませんでした${warn}` });
   back(`/briefs/${briefId}`, { msg: `${r.imported} 行を取り込み、${r.updated} 案の結果を更新しました${warn}` });
 }

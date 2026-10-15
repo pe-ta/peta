@@ -472,7 +472,8 @@ const choice: Template = {
     const L = layoutFor(size);
     const c = resolveColors(brief, creative.slots);
     const s = creative.slots;
-    const lit = blinkOn(creative.motion, t);
+    // No finger on stacked options: a cursor motion lights the first option instead.
+    const lit = blinkOn(creative.motion, t) || pressedOn(creative.motion, t);
     const options = (s.options?.length ? s.options : [s.cta, s.negative].filter(Boolean) as string[]).slice(0, 3);
     const innerW = L.W - L.pad * 2;
     const optH = Math.round(L.buttonH * 0.92);
@@ -630,7 +631,8 @@ const tiles: Template = {
     const L = layoutFor(size);
     const c = resolveColors(brief, creative.slots);
     const s = creative.slots;
-    const lit = blinkOn(creative.motion, t);
+    // No finger on tiles: a cursor motion lights tile B instead.
+    const lit = blinkOn(creative.motion, t) || pressedOn(creative.motion, t);
     const options = (s.options?.length ? s.options : [s.cta, s.negative].filter(Boolean) as string[]).slice(0, 2);
     const innerW = L.W - L.pad * 2;
     const tileW = Math.round((innerW - L.gap) / 2);
@@ -682,13 +684,23 @@ export function templateFor(hook: AppealAxis, opts: { options?: number; visual?:
   if (n >= 2) return choice;
   // A photo cell for a pain / price hook reads best full-bleed; invitation and campaign keep their frames.
   if (opts.visual === "photo" && (hook === "pain" || hook === "price")) return photoFull;
+  // The speech bubble carries a quiz question well, and a compatibility photo pairs with it.
+  if (hook === "quiz" || (hook === "compatibility" && opts.visual === "photo")) return bubble;
   return TEMPLATES.find((t) => !["choice", "tiles", "photo-full", "bubble"].includes(t.id) && t.hooks.includes(hook)) ?? question;
 }
 
 /** The surfaces preflight has to check contrast on, per layout (kept next to the render code so they cannot drift). */
+/** Text colour each layout draws its headline in (photo-full is white on a dark panel). */
+export function templateHeadlineColor(id: string, c: ResolvedColors) {
+  const t = getTemplate(id).id;
+  return t === "photo-full" ? "#ffffff" : c.text;
+}
+
 export function templateSurfaces(id: string, c: ResolvedColors): { ribbonBg: string; ribbonFg: string; headlineBg: string } {
   const t = getTemplate(id).id;
   if (t === "campaign") return { ribbonBg: c.accent, ribbonFg: c.onAccent, headlineBg: c.background };
   if (t === "invitation") return { ribbonBg: c.primary, ribbonFg: c.onPrimary, headlineBg: mix(c.primary, "#ffffff", 0.92) };
+  if (t === "photo-full") return { ribbonBg: c.cta, ribbonFg: readableOn(c.cta), headlineBg: mix(c.primary, "#000000", 0.72) };
+  if (t === "bubble") return { ribbonBg: mix(c.primary, "#ffffff", 0.9), ribbonFg: c.primary, headlineBg: "#ffffff" };
   return { ribbonBg: c.primary, ribbonFg: c.onPrimary, headlineBg: c.background };
 }
