@@ -130,6 +130,40 @@ export function formatRate(r: number | null) {
   return r === null ? "—" : `${(r * 100).toFixed(2)}%`;
 }
 
+/**
+ * Rough days-to-decision estimate for a running pair: impressions per arm needed to
+ * separate the observed rates at 95% (two-proportion z, or a 20% relative lift when
+ * the rates are still equal), divided by the recent daily impressions of the challenger.
+ */
+export function decisionEstimate(metric: WinMetric, challenger?: CreativeResults, champion?: CreativeResults, dailyImpressions?: number | null): { neededPerArm: number; days: number | null; note: string } {
+  const pr = rate(metric, champion) ?? 0.03;
+  const cr = rate(metric, challenger) ?? pr;
+  const p = (pr + cr) / 2 || 0.03;
+  const d = Math.max(Math.abs(cr - pr), p * 0.2);
+  const z = 1.96 + 0.84; // alpha 5%, power 80%
+  const needed = Math.ceil((z * z * 2 * p * (1 - p)) / (d * d));
+  const have = Math.min(challenger?.impressions ?? 0, champion?.impressions ?? 0);
+  const remaining = Math.max(0, needed - have);
+  if (!dailyImpressions || dailyImpressions <= 0) return { neededPerArm: needed, days: null, note: `判定まで各案あと約 ${remaining.toLocaleString()} 表示` };
+  const days = Math.ceil(remaining / dailyImpressions);
+  return { neededPerArm: needed, days, note: days === 0 ? "判定に足る表示数に達しています" : `今のペース（1 日 ${Math.round(dailyImpressions).toLocaleString()} 表示）なら約 ${days} 日` };
+}
+
+/** Average daily impression gain over the last snapshots (cumulative values). */
+export function dailyImpressionsFrom(snaps: Array<{ date: string; impressions: number }>) {
+  const s = [...snaps].sort((a, b) => a.date.localeCompare(b.date));
+  if (s.length < 2) return null;
+  const first = s[0];
+  const last = s[s.length - 1];
+  const days = Math.max(1, (new Date(last.date).getTime() - new Date(first.date).getTime()) / 86_400_000);
+  return Math.max(0, last.impressions - first.impressions) / days;
+}
+
+/** Whole days elapsed since an ISO timestamp (helper kept out of components for the purity lint). */
+export function daysSince(iso: string) {
+  return Math.max(0, (Date.now() - new Date(iso).getTime()) / 86_400_000);
+}
+
 /** Days from brief creation to the first creative going live. */
 export function leadTimeDays(brief: Brief, creatives: Creative[]) {
   const starts = creatives.map((c) => c.experiment?.startedAt).filter(Boolean) as string[];

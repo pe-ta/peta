@@ -1,8 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import type { Brief, Creative } from "@/lib/types";
+import type { Brief, Creative, ResultSnapshot } from "@/lib/types";
 import { WIN_METRICS } from "@/lib/types";
-import { compare, formatRate, rate } from "@/lib/stats";
+import { compare, dailyImpressionsFrom, daysSince, decisionEstimate, formatRate, rate } from "@/lib/stats";
 import { concludeAction, saveResultsAction } from "@/lib/actions";
 import { creativeImageUrl } from "@/lib/urls";
 
@@ -12,9 +12,11 @@ import { creativeImageUrl } from "@/lib/urls";
 export function ExperimentTable({
   brief,
   creatives,
+  snapshots = [],
 }: {
   brief: Brief;
   creatives: Creative[];
+  snapshots?: ResultSnapshot[];
 }) {
   const champion = creatives.find((c) => c.id === brief.championId);
   const live = creatives.filter(
@@ -33,7 +35,7 @@ export function ExperimentTable({
   return (
     <div className="flex flex-col gap-3">
       {champion && (
-        <Row brief={brief} champion={champion} c={champion} role="champion" />
+        <Row brief={brief} champion={champion} c={champion} role="champion" snaps={snapshots.filter((s) => s.creativeId === champion.id)} />
       )}
       {live.map((c) => (
         <Row
@@ -42,6 +44,7 @@ export function ExperimentTable({
           champion={champion}
           c={c}
           role="challenger"
+          snaps={snapshots.filter((s) => s.creativeId === c.id)}
         />
       ))}
       <p className="text-[11px] text-muted">
@@ -59,11 +62,13 @@ function Row({
   champion,
   c,
   role,
+  snaps,
 }: {
   brief: Brief;
   champion?: Creative;
   c: Creative;
   role: "champion" | "challenger";
+  snaps: ResultSnapshot[];
 }) {
   const metric = WIN_METRICS.find((m) => m.id === brief.winMetric) ?? WIN_METRICS[0];
   const r = c.results;
@@ -71,6 +76,8 @@ function Row({
     role === "challenger"
       ? compare(brief.winMetric, c.results, champion?.results)
       : null;
+  const daysLive = c.experiment?.startedAt ? daysSince(c.experiment.startedAt) : null;
+  const est = role === "challenger" && cmp && cmp.verdict !== "won" && cmp.verdict !== "lost" ? decisionEstimate(brief.winMetric, c.results, champion?.results, dailyImpressionsFrom(snaps)) : null;
   return (
     <div
       className={`grid gap-4 rounded-lg border p-4 lg:grid-cols-[96px_minmax(0,1fr)_minmax(0,1fr)] ${role === "champion" ? "border-accent bg-accent-soft/30" : "border-line"}`}
@@ -93,8 +100,10 @@ function Row({
             <span className="text-muted">
               配信開始{" "}
               {new Date(c.experiment.startedAt).toLocaleDateString("ja-JP")}
+              {daysLive !== null ? `（${Math.floor(daysLive)} 日目）` : ""}
             </span>
           )}
+          {snaps.length > 0 && <span className="text-muted">結果 {snaps.length} 回記録</span>}
         </div>
         <div className="mt-1 truncate text-sm font-bold">
           {c.slots.headline}
@@ -139,6 +148,7 @@ function Row({
               ・ {cmp.reason}
             </span>
           )}
+          {est && <div className="mt-0.5 text-xs text-muted">見込み: {est.note}</div>}
         </div>
       </div>
       <div className="flex min-w-0 flex-col gap-3">

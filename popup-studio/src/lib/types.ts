@@ -191,6 +191,8 @@ export interface Creative {
   appealAxis: AppealAxis;
   visualAxis: VisualAxis;
   motion: Motion;
+  /** Backlog entry this creative tests (v0.5). Older creatives carry only the text. */
+  hypothesisId?: string;
   hypothesis: string;
   rationale?: string;
   slots: CreativeSlots;
@@ -199,6 +201,60 @@ export interface Creative {
   critique?: Critique;
   results?: CreativeResults;
   experiment?: ExperimentState;
+}
+
+/**
+ * 仮説バックログ。実験の単位は「仮説」で、案（Creative）はその具体化。
+ * 1 案件で比較する仮説の数を増やし、結論を出して次へ進む回転が North Star。
+ */
+export type HypothesisStatus = "backlog" | "drafting" | "testing" | "concluded" | "dropped";
+export type HypothesisSource = "ap" | "learning" | "client" | "library";
+
+export interface Hypothesis {
+  id: string;
+  briefId: string;
+  createdAt: string;
+  updatedAt: string;
+  title: string; // 「招待状型は様子見層のタップ率を上げる」
+  rationale?: string; // なぜそう思うか・出典
+  hook: AppealAxis; // 具体化するときのフック
+  source: HypothesisSource;
+  priority: 1 | 2 | 3; // 1 = 次に試す
+  status: HypothesisStatus;
+  creativeIds: string[];
+  outcome?: "won" | "lost" | "inconclusive";
+  learningId?: string;
+  author: string;
+}
+
+export const HYPOTHESIS_STATUS: { id: HypothesisStatus; label: string }[] = [
+  { id: "backlog", label: "未着手" },
+  { id: "drafting", label: "案を作成中" },
+  { id: "testing", label: "検証中" },
+  { id: "concluded", label: "結論済み" },
+  { id: "dropped", label: "見送り" },
+];
+
+export const HYPOTHESIS_SOURCES: { id: HypothesisSource; label: string }[] = [
+  { id: "ap", label: "AP の着想" },
+  { id: "learning", label: "学びログから" },
+  { id: "client", label: "クライアント要望" },
+  { id: "library", label: "過去の勝ち型" },
+];
+
+/** 配信結果の日次スナップショット（累計値）。配信基盤の CSV から取り込む。 */
+export interface ResultSnapshot {
+  id: string;
+  briefId: string;
+  creativeId: string;
+  date: string; // YYYY-MM-DD
+  impressions: number;
+  clicks: number;
+  lineAdds: number;
+  conversions: number;
+  blocks?: number;
+  source: "manual" | "csv";
+  createdAt: string;
 }
 
 /** DNA タグ: 学習ログで集計する軸。案から機械的に導く。 */

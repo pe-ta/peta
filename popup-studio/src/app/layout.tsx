@@ -24,6 +24,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <span className="text-xs font-bold text-muted">勝ちポップアップ発見エンジン{providerName ? ` · AI: ${providerName}` : ""}</span>
             </Link>
             <nav className="flex items-center gap-3 text-sm">
+              <Link href="/" className="text-xs font-bold text-muted hover:text-ink">実験ボード</Link>
+              <Link href="/learnings" className="text-xs font-bold text-muted hover:text-ink">学び</Link>
+              <Link href="/templates" className="text-xs font-bold text-muted hover:text-ink">型</Link>
               <Link href="/briefs/new" className="btn-primary">
                 新しい実験（ブリーフ）
               </Link>
@@ -40,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           )}
         </header>
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">{children}</main>
-        <footer className="border-t border-line py-4 text-center text-xs text-muted">Popup Lab v0.4 — ZEALS 離脱時ポップアップ検証速度 3x プロジェクト</footer>
+        <footer className="border-t border-line py-4 text-center text-xs text-muted">Popup Lab v0.5 — ZEALS 離脱時ポップアップ検証速度 3x プロジェクト</footer>
       </body>
     </html>
   );

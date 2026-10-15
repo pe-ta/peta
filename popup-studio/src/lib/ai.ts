@@ -58,7 +58,7 @@ const SYSTEM = `あなたは日本のD2C・医療・美容・金融・教育領�
 - フックごとに、離脱直前のユーザーの心理（迷い・比較・価格不安・面倒）に答える。
 - 各案に検証仮説を一文で付ける。仮説は後で勝敗を学習に使うため、観測可能な言い切りにする。`;
 
-export async function generateCopy(brief: Brief, axes: AppealAxis[]): Promise<{ variants: CopyVariant[]; source: "ai" | "fallback"; note?: string }> {
+export async function generateCopy(brief: Brief, axes: AppealAxis[], opts?: { hypothesis?: string }): Promise<{ variants: CopyVariant[]; source: "ai" | "fallback"; note?: string }> {
   if (!aiAvailable()) {
     return { variants: fallbackCopy(brief, axes), source: "fallback", note: "生成AIの API キー未設定のためルールベースで生成" };
   }
@@ -80,7 +80,7 @@ LP概要: ${brief.lpDescription ?? "不明"}
 トーン: ${brief.brand.tone}
 NGワード: ${brief.brand.ngWords.join("、") || "なし"}
 補足: ${brief.notes ?? "なし"}
-${exampleText}
+${exampleText}${opts?.hypothesis ? `\n# 検証したい仮説（この仮説を確かめる案にする）\n${opts.hypothesis}\n` : ""}
 # 依頼
 以下のフックそれぞれについて1案ずつ、合計${axes.length}案を作成してください:
 - ${axisLabels}

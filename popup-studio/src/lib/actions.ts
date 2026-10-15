@@ -10,8 +10,8 @@ import { verifyReviewToken } from "./review-token";
 import { critiqueCreative } from "./critique";
 import { aiAvailable } from "./ai";
 import { compare, formatRate } from "./stats";
-import { APPEAL_AXES, MOTIONS, VISUAL_AXES, WIN_METRICS } from "./types";
-import type { AppealAxis, Brief, CreativeStatus, Learning, Motion, RejectReason, Review, VisualAxis, WinMetric } from "./types";
+import { APPEAL_AXES, HYPOTHESIS_SOURCES, HYPOTHESIS_STATUS, MOTIONS, VISUAL_AXES, WIN_METRICS } from "./types";
+import type { AppealAxis, Brief, CreativeStatus, Hypothesis, Learning, Motion, RejectReason, ResultSnapshot, Review, VisualAxis, WinMetric } from "./types";
 import { TEMPLATES } from "./templates";
 import { dnaOf } from "./dna";
 
@@ -315,6 +315,14 @@ export async function startExperimentAction(formData: FormData) {
   if (creative.status !== "approved") back(`/briefs/${brief.id}`, { err: "クライアント承認済みの案だけ配信に投入できます" });
   creative.status = "live";
   creative.experiment = { startedAt: nowIso() };
+  if (creative.hypothesisId) {
+    const h = await db.hypotheses.get(creative.hypothesisId);
+    if (h && h.status !== "concluded") {
+      h.status = "testing";
+      h.updatedAt = nowIso();
+      await db.hypotheses.put(h);
+    }
+  }
   creative.results ??= { impressions: 0, clicks: 0, lineAdds: 0, conversions: 0, updatedAt: nowIso() };
   creative.updatedAt = nowIso();
   await db.creatives.put(creative);
@@ -346,6 +354,8 @@ export async function saveResultsAction(formData: FormData) {
   creative.results = { impressions, clicks, lineAdds, conversions, blocks: num("blocks") || undefined, updatedAt: nowIso() };
   creative.updatedAt = nowIso();
   await db.creatives.put(creative);
+  const date = new Date().toISOString().slice(0, 10);
+  await db.snapshots.put({ id: `sn_${creative.id}_${date}`, briefId: creative.briefId, creativeId: creative.id, date, impressions, clicks, lineAdds, conversions, blocks: num("blocks") || undefined, source: "manual", createdAt: nowIso() });
   revalidatePath(`/briefs/${creative.briefId}`);
   revalidatePath("/");
   back(`/briefs/${creative.briefId}`, { msg: "結果を保存しました" });
@@ -397,6 +407,16 @@ export async function concludeAction(formData: FormData) {
     dna: dnaOf(creative),
   };
   await db.learnings.put(learning);
+  if (creative.hypothesisId) {
+    const h = await db.hypotheses.get(creative.hypothesisId);
+    if (h) {
+      h.status = "concluded";
+      h.outcome = outcome;
+      h.learningId = learning.id;
+      h.updatedAt = nowIso();
+      await db.hypotheses.put(h);
+    }
+  }
   revalidatePath(`/briefs/${brief.id}`);
   revalidatePath("/");
   back(`/briefs/${brief.id}`, { msg: outcome === "won" ? "新しいチャンピオンに昇格しました。学びログに記録済み" : "挑戦を終了し、学びログに記録しました" });
@@ -458,4 +478,156 @@ export async function clientDecisionAction(formData: FormData) {
   revalidatePath(`/review/${token}`);
   revalidatePath(`/briefs/${briefId}`);
   back(`/review/${token}`, { msg: decision === "approved" ? "承認を受け付けました。ありがとうございます" : decision === "rejected" ? "修正依頼を受け付けました" : "コメントを送信しました" });
+}
+
+// Hypothesis backlog (v0.5) -------------------------------------------------
+
+const HYPOTHESIS_STATUS_IDS = HYPOTHESIS_STATUS.map((s) => s.id);
+
+export async function addHypothesisAction(formData: FormData) {
+  const briefId = str(formData, "briefId");
+  const brief = await db.briefs.get(briefId);
+  if (!brief) back("/", { err: "ブリーフが見つかりません" });
+  const title = str(formData, "title");
+  if (!title) back(`/briefs/${briefId}`, { err: "仮説を一文で入力してください" });
+  const hook = str(formData, "hook");
+  const priority = Number(str(formData, "priority", "2"));
+  const source = str(formData, "source", "ap");
+  const h: Hypothesis = {
+    id: newId("hy"),
+    briefId,
+    createdAt: nowIso(),
+    updatedAt: nowIso(),
+    title,
+    rationale: str(formData, "rationale") || undefined,
+    hook: APPEAL_IDS.includes(hook as AppealAxis) ? (hook as AppealAxis) : "compatibility",
+    source: HYPOTHESIS_SOURCES.some((s) => s.id === source) ? (source as Hypothesis["source"]) : "ap",
+    priority: priority === 1 || priority === 3 ? priority : 2,
+    status: "backlog",
+    creativeIds: [],
+    author: str(formData, "author", "AP"),
+  };
+  await db.hypotheses.put(h);
+  revalidatePath(`/briefs/${briefId}`);
+  revalidatePath("/");
+  back(`/briefs/${briefId}`, { msg: "仮説をバックログに追加しました" });
+}
+
+export async function setHypothesisStatusAction(formData: FormData) {
+  const id = str(formData, "hypothesisId");
+  const h = await db.hypotheses.get(id);
+  if (!h) back("/", { err: "仮説が見つかりません" });
+  const status = str(formData, "status");
+  if (!HYPOTHESIS_STATUS_IDS.includes(status as Hypothesis["status"])) back(`/briefs/${h.briefId}`, { err: "不正な状態です" });
+  const priority = Number(str(formData, "priority", String(h.priority)));
+  if (priority === 1 || priority === 2 || priority === 3) h.priority = priority;
+  h.status = status as Hypothesis["status"];
+  h.updatedAt = nowIso();
+  await db.hypotheses.put(h);
+  revalidatePath(`/briefs/${h.briefId}`);
+  back(`/briefs/${h.briefId}`, { msg: "仮説を更新しました" });
+}
+
+/** Turn one backlog entry into draft creatives (visual x motion cells of the brief). */
+export async function generateForHypothesisAction(formData: FormData) {
+  const id = str(formData, "hypothesisId");
+  const h = await db.hypotheses.get(id);
+  if (!h) back("/", { err: "仮説が見つかりません" });
+  const brief = await db.briefs.get(h.briefId);
+  if (!brief) back("/", { err: "ブリーフが見つかりません" });
+  let note = "";
+  try {
+    const r = await expandBrief(brief, { hypothesis: h });
+    h.creativeIds = [...h.creativeIds, ...r.created.map((c) => c.id)];
+    h.status = "drafting";
+    h.updatedAt = nowIso();
+    await db.hypotheses.put(h);
+    brief.copySource = r.source;
+    brief.updatedAt = nowIso();
+    await db.briefs.put(brief);
+    note = r.note ?? "";
+  } catch (err) {
+    console.error("generateForHypothesisAction failed", err);
+    back(`/briefs/${h.briefId}`, { err: `案の生成に失敗しました: ${errorMessage(err)}` });
+  }
+  revalidatePath(`/briefs/${h.briefId}`);
+  back(`/briefs/${h.briefId}`, { msg: note ? `仮説から案を作りました（${note}）` : "仮説から案を作りました。辛口分析でふるってください" });
+}
+
+// Results import (v0.5) --------------------------------------------------------
+
+/**
+ * Paste of the delivery platform's export. Accepts comma or tab separated rows with a
+ * header; recognised columns (case-insensitive, Japanese or English):
+ *   creative_id | zc | 案ID, date | 日付, impressions | 表示, clicks | タップ | クリック,
+ *   line_adds | 友だち追加 | LINE追加, conversions | CV, blocks | ブロック
+ * Values are cumulative to the row's date. The newest row per creative becomes its results.
+ */
+export async function importResultsAction(formData: FormData) {
+  const briefId = str(formData, "briefId");
+  const brief = await db.briefs.get(briefId);
+  if (!brief) back("/", { err: "ブリーフが見つかりません" });
+  const text = str(formData, "csv");
+  if (!text) back(`/briefs/${briefId}`, { err: "CSV を貼り付けてください" });
+  const creatives = await db.creatives.listByBrief(briefId);
+  const byId = new Map(creatives.map((c) => [c.id, c]));
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const sep = lines[0].includes("\t") ? "\t" : ",";
+  const header = lines[0].split(sep).map((h) => h.trim().toLowerCase().replace(/^"|"$/g, ""));
+  const col = (...names: string[]) => header.findIndex((h) => names.some((n) => h === n || h.includes(n)));
+  const ci = col("creative_id", "creative", "zc", "案id", "案 id", "id");
+  const di = col("date", "日付", "日");
+  const ii = col("impressions", "表示", "imp");
+  const ki = col("clicks", "タップ", "クリック", "click");
+  const li = col("line_adds", "lineadds", "友だち", "line追加", "追加");
+  const vi = col("conversions", "cv", "コンバージョン");
+  const bi = col("blocks", "ブロック");
+  if (ci < 0 || ii < 0) back(`/briefs/${briefId}`, { err: "ヘッダーに 案ID（creative_id）と 表示（impressions）の列が必要です" });
+  const today = new Date().toISOString().slice(0, 10);
+  const num = (cells: string[], i: number) => (i >= 0 ? Math.max(0, Math.round(Number(String(cells[i] ?? "").replace(/[,"]/g, "")) || 0)) : 0);
+  let imported = 0;
+  const unknown = new Set<string>();
+  const latest = new Map<string, ResultSnapshot>();
+  for (const line of lines.slice(1)) {
+    const cells = line.split(sep).map((c) => c.trim());
+    const raw = (cells[ci] ?? "").replace(/^"|"$/g, "");
+    const id = raw.replace(/^zc=/, "").trim();
+    const c = byId.get(id) ?? creatives.find((x) => id.endsWith(x.id));
+    if (!c) {
+      if (id) unknown.add(id);
+      continue;
+    }
+    const date = di >= 0 && /^\d{4}-\d{2}-\d{2}/.test(cells[di] ?? "") ? cells[di].slice(0, 10) : today;
+    const snap: ResultSnapshot = {
+      id: `sn_${c.id}_${date}`,
+      briefId,
+      creativeId: c.id,
+      date,
+      impressions: num(cells, ii),
+      clicks: num(cells, ki),
+      lineAdds: num(cells, li),
+      conversions: num(cells, vi),
+      blocks: bi >= 0 ? num(cells, bi) : undefined,
+      source: "csv",
+      createdAt: nowIso(),
+    };
+    await db.snapshots.put(snap);
+    imported++;
+    const prev = latest.get(c.id);
+    if (!prev || prev.date <= snap.date) latest.set(c.id, snap);
+  }
+  for (const [cid, snap] of latest) {
+    const c = byId.get(cid)!;
+    // Keep the creative's results at the newest snapshot we know of (across imports).
+    const all = await db.snapshots.listByCreative(cid);
+    const newest = all.sort((a, b) => b.date.localeCompare(a.date))[0] ?? snap;
+    c.results = { impressions: newest.impressions, clicks: newest.clicks, lineAdds: newest.lineAdds, conversions: newest.conversions, blocks: newest.blocks, updatedAt: nowIso() };
+    c.updatedAt = nowIso();
+    await db.creatives.put(c);
+  }
+  revalidatePath(`/briefs/${briefId}`);
+  revalidatePath("/");
+  const warn = unknown.size ? `。未知の案ID ${unknown.size} 件は無視（${[...unknown].slice(0, 3).join(", ")}）` : "";
+  if (imported === 0) back(`/briefs/${briefId}`, { err: `取り込める行がありませんでした${warn}` });
+  back(`/briefs/${briefId}`, { msg: `${imported} 行を取り込み、${latest.size} 案の結果を更新しました${warn}` });
 }

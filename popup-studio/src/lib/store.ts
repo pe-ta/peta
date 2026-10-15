@@ -1,5 +1,5 @@
 import "server-only";
-import { normalizeAppeal, normalizeMotion, normalizeVisual, WIN_METRICS, type Brief, type Creative, type Learning, type Review } from "./types";
+import { normalizeAppeal, normalizeMotion, normalizeVisual, WIN_METRICS, type Brief, type Creative, type Hypothesis, type Learning, type ResultSnapshot, type Review } from "./types";
 
 /**
  * Document store with two backends:
@@ -8,7 +8,7 @@ import { normalizeAppeal, normalizeMotion, normalizeVisual, WIN_METRICS, type Br
  * Each entity is stored as a JSON document in a single `documents` table.
  */
 
-type Kind = "brief" | "creative" | "review" | "learning";
+type Kind = "brief" | "creative" | "review" | "learning" | "hypothesis" | "snapshot";
 
 export interface Store {
   readonly durable: boolean;
@@ -178,6 +178,18 @@ export const db = {
     listByBrief: (briefId: string) =>
       getStore().list<Learning>("learning", (l) => l.briefId === briefId),
     put: (l: Learning) => getStore().put("learning", l),
+  },
+  hypotheses: {
+    get: (id: string) => getStore().get<Hypothesis>("hypothesis", id),
+    list: () => getStore().list<Hypothesis>("hypothesis"),
+    listByBrief: (briefId: string) => getStore().list<Hypothesis>("hypothesis", (h) => h.briefId === briefId),
+    put: (h: Hypothesis) => getStore().put("hypothesis", h),
+    delete: (id: string) => getStore().delete("hypothesis", id),
+  },
+  snapshots: {
+    listByBrief: (briefId: string) => getStore().list<ResultSnapshot>("snapshot", (s) => s.briefId === briefId),
+    listByCreative: (creativeId: string) => getStore().list<ResultSnapshot>("snapshot", (s) => s.creativeId === creativeId),
+    put: (s: ResultSnapshot) => getStore().put("snapshot", s),
   },
 };
 

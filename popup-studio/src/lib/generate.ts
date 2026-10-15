@@ -1,5 +1,5 @@
 import "server-only";
-import { normalizeAppeal, normalizeMotion, normalizeVisual, type AppealAxis, type Brief, type Creative, type Motion, type VisualAxis } from "./types";
+import { normalizeAppeal, normalizeMotion, normalizeVisual, type AppealAxis, type Brief, type Creative, type Hypothesis, type Motion, type VisualAxis } from "./types";
 import { generateCopy } from "./ai";
 import { templateFor } from "./templates";
 import { db, newId, nowIso } from "./store";
@@ -10,16 +10,17 @@ import { db, newId, nowIso } from "./store";
  * so the experiment isolates layout and motion effects from wording.
  * The layout follows the hook (question / invitation / campaign / choice).
  */
-export async function expandBrief(brief: Brief) {
+export async function expandBrief(brief: Brief, opts?: { hypothesis?: Hypothesis }) {
   // Briefs saved before v0.4 may still carry legacy ids; map them and drop duplicates.
-  const axes = [...new Set((brief.appealAxes.length ? brief.appealAxes : ["compatibility"]).map((a) => normalizeAppeal(a)))] as AppealAxis[];
+  const h = opts?.hypothesis;
+  const axes = h ? [h.hook] : ([...new Set((brief.appealAxes.length ? brief.appealAxes : ["compatibility"]).map((a) => normalizeAppeal(a)))] as AppealAxis[]);
   // A photo cell without a photo would only duplicate the art cell, so it is dropped up front.
   const requested = [...new Set((brief.visualAxes.length ? brief.visualAxes : ["art"]).map((v) => normalizeVisual(v)))] as VisualAxis[];
   const visuals = requested.filter((v) => v !== "photo" || brief.lpOgImage);
   if (visuals.length === 0) visuals.push("art");
   const motions = [...new Set((brief.motions.length ? brief.motions : ["static"]).map((m) => normalizeMotion(m)))] as Motion[];
 
-  const { variants, source, note } = await generateCopy(brief, axes);
+  const { variants, source, note } = await generateCopy(brief, axes, h ? { hypothesis: `${h.title}${h.rationale ? `（${h.rationale}）` : ""}` } : undefined);
   const created: Creative[] = [];
   const ts = nowIso();
 
@@ -39,8 +40,9 @@ export async function expandBrief(brief: Brief) {
           appealAxis: v.appealAxis,
           visualAxis: visual,
           motion,
-          hypothesis: v.hypothesis,
-          rationale: v.rationale,
+          hypothesisId: h?.id,
+          hypothesis: h ? h.title : v.hypothesis,
+          rationale: h ? v.hypothesis : v.rationale,
           slots: {
             eyebrow: v.eyebrow,
             headline: v.headline,

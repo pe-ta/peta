@@ -16,6 +16,8 @@ import { ConfirmButton } from "@/components/ConfirmButton";
 import { PendingButton } from "@/components/PendingButton";
 import { SimilarCases } from "@/components/SimilarCases";
 import { findSimilar } from "@/lib/library";
+import { HypothesisBacklog } from "@/components/HypothesisBacklog";
+import { ResultsImport } from "@/components/ResultsImport";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -28,6 +30,10 @@ export default async function BriefPage({ params, searchParams }: { params: Prom
   const creatives = (await db.creatives.listByBrief(id)).sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id));
   const reviews = (await db.reviews.listByBrief(id)).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const learnings = (await db.learnings.listByBrief(id)).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const hypotheses = await db.hypotheses.listByBrief(id);
+  const snapshots = await db.snapshots.listByBrief(id);
+  // Hypothesis suggestions: "next" lines from the learning log and the brief's unused hooks.
+  const suggested = [...new Set([...learnings.map((l) => l.nextHypothesis).filter((x): x is string => !!x)])].slice(0, 6);
   const token = reviewToken(id);
   const reviewPath = `/review/${token}`;
   const metric = WIN_METRICS.find((m) => m.id === brief.winMetric) ?? WIN_METRICS[0];
@@ -45,7 +51,8 @@ export default async function BriefPage({ params, searchParams }: { params: Prom
         <h2 className="text-lg font-black">実験: チャンピオン vs 挑戦者</h2>
         <p className="text-xs text-muted">結果を入力すると {metric.label} をベイズ推定で比較し、勝ち判定が出た挑戦者だけ昇格できます。</p>
       </div>
-      <ExperimentTable brief={brief} creatives={creatives} />
+      <ExperimentTable brief={brief} creatives={creatives} snapshots={snapshots} />
+      {(hasExperiment || creatives.some((c) => c.status === "live")) && <ResultsImport briefId={brief.id} creativeIds={creatives.filter((c) => c.status === "live").map((c) => c.id)} />}
       {approved.length > 0 && (
         <div className="rounded-md border border-dashed border-accent/50 bg-accent-soft/30 p-3">
           <div className="text-xs font-black text-accent">承認済み・未配信（{approved.length}）</div>
@@ -138,11 +145,13 @@ export default async function BriefPage({ params, searchParams }: { params: Prom
       {hasExperiment ? (
         <>
           {experimentSection}
+          <HypothesisBacklog briefId={brief.id} hypotheses={hypotheses} creatives={creatives} suggested={suggested} />
           {candidatesSection}
         </>
       ) : (
         <>
           {candidatesSection}
+          <HypothesisBacklog briefId={brief.id} hypotheses={hypotheses} creatives={creatives} suggested={suggested} />
           {experimentSection}
         </>
       )}
