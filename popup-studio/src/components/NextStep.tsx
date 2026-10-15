@@ -1,12 +1,12 @@
 import Link from "next/link";
-import type { Brief, Creative } from "@/lib/types";
-import { compare } from "@/lib/stats";
+import type { Brief, Creative, ResultSnapshot } from "@/lib/types";
+import { judge } from "@/lib/stats";
 
 /**
  * One box that tells the AP what to do next, derived from the state of the brief.
  * The experiment loop has a fixed order; this keeps people from guessing.
  */
-export function NextStep({ brief, creatives, reviewPath }: { brief: Brief; creatives: Creative[]; reviewPath: string }) {
+export function NextStep({ brief, creatives, reviewPath, snapshots = [] }: { brief: Brief; creatives: Creative[]; reviewPath: string; snapshots?: ResultSnapshot[] }) {
   const champion = creatives.find((c) => c.id === brief.championId);
   const live = creatives.filter((c) => c.status === "live" && c.id !== brief.championId);
   const candidates = creatives.filter((c) => !["live", "ended"].includes(c.status));
@@ -20,8 +20,8 @@ export function NextStep({ brief, creatives, reviewPath }: { brief: Brief; creat
   let title = "";
   let body: React.ReactNode = null;
 
-  const wonChallenger = live.find((c) => compare(brief.winMetric, c.results, champion?.results).verdict === "won");
-  const lostChallenger = live.find((c) => compare(brief.winMetric, c.results, champion?.results).verdict === "lost");
+  const wonChallenger = live.find((c) => judge(brief.winMetric, c, champion, snapshots).verdict === "won");
+  const lostChallenger = live.find((c) => judge(brief.winMetric, c, champion, snapshots).verdict === "lost");
   const needsResults = live.filter((c) => !c.results || c.results.impressions === 0);
 
   if (creatives.length === 0) {

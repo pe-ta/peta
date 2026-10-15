@@ -6,12 +6,21 @@ import { leadTimeDays, rate, formatRate } from "@/lib/stats";
 import { pipelineOf, STAGE_LABEL, type Stage } from "@/lib/pipeline";
 import { LearningLog } from "@/components/LearningLog";
 import { creativeImageUrl } from "@/lib/urls";
+import { medianCycleDays, weekStart, weeklyConclusions } from "@/lib/northstar";
+import { WeeklyBars } from "@/components/WeeklyBars";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-function weekAgoIso() {
-  return new Date(Date.now() - 7 * 86_400_000).toISOString();
+/** Monday 00:00 JST of this week: "this week" matches the weekly North Star chart. */
+function thisWeekIso() {
+  return new Date(weekStart(Date.now())).toISOString();
+}
+
+/** Optional pre-Popup-Lab baseline (hypotheses concluded per week across the team); the target is 3x. */
+function baselinePerWeek() {
+  const n = Number(process.env.NORTH_STAR_BASELINE);
+  return Number.isFinite(n) && n > 0 ? n : null;
 }
 
 const STAGE_CLASS: Record<Stage, string> = {
@@ -32,13 +41,18 @@ export default async function Board() {
   const briefs = (await db.briefs.list()).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   const learnings = (await db.learnings.list()).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const hypotheses = await db.hypotheses.list();
-  const weekAgo = weekAgoIso();
+  const weekAgo = thisWeekIso();
+  const weeks = weeklyConclusions(learnings, 8);
+  const done = weeks.slice(0, -1);
+  const avg4 = done.slice(-4).reduce((n, w) => n + w.total, 0) / 4;
+  const cycle = medianCycleDays(hypotheses, learnings);
+  const baseline = baselinePerWeek();
 
   const rows = await Promise.all(
     briefs.map(async (b) => {
-      const cs = await db.creatives.listByBrief(b.id);
+      const [cs, snaps] = await Promise.all([db.creatives.listByBrief(b.id), db.snapshots.listByBrief(b.id)]);
       const hs = hypotheses.filter((h) => h.briefId === b.id);
-      const p = pipelineOf(b, cs, hs);
+      const p = pipelineOf(b, cs, hs, snaps);
       const concluded = learnings.filter((l) => l.briefId === b.id && l.outcome !== "note" && l.createdAt >= weekAgo);
       return { brief: b, p, total: cs.length, backlog: hs.filter((h) => h.status === "backlog").length, concludedThisWeek: concluded.length, leadTime: leadTimeDays(b, cs) };
     }),
@@ -67,12 +81,26 @@ export default async function Board() {
       </section>
 
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-        <div className="card p-4"><div className="text-xs font-bold text-muted">今週、結論の出た仮説</div><div className="mt-1 text-3xl font-black tabular-nums text-accent">{totals.concluded}</div><div className="text-xs text-muted">North Star。現状比 3x が目標</div></div>
+        <div className="card p-4"><div className="text-xs font-bold text-muted">今週、結論の出た仮説</div><div className="mt-1 text-3xl font-black tabular-nums text-accent">{totals.concluded}</div><div className="text-xs text-muted">North Star（月曜から）。{baseline ? `目標は週 ${baseline * 3}` : "現状比 3x が目標"}</div></div>
         <div className="card p-4"><div className="text-xs font-bold text-muted">検証中の挑戦者</div><div className="mt-1 text-3xl font-black tabular-nums">{totals.live}</div><div className="text-xs text-muted">チャンピオンと同時配信中</div></div>
         <div className="card p-4"><div className="text-xs font-bold text-muted">クライアント確認待ち</div><div className="mt-1 text-3xl font-black tabular-nums text-warn">{totals.awaiting}</div><div className="text-xs text-muted">承認ポータルで滞留している案</div></div>
         <div className="card p-4"><div className="text-xs font-bold text-muted">滞留アラート</div><div className={`mt-1 text-3xl font-black tabular-nums ${totals.stale ? "text-danger" : ""}`}>{totals.stale}</div><div className="text-xs text-muted">段階に留まりすぎているクライアント</div></div>
         <div className="card p-4"><div className="text-xs font-bold text-muted">未着手の仮説</div><div className="mt-1 text-3xl font-black tabular-nums">{totals.backlog}</div><div className="text-xs text-muted">バックログの合計。空のクライアントは次が無い</div></div>
       </section>
+
+      {learnings.some((l) => l.outcome !== "note") && (
+        <section className="card grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_minmax(0,16rem)]">
+          <div>
+            <h2 className="text-sm font-black">結論の出た仮説（週ごと・直近 8 週）</h2>
+            <WeeklyBars weeks={weeks} target={baseline ? baseline * 3 : null} />
+          </div>
+          <dl className="grid grid-cols-2 content-start gap-3 text-xs md:grid-cols-1">
+            <div><dt className="font-bold text-muted">直近 4 週の平均</dt><dd className="text-2xl font-black tabular-nums">{avg4.toFixed(1)}<span className="ml-1 text-xs font-normal text-muted">件 / 週</span></dd></div>
+            <div><dt className="font-bold text-muted">仮説 → 結論の日数（中央値）</dt><dd className="text-2xl font-black tabular-nums">{cycle === null ? "—" : cycle.toFixed(1)}<span className="ml-1 text-xs font-normal text-muted">日</span></dd></div>
+            {baseline && <div><dt className="font-bold text-muted">導入前の基準</dt><dd className="tabular-nums">週 {baseline} 件 → 現在 {avg4 ? `${(avg4 / baseline).toFixed(1)}x` : "—"}</dd></div>}
+          </dl>
+        </section>
+      )}
 
       {rows.length === 0 ? (
         <div className="card flex flex-col items-start gap-4 p-8">

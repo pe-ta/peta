@@ -1,5 +1,5 @@
-import type { Brief, Creative, Hypothesis } from "./types";
-import { compare, daysSince } from "./stats";
+import type { Brief, Creative, Hypothesis, ResultSnapshot } from "./types";
+import { daysSince, judge } from "./stats";
 
 /**
  * Where a client stands in the experiment loop, derived from its documents.
@@ -35,7 +35,7 @@ export interface PipelineState {
 const since = (iso?: string) => (iso ? daysSince(iso) : 0);
 const newest = (items: Array<{ updatedAt: string }>) => items.map((i) => i.updatedAt).sort().at(-1);
 
-export function pipelineOf(brief: Brief, creatives: Creative[], hypotheses: Hypothesis[]): PipelineState {
+export function pipelineOf(brief: Brief, creatives: Creative[], hypotheses: Hypothesis[], snapshots: ResultSnapshot[] = []): PipelineState {
   const champion = creatives.find((c) => c.id === brief.championId);
   const live = creatives.filter((c) => c.status === "live" && c.id !== brief.championId);
   const submitted = creatives.filter((c) => c.status === "submitted");
@@ -44,7 +44,7 @@ export function pipelineOf(brief: Brief, creatives: Creative[], hypotheses: Hypo
   const backlog = hypotheses.filter((h) => h.status === "backlog").sort((a, b) => a.priority - b.priority || a.createdAt.localeCompare(b.createdAt));
   const base = { champion, live, submitted, approved, drafts, backlog };
 
-  const decided = live.filter((c) => ["won", "lost"].includes(compare(brief.winMetric, c.results, champion?.results).verdict));
+  const decided = live.filter((c) => ["won", "lost"].includes(judge(brief.winMetric, c, champion, snapshots).verdict));
   const noResults = live.filter((c) => !c.results || c.results.impressions === 0);
   const liveDays = since(live.map((c) => c.experiment?.startedAt).sort()[0]);
 

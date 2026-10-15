@@ -9,7 +9,7 @@ import { normalizeHex, readableOn } from "./color";
 import { verifyReviewToken } from "./review-token";
 import { critiqueCreative } from "./critique";
 import { aiAvailable } from "./ai";
-import { compare, formatRate } from "./stats";
+import { formatRate, judge } from "./stats";
 import { APPEAL_AXES, HYPOTHESIS_SOURCES, HYPOTHESIS_STATUS, MOTIONS, VISUAL_AXES, WIN_METRICS } from "./types";
 import type { AppealAxis, Brief, CreativeStatus, Hypothesis, Learning, Motion, RejectReason, Review, VisualAxis, WinMetric } from "./types";
 import { TEMPLATES } from "./templates";
@@ -373,10 +373,10 @@ export async function concludeAction(formData: FormData) {
   const brief = await db.briefs.get(creative.briefId);
   if (!brief) back("/", { err: "ブリーフが見つかりません" });
   const champion = brief.championId ? await db.creatives.get(brief.championId) : null;
-  const cmp = compare(brief.winMetric, creative.results, champion?.results);
+  const cmp = judge(brief.winMetric, creative, champion, await db.snapshots.listByBrief(brief.id));
   if (outcome === "won" && cmp.verdict !== "won") back(`/briefs/${brief.id}`, { err: `まだ勝ち判定が出ていません（${cmp.reason}）` });
   const metricLabel = WIN_METRICS.find((m) => m.id === brief.winMetric)?.label ?? brief.winMetric;
-  const evidence = `${metricLabel} ${formatRate(cmp.challengerRate)} vs チャンピオン ${formatRate(cmp.championRate)}（勝つ確率 ${(cmp.pWin * 100).toFixed(0)}%）`;
+  const evidence = `${metricLabel} ${formatRate(cmp.challengerRate)} vs チャンピオン ${formatRate(cmp.championRate)}（勝つ確率 ${(cmp.pWin * 100).toFixed(0)}%${cmp.pSeq !== null ? `、逐次検定 p=${cmp.pSeq < 0.001 ? "<0.001" : cmp.pSeq.toFixed(3)}` : ""}${cmp.window === "concurrent" ? "、同時期比較" : ""}）`;
 
   creative.experiment = { ...(creative.experiment ?? { startedAt: nowIso() }), endedAt: nowIso(), outcome };
   if (outcome === "won") {

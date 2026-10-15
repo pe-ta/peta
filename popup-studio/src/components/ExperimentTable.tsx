@@ -2,7 +2,8 @@
 import Link from "next/link";
 import type { Brief, Creative, ResultSnapshot } from "@/lib/types";
 import { WIN_METRICS } from "@/lib/types";
-import { compare, dailyImpressionsFrom, daysSince, decisionEstimate, formatRate, rate } from "@/lib/stats";
+import { dailyImpressionsFrom, daysSince, decisionEstimate, formatRate, judge, rate, SEQ_ALPHA, windowedSnaps } from "@/lib/stats";
+import { RateTrend } from "./RateTrend";
 import { concludeAction, saveResultsAction } from "@/lib/actions";
 import { creativeImageUrl } from "@/lib/urls";
 
@@ -35,7 +36,7 @@ export function ExperimentTable({
   return (
     <div className="flex flex-col gap-3">
       {champion && (
-        <Row brief={brief} champion={champion} c={champion} role="champion" snaps={snapshots.filter((s) => s.creativeId === champion.id)} />
+        <Row brief={brief} champion={champion} c={champion} role="champion" snaps={snapshots.filter((s) => s.creativeId === champion.id)} all={snapshots} />
       )}
       {live.map((c) => (
         <Row
@@ -45,13 +46,11 @@ export function ExperimentTable({
           c={c}
           role="challenger"
           snaps={snapshots.filter((s) => s.creativeId === c.id)}
+          all={snapshots}
         />
       ))}
-      <p className="text-[11px] text-muted">
-        判定: {metric.label} を Beta
-        分布で推定し、挑戦者がチャンピオンを上回る確率 95% 以上で勝ち、5%
-        以下で負け。双方 300 表示以上が必要。結果は配信基盤からの取り込み（Phase
-        2）までは手入力。
+      <p className="text-[11px] leading-relaxed text-muted">
+        判定: {metric.label} を Beta 分布で推定し、挑戦者が上回る確率が 95% 以上で勝ち、5% 以下で負け。加えて、毎日結果を確認しても誤判定が {SEQ_ALPHA * 100}% を超えない逐次検定（mSPRT）で確定したときだけ勝敗を出します。チャンピオンの配信開始前の記録がある場合は、挑戦者の配信開始以降の数字だけで比べます（同時期比較）。双方 300 表示以上が必要。
       </p>
     </div>
   );
@@ -63,21 +62,20 @@ function Row({
   c,
   role,
   snaps,
+  all,
 }: {
   brief: Brief;
   champion?: Creative;
   c: Creative;
   role: "champion" | "challenger";
   snaps: ResultSnapshot[];
+  all: ResultSnapshot[];
 }) {
   const metric = WIN_METRICS.find((m) => m.id === brief.winMetric) ?? WIN_METRICS[0];
   const r = c.results;
-  const cmp =
-    role === "challenger"
-      ? compare(brief.winMetric, c.results, champion?.results)
-      : null;
+  const cmp = role === "challenger" ? judge(brief.winMetric, c, champion, all) : null;
   const daysLive = c.experiment?.startedAt ? daysSince(c.experiment.startedAt) : null;
-  const est = role === "challenger" && cmp && cmp.verdict !== "won" && cmp.verdict !== "lost" ? decisionEstimate(brief.winMetric, c.results, champion?.results, dailyImpressionsFrom(snaps)) : null;
+  const est = role === "challenger" && cmp && cmp.verdict !== "won" && cmp.verdict !== "lost" ? decisionEstimate(brief.winMetric, c.results, cmp.championWindow, dailyImpressionsFrom(snaps)) : null;
   return (
     <div
       className={`grid gap-4 rounded-lg border p-4 lg:grid-cols-[96px_minmax(0,1fr)_minmax(0,1fr)] ${role === "champion" ? "border-accent bg-accent-soft/30" : "border-line"}`}
@@ -149,6 +147,15 @@ function Row({
             </span>
           )}
           {est && <div className="mt-0.5 text-xs text-muted">見込み: {est.note}</div>}
+          {cmp && cmp.verdict !== "insufficient" && (
+            <div className="mt-0.5 text-[11px] text-muted">
+              {cmp.window === "concurrent" ? `同時期比較（チャンピオンは挑戦者の配信開始以降 ${cmp.championWindow?.impressions.toLocaleString() ?? 0} 表示）` : "累計比較（チャンピオンの開始前の記録なし）"}
+              {cmp.verdict === "measuring" && cmp.pSeq !== null && ` ・ 結果の確認 ${cmp.looks} 回`}
+            </div>
+          )}
+          {role === "challenger" && champion && (snaps.length >= 2 || all.filter((s) => s.creativeId === champion.id).length >= 2) && (
+            <RateTrend metric={brief.winMetric} series={[{ label: cmp?.baseline ? "チャンピオン（同時期）" : "チャンピオン", snaps: windowedSnaps(all.filter((s) => s.creativeId === champion.id), cmp?.baseline), tone: "muted" }, { label: "この挑戦者", snaps, tone: "accent" }]} />
+          )}
         </div>
       </div>
       <div className="flex min-w-0 flex-col gap-3">

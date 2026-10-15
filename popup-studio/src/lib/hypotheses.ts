@@ -11,6 +11,7 @@ import type { Brief, Creative, Hypothesis, Learning } from "./types";
  *   any cell live (not champion), approved or submitted -> testing if any cell has ever gone live, else drafting
  *   only drafts / rejected           -> drafting (or testing if a cell already concluded)
  *   every launched cell concluded    -> concluded; won if any cell's conclusion learning was a win
+ *   only cell is the untested first champion -> testing (in market as the baseline)
  */
 export function deriveHypothesis(h: Hypothesis, cells: Creative[], learnings: Learning[], brief: Pick<Brief, "championId">): Pick<Hypothesis, "status" | "outcome" | "learningId"> {
   const cellIds = new Set(cells.map((c) => c.id));
@@ -27,6 +28,8 @@ export function deriveHypothesis(h: Hypothesis, cells: Creative[], learnings: Le
     const outcome = results.some((l) => l.outcome === "won") ? "won" : results.some((l) => l.outcome === "lost") ? "lost" : "inconclusive";
     return { status: "concluded", outcome, learningId: results[results.length - 1].id };
   }
+  // The first champion goes live without a test: its hypothesis is in market, not waiting.
+  if (cells.some((c) => c.status === "live")) return { status: "testing", outcome: undefined, learningId: undefined };
   if (h.status === "dropped") return { status: "dropped", outcome: undefined, learningId: undefined };
   return { status: drafts ? "drafting" : "backlog", outcome: undefined, learningId: undefined };
 }

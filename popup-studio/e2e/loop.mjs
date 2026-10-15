@@ -68,7 +68,8 @@ await Promise.all([page.waitForURL(/msg=.*|err=.*/, { timeout: 30000 }), page.lo
 await page.waitForLoadState("networkidle");
 await page.screenshot({ path: `${OUT}/03-experiment-live.png`, fullPage: true });
 
-// Enter results: champion 1000/60/24, challenger 1000/80/45 -> challenger should win
+// Enter results: champion 4000/240/96, challenger 4000/320/180 -> challenger should win
+// (1000 impressions is no longer enough: the sequential test needs p <= 0.05 valid under repeated looks)
 const forms = page.locator('form:has(button:has-text("結果を保存"))');
 console.log("result forms:", await forms.count());
 async function fillResults(form, imp, clk, adds, cv) {
@@ -79,8 +80,8 @@ async function fillResults(form, imp, clk, adds, cv) {
   await post(() => form.locator('button:has-text("結果を保存")').click());
   await page.waitForTimeout(400);
 }
-await fillResults(forms.nth(0), 1000, 60, 24, 3);
-await fillResults(page.locator('form:has(button:has-text("結果を保存"))').nth(1), 1000, 80, 45, 6);
+await fillResults(forms.nth(0), 4000, 240, 96, 12);
+await fillResults(page.locator('form:has(button:has-text("結果を保存"))').nth(1), 4000, 320, 180, 24);
 await page.waitForSelector("text=勝ち判定", { timeout: 15000 });
 const verdict = await page.locator("text=/勝ち判定|負け判定|計測中|データ不足/").first().innerText();
 console.log("verdict:", verdict);

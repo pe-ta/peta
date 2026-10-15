@@ -4,16 +4,21 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 /**
- * Internal header (nav + configuration warnings). Hidden on the client review portal,
+ * Internal header (nav + configuration warnings). Hidden on the client review portal and report,
  * which is opened by people outside ZEALS and must not show internal navigation or setup notes.
  */
+/** Pages opened by people outside ZEALS (approval portal, client report). */
+function isClientPage(path: string | null) {
+  return !!path && (path.startsWith("/review/") || path.startsWith("/report/"));
+}
+
 export function AppChrome({ providerName, warnings }: { providerName: string | null; warnings: string[] }) {
   const path = usePathname();
-  if (path?.startsWith("/review/")) {
+  if (isClientPage(path)) {
     return (
-      <header className="border-b border-line bg-surface">
+      <header className="border-b border-line bg-surface print:hidden">
         <div className="mx-auto flex max-w-6xl items-center px-4 py-3">
-          <span className="text-base font-black tracking-tight">ポップアップ案のご確認</span>
+          <span className="text-base font-black tracking-tight">{path?.startsWith("/report/") ? "ポップアップ検証レポート" : "ポップアップ案のご確認"}</span>
         </div>
       </header>
     );
@@ -54,6 +59,6 @@ export function AppChrome({ providerName, warnings }: { providerName: string | n
 /** Footer is internal too. */
 export function AppFooter() {
   const path = usePathname();
-  if (path?.startsWith("/review/")) return null;
-  return <footer className="border-t border-line py-4 text-center text-xs text-muted">Popup Lab v0.5 — ZEALS 離脱時ポップアップ検証速度 3x プロジェクト</footer>;
+  if (isClientPage(path)) return null;
+  return <footer className="border-t border-line py-4 text-center text-xs text-muted">Popup Lab v0.6 — ZEALS 離脱時ポップアップ検証速度 3x プロジェクト</footer>;
 }

@@ -29,10 +29,10 @@ const briefUrl = page.url().split("?")[0];
 console.log("initial creatives:", await page.locator('a[href^="/creatives/"] img').count());
 
 // Add a hypothesis and generate from it (grid hypotheses already exist and show "案を追加生成", so match exact text)
-await page.fill('input[name="title"]', "招待状型は様子見で離脱する層のタップ率を上げる");
-await page.fill('input[name="rationale"]', "過去の勝ち型。銀行・証券で実績");
-await page.selectOption('select[name="hook"]', "invitation");
-await page.selectOption('select[name="priority"]', "1");
+await page.fill('input[name="title"]:visible', "招待状型は様子見で離脱する層のタップ率を上げる");
+await page.fill('input[name="rationale"]:visible', "過去の勝ち型。銀行・証券で実績");
+await page.selectOption('select[name="hook"]:visible', "invitation");
+await page.selectOption('select[name="priority"]:visible', "1");
 console.log("add hypothesis:", await submit(() => page.click('button:text-is("追加")')));
 console.log("backlog rows:", await page.locator("text=優先 1").count());
 console.log("generate:", await submit(() => page.click('button:has-text("この仮説で案を作る")')));

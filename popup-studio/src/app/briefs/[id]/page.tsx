@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/store";
 import { runPreflight } from "@/lib/preflight";
-import { reviewToken } from "@/lib/review-token";
+import { reportToken, reviewToken } from "@/lib/review-token";
 import { addLearningAction, critiqueAllAction, regenerateAction, startExperimentAction, submitForReviewAction } from "@/lib/actions";
 import { aiAvailable } from "@/lib/ai";
 import { normalizeAppeal, REJECT_REASONS, WIN_METRICS } from "@/lib/types";
@@ -20,6 +20,8 @@ import { HypothesisBacklog } from "@/components/HypothesisBacklog";
 import { ResultsImport } from "@/components/ResultsImport";
 import { resultsToken } from "@/lib/results";
 import { weakSecretInProduction } from "@/lib/secret";
+import { suggestNext } from "@/lib/recommend";
+import { fallbackCopy } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -45,8 +47,11 @@ export default async function BriefPage({ params, searchParams }: { params: Prom
     if (l.outcome === "won") st.won++;
     else st.lost++;
   }
+  const industryOf = new Map((await db.briefs.list()).map((b) => [b.id, b.industry]));
+  const recommendations = suggestNext(brief, allLearnings.map((l) => ({ ...l, industry: industryOf.get(l.briefId) })), hypotheses).map((s) => ({ ...s, title: fallbackCopy(brief, [s.hook])[0]?.hypothesis ?? s.hook }));
   const token = reviewToken(id);
   const reviewPath = `/review/${token}`;
+  const reportPath = `/report/${reportToken(id)}`;
   const metric = WIN_METRICS.find((m) => m.id === brief.winMetric) ?? WIN_METRICS[0];
 
   const approved = creatives.filter((c) => c.status === "approved");
@@ -151,18 +156,18 @@ export default async function BriefPage({ params, searchParams }: { params: Prom
       </section>
 
       <Flash {...flash} />
-      <NextStep brief={brief} creatives={creatives} reviewPath={reviewPath} />
+      <NextStep brief={brief} creatives={creatives} reviewPath={reviewPath} snapshots={snapshots} />
 
       {hasExperiment ? (
         <>
           {experimentSection}
-          <HypothesisBacklog briefId={brief.id} hypotheses={hypotheses} creatives={creatives} suggested={suggested} hookStats={hookStats} />
+          <HypothesisBacklog briefId={brief.id} hypotheses={hypotheses} creatives={creatives} suggested={suggested} hookStats={hookStats} recommendations={recommendations} />
           {candidatesSection}
         </>
       ) : (
         <>
           {candidatesSection}
-          <HypothesisBacklog briefId={brief.id} hypotheses={hypotheses} creatives={creatives} suggested={suggested} hookStats={hookStats} />
+          <HypothesisBacklog briefId={brief.id} hypotheses={hypotheses} creatives={creatives} suggested={suggested} hookStats={hookStats} recommendations={recommendations} />
           {experimentSection}
         </>
       )}
@@ -179,6 +184,14 @@ export default async function BriefPage({ params, searchParams }: { params: Prom
             <code className="min-w-0 truncate rounded bg-bg px-2 py-1 text-xs">{reviewPath}</code>
             <CopyButton text={`${process.env.NEXT_PUBLIC_APP_URL ?? ""}${reviewPath}`} label="リンクをコピー" />
             <Link href={reviewPath} className="btn-ghost" target="_blank">開く</Link>
+          </div>
+          <div className="rounded-md bg-bg p-3">
+            <div className="text-xs font-black">クライアント向け検証レポート</div>
+            <div className="mt-0.5 text-[11px] text-muted">検証中の案・結果の推移・勝敗と学び・次の仮説を 1 ページに。閲覧専用の別リンクで、社内メモは出ません。印刷して PDF にもできます。</div>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <CopyButton text={`${process.env.NEXT_PUBLIC_APP_URL ?? ""}${reportPath}`} label="レポートのリンクをコピー" />
+              <Link href={reportPath} className="btn-ghost" target="_blank">レポートを開く</Link>
+            </div>
           </div>
           <h3 className="mt-2 text-sm font-black">フィードバック（{reviews.length}）</h3>
           {reviews.length === 0 ? (

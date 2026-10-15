@@ -2,7 +2,10 @@
 // Run: node --import ./e2e/ts-loader.mjs --experimental-transform-types e2e/unit.test.ts
 import { normalizeDate, parseResultsJson, parseResultsText, splitLine } from "../src/lib/results";
 import { deriveHypothesis } from "../src/lib/hypotheses";
-import type { Creative, Hypothesis, Learning } from "../src/lib/types";
+import { alwaysValidP, judge, sequentialSampleSize } from "../src/lib/stats";
+import { suggestNext } from "../src/lib/recommend";
+import { medianCycleDays, weekStart, weeklyConclusions } from "../src/lib/northstar";
+import type { Creative, CreativeResults, Hypothesis, Learning, ResultSnapshot } from "../src/lib/types";
 
 let fail = 0;
 const eq = (name: string, got: unknown, want: unknown) => {
@@ -54,7 +57,82 @@ eq("one lost, sibling rejected -> concluded lost", deriveHypothesis(h, [cell("a"
 eq("won cell later dethroned stays won", deriveHypothesis(h, [cell("a", "ended", true), cell("b", "ended", true)], [ln("a", "won", "2026-10-05"), ln("b", "inconclusive", "2026-10-09")], { championId: "x" }).outcome, "won");
 eq("winner is champion (live) -> concluded", deriveHypothesis(h, [cell("a", "live", true)], [ln("a", "won")], { championId: "a" }).status, "concluded");
 eq("relaunch clears learningId", deriveHypothesis({ ...h, status: "concluded", learningId: "ln_a" }, [cell("a", "ended", true), cell("c", "live", true)], [ln("a", "lost")], {}), { status: "testing", outcome: undefined, learningId: undefined });
+eq("untested first champion is in market, not backlog", deriveHypothesis(h, [cell("a", "live", true)], [], { championId: "a" }).status, "testing");
 eq("dropped stays dropped", deriveHypothesis({ ...h, status: "dropped" }, [], [], {}).status, "dropped");
+
+// Sequential test: false wins under daily peeking stay near alpha (A/A simulation).
+{
+  let seed = 7;
+  const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+  const binom = (n: number, p: number) => { let x = 0; for (let i = 0; i < n; i++) if (rnd() < p) x++; return x; };
+  const R = (impressions: number, lineAdds: number): CreativeResults => ({ impressions, clicks: 0, lineAdds, conversions: 0, updatedAt: "" });
+  let seqFalse = 0;
+  let naiveFalse = 0;
+  const sims = 300;
+  for (let k = 0; k < sims; k++) {
+    let n = 0, a = 0, b = 0;
+    const looks: Array<[CreativeResults, CreativeResults]> = [];
+    let naive = false;
+    for (let day = 0; day < 30; day++) {
+      n += 400; a += binom(400, 0.03); b += binom(400, 0.03);
+      looks.push([R(n, a), R(n, b)]);
+      const p = (a + b) / (2 * n);
+      const z = Math.abs(a / n - b / n) / Math.sqrt(p * (1 - p) * (2 / n));
+      if (z > 1.96) naive = true;
+    }
+    if (alwaysValidP("line_add_rate", looks) <= 0.05) seqFalse++;
+    if (naive) naiveFalse++;
+  }
+  console.log(`A/A with 30 daily looks: sequential false wins ${seqFalse}/${sims}, naive peeking ${naiveFalse}/${sims}`);
+  eq("sequential false-positive rate <= 6%", seqFalse / sims <= 0.06, true);
+  eq("naive peeking is inflated (sanity)", naiveFalse / sims > 0.1, true);
+}
+// Sequential test detects a real 40% lift.
+eq("sample size finite for 3% vs 4.2%", Number.isFinite(sequentialSampleSize("line_add_rate", 0.042, 0.03)), true);
+// Same-period window: champion counts before the challenger's first day are subtracted.
+{
+  const snap = (creativeId: string, date: string, impressions: number, lineAdds: number): ResultSnapshot => ({ id: `${creativeId}${date}`, briefId: "br", creativeId, date, impressions, clicks: 0, lineAdds, conversions: 0, source: "csv", createdAt: "" });
+  const champ = { id: "ch", results: { impressions: 20000, clicks: 0, lineAdds: 1000, conversions: 0, updatedAt: "" } };
+  const chal = { id: "cx", results: { impressions: 10000, clicks: 0, lineAdds: 300, conversions: 0, updatedAt: "" }, experiment: { startedAt: "2026-10-10T01:00:00Z" } };
+  const snaps = [snap("ch", "2026-10-09", 10000, 700), snap("ch", "2026-10-20", 20000, 1000), snap("cx", "2026-10-20", 10000, 300)];
+  const j = judge("line_add_rate", chal, champ, snaps);
+  eq("window concurrent", j.window, "concurrent");
+  eq("champion window counts", [j.championWindow?.impressions, j.championWindow?.lineAdds], [10000, 300]);
+  eq("equal concurrent rates are not a loss", j.verdict === "lost", false);
+  const jc = judge("line_add_rate", chal, champ, snaps.filter((s) => s.date !== "2026-10-09"));
+  eq("no earlier champion snapshot -> cumulative", jc.window, "cumulative");
+}
+
+// Recommender: skips hooks in play, ranks by evidence, keeps one exploration slot.
+{
+  const L = (hook: Learning["dna"] extends infer D ? D extends { hook: infer H } ? H : never : never, outcome: Learning["outcome"], industry: string) =>
+    ({ id: `l${Math.random()}`, briefId: "x", createdAt: "", hypothesis: "", outcome, author: "", industry, dna: { hook, structure: "two_buttons", visual: "art", motion: "static", layout: "question", tags: [] } }) as Learning & { industry: string };
+  const ls = [
+    ...Array.from({ length: 6 }, () => L("invitation", "won", "金融・保険")),
+    L("invitation", "lost", "金融・保険"),
+    ...Array.from({ length: 3 }, () => L("pain", "lost", "美容・医療")),
+    L("pain", "won", "美容・医療"),
+    ...Array.from({ length: 2 }, () => L("campaign", "won", "美容・医療")),
+    ...Array.from({ length: 2 }, () => L("campaign", "lost", "美容・医療")),
+  ];
+  const r = suggestNext({ id: "b", industry: "金融・保険" }, ls, [{ hook: "compatibility", status: "testing" }], 3);
+  eq("recommend excludes hooks in play", r.some((x) => x.hook === "compatibility"), false);
+  eq("recommend top is the evidence winner", r[0].hook, "invitation");
+  eq("recommend has exactly one explore slot", r.filter((x) => x.kind === "explore").length, 1);
+  eq("recommend size", r.length, 3);
+}
+// North Star weeks (Monday 00:00 JST boundaries).
+{
+  const now = Date.parse("2026-10-15T03:00:00Z"); // Thu 12:00 JST
+  eq("week start is Monday JST", new Date(weekStart(now)).toISOString(), "2026-10-11T15:00:00.000Z");
+  const w = weeklyConclusions([
+    { createdAt: "2026-10-11T14:59:00Z", outcome: "won" }, // Sun 23:59 JST -> previous week
+    { createdAt: "2026-10-11T15:00:00Z", outcome: "lost" }, // Mon 00:00 JST -> this week
+    { createdAt: "2026-10-12T00:00:00Z", outcome: "note" },
+  ], 2, now);
+  eq("weekly buckets", w.map((x) => [x.start, x.total]), [["2026-10-05", 1], ["2026-10-12", 1]]);
+  eq("median cycle", medianCycleDays([{ status: "concluded", createdAt: "2026-10-01T00:00:00Z", learningId: "a" }, { status: "concluded", createdAt: "2026-10-01T00:00:00Z", learningId: "b" }, { status: "testing", createdAt: "2026-10-01T00:00:00Z" }], [{ id: "a", createdAt: "2026-10-05T00:00:00Z" }, { id: "b", createdAt: "2026-10-11T00:00:00Z" }]), 7);
+}
 
 console.log(fail ? `unit: ${fail} failures` : "unit: all passed");
 process.exitCode = fail ? 1 : 0;

@@ -16,7 +16,7 @@ export const maxDuration = 60;
 export async function GET() {
   const t0 = Date.now();
   const report: Record<string, unknown> = {
-    version: "0.5",
+    version: "0.6",
     node: process.version,
     db: getStore().durable ? "postgres" : "memory",
     ai: aiProviderName() ?? "none",
