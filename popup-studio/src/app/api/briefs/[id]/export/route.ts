@@ -3,6 +3,7 @@ import { db } from "@/lib/store";
 import { renderCreative } from "@/lib/render";
 import { runPreflight } from "@/lib/preflight";
 import { SPECS } from "@/lib/templates";
+import { dnaOf } from "@/lib/dna";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -44,6 +45,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       template: c.templateId,
       hypothesis: c.hypothesis,
       slots: c.slots,
+      dna: dnaOf(c),
       preflight_score: pre.score,
       preflight_issues: pre.issues.map((i) => i.code),
       // Attribution parameter to append to the LINE add-friend URL.

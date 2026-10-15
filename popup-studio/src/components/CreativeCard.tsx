@@ -1,7 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import type { Creative, PreflightResult } from "@/lib/types";
-import { APPEAL_AXES, MOTIONS, VISUAL_AXES } from "@/lib/types";
+import { appealLabel, MOTIONS, normalizeMotion, normalizeVisual, VISUAL_AXES } from "@/lib/types";
+import { getTemplate } from "@/lib/templates";
 import { StatusChip } from "./StatusChip";
 import { creativeImageUrl } from "@/lib/urls";
 import { ScoreBadge } from "./ScoreBadge";
@@ -22,7 +23,7 @@ export function CreativeCard({
   briefUpdatedAt: string;
 }) {
   // Thumbnails are always the still frame: GIFs take seconds to render and the grid loads 6-12 at once.
-  const aspect = deviceSize === "sp" ? "4 / 5" : "8 / 5";
+  const aspect = deviceSize === "sp" ? "900 / 1265" : "1 / 1";
   const critique = creative.critique;
   return (
     <div className={`card flex flex-col overflow-hidden ${isChampion ? "ring-2 ring-accent" : ""}`}>
@@ -45,9 +46,10 @@ export function CreativeCard({
         <div className="flex items-center justify-between gap-2">
           <div className="flex flex-wrap gap-1">
             {isChampion && <span className="chip bg-accent text-white">チャンピオン</span>}
-            <span className="chip border border-line text-muted">{APPEAL_AXES.find((a) => a.id === creative.appealAxis)?.label}</span>
-            <span className="chip border border-line text-muted">{VISUAL_AXES.find((v) => v.id === creative.visualAxis)?.label.replace(/主体型|型/, "") ?? creative.visualAxis}</span>
-            <span className={`chip ${creative.motion === "static" ? "border border-line text-muted" : "bg-warn-soft text-warn"}`}>{MOTIONS.find((m) => m.id === creative.motion)?.label.replace(/（.*）/, "")}</span>
+            <span className="chip border border-line text-muted">{appealLabel(creative.appealAxis)}</span>
+            <span className="chip border border-line text-muted">{getTemplate(creative.templateId).name.replace(/型$/, "")}</span>
+            <span className="chip border border-line text-muted">{VISUAL_AXES.find((v) => v.id === normalizeVisual(creative.visualAxis))?.label.replace(/ブランド色の/, "")}</span>
+            <span className={`chip ${normalizeMotion(creative.motion) === "static" ? "border border-line text-muted" : "bg-warn-soft text-warn"}`}>{MOTIONS.find((m) => m.id === normalizeMotion(creative.motion))?.label.replace(/（.*）/, "")}</span>
           </div>
           <div className="flex items-center gap-1" title="辛口分析 / プリフライト">
             {critique ? (

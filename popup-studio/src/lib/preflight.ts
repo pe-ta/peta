@@ -6,6 +6,7 @@ import { fullWidthLength } from "./text";
 /**
  * Rule-based preflight. Runs synchronously on the slot data so it can be shown
  * instantly in the editor; byte-size checks are appended after rendering.
+ * Limits come from the inventory of past popups (docs/07_popup_inventory.md).
  */
 
 // Expressions that commonly trip 景表法 / 薬機法 reviews. Not legal advice: a
@@ -19,6 +20,9 @@ const RISKY_EXPRESSIONS: Array<{ re: RegExp; label: string; suggestion: string }
   { re: /(今だけ|本日限り|残り\d+)/u, label: "期限・限定の表示", suggestion: "実際の期限・数量と一致していることを確認（有利誤認）" },
 ];
 
+const QUESTION_RE = /[？?]$|ませんか|したい[！!]?$|気になる|知りたい|でしょうか|どっち|どれ/;
+const GUILT_RE = /損|いらない|興味ない|結構です|必要ない/;
+
 export function runPreflight(brief: Brief, creative: Creative, bytes?: { format: "png" | "gif"; size: number }): PreflightResult {
   const issues: PreflightIssue[] = [];
   const spec = SPECS[brief.deviceSize];
@@ -26,48 +30,61 @@ export function runPreflight(brief: Brief, creative: Creative, bytes?: { format:
   const f = template.fontSizes(brief.deviceSize);
   const c = resolveColors(brief, creative.slots);
   const s = creative.slots;
+  const isChoice = template.id === "choice";
 
   // Contrast ---------------------------------------------------------------
-  const headlineBg = template.visualAxis === "text" ? c.primary : template.visualAxis === "coupon" ? "#ffffff" : c.background;
-  const headlineFg = template.visualAxis === "text" ? c.onPrimary : template.visualAxis === "coupon" ? "#1a1a1a" : c.text;
-  const contrastHeadline = contrast(headlineFg, headlineBg);
+  const headlineBg = template.id === "invitation" ? "#ffffff" : c.background;
+  const contrastHeadline = contrast(c.text, headlineBg);
   if (contrastHeadline < 4.5) {
-    issues.push({
-      code: "contrast.headline",
-      severity: contrastHeadline < 3 ? "error" : "warn",
-      message: `見出しのコントラスト比 ${contrastHeadline.toFixed(1)}:1（推奨 4.5:1 以上）`,
-      suggestion: "文字色または背景色を調整する",
-    });
+    issues.push({ code: "contrast.headline", severity: contrastHeadline < 3 ? "error" : "warn", message: `見出しのコントラスト比 ${contrastHeadline.toFixed(1)}:1（推奨 4.5:1 以上）`, suggestion: "文字色または背景色を調整する" });
   }
-  const ctaBg = template.visualAxis === "text" ? c.ctaOnPrimary : c.cta;
-  const contrastCta = contrast(readableOn(ctaBg), ctaBg);
+  const contrastCta = contrast(readableOn(c.cta), c.cta);
   if (contrastCta < 4.5) {
-    issues.push({ code: "contrast.cta", severity: "warn", message: `CTA文字のコントラスト比 ${contrastCta.toFixed(1)}:1`, suggestion: "CTAの色をより濃く/明るくする" });
+    issues.push({ code: "contrast.cta", severity: "warn", message: `肯定ボタン文字のコントラスト比 ${contrastCta.toFixed(1)}:1`, suggestion: "アクセント色をより濃く/明るくする" });
   }
-  if (template.visualAxis === "text" && contrast(c.accent, c.primary) < 2.5) {
-    issues.push({ code: "cta.blend", severity: "info", message: "アクセント色が主色に近いため、CTAは白/黒で代替しています", suggestion: "補色方向のアクセント色を指定すると目立ちます" });
+  const contrastRibbon = contrast(c.onPrimary, c.primary);
+  if (contrastRibbon < 3) {
+    issues.push({ code: "contrast.ribbon", severity: "warn", message: `帯の文字コントラスト比 ${contrastRibbon.toFixed(1)}:1`, suggestion: "主色を濃くする" });
+  }
+
+  // Structure --------------------------------------------------------------
+  if (!QUESTION_RE.test(s.headline.trim())) {
+    issues.push({ code: "structure.question", severity: "warn", message: "見出しが問いかけになっていません", suggestion: "実績の勝ち構造は質問形（〜しませんか？ / 〜知りたい！）です" });
+  }
+  if (!isChoice && !s.negative) {
+    issues.push({ code: "structure.negative", severity: "info", message: "否定ボタンがありません（CTA 1本）", suggestion: "実績の主流は『いいえ／はい』の2択。否定の逃げ道があると肯定が押されやすくなります" });
+  }
+  if (s.negative && GUILT_RE.test(s.negative)) {
+    issues.push({ code: "structure.guilt", severity: "warn", message: `否定ボタン「${s.negative}」が罪悪感を煽る文言です`, suggestion: "「いいえ」「また今度」のような中立表現に" });
+  }
+  if (!/LINE|ライン|無料|\d+\s*秒|\d+\s*分|\d+\s*問|かんたん|簡単/i.test(`${s.eyebrow} ${s.badge ?? ""} ${s.sub}`)) {
+    issues.push({ code: "structure.cost", severity: "warn", message: "帯・バッジに LINE／無料／30秒 のいずれも現れていません", suggestion: "行動コストの低さを帯かバッジで示す（例: LINEで簡単30秒）" });
+  }
+  if (isChoice && (s.options?.length ?? 0) < 2) {
+    issues.push({ code: "structure.options", severity: "error", message: "多択型なのに選択肢が2つ未満です", suggestion: "選択肢を2〜3個入力する" });
   }
 
   // Text length ------------------------------------------------------------
   const headlineChars = fullWidthLength(s.headline);
   if (headlineChars === 0) issues.push({ code: "text.headline.empty", severity: "error", message: "見出しが空です" });
   if (headlineChars > spec.headlineMaxChars) {
-    issues.push({
-      code: "text.headline.long",
-      severity: headlineChars > spec.headlineMaxChars * 1.3 ? "error" : "warn",
-      message: `見出しが全角換算 ${headlineChars} 字（推奨 ${spec.headlineMaxChars} 字以内）`,
-      suggestion: "数字と便益を残し、修飾語を削る",
-    });
+    issues.push({ code: "text.headline.long", severity: headlineChars > spec.headlineMaxChars * 1.3 ? "error" : "warn", message: `見出しが全角換算 ${headlineChars} 字（推奨 ${spec.headlineMaxChars} 字以内）`, suggestion: "主語と問いだけ残し、修飾語を削る" });
   }
   const subChars = fullWidthLength(s.sub);
   if (subChars > spec.subMaxChars) {
-    issues.push({ code: "text.sub.long", severity: "warn", message: `サブコピーが全角換算 ${subChars} 字（推奨 ${spec.subMaxChars} 字以内）` });
+    issues.push({ code: "text.sub.long", severity: "warn", message: `補足が全角換算 ${subChars} 字（推奨 ${spec.subMaxChars} 字以内）` });
   }
-  if (fullWidthLength(s.cta) > 14) {
-    issues.push({ code: "text.cta.long", severity: "warn", message: "CTAが長すぎます（14文字以内推奨）", suggestion: "動詞で終える短い命令形にする（例: LINEで受け取る）" });
+  if (fullWidthLength(s.eyebrow) > spec.eyebrowMaxChars) {
+    issues.push({ code: "text.eyebrow.long", severity: "warn", message: `帯が全角換算 ${fullWidthLength(s.eyebrow)} 字（推奨 ${spec.eyebrowMaxChars} 字以内）`, suggestion: "帯は1行。「LINEで無料診断！」程度の長さに" });
   }
-  if (!/LINE|ライン/i.test(`${s.cta} ${s.eyebrow} ${s.sub}`)) {
-    issues.push({ code: "cta.line", severity: "info", message: "LINEへの遷移先が文言に現れていません", suggestion: "遷移先の明示はクリック後の離脱を減らします" });
+  if (fullWidthLength(s.cta) > spec.buttonMaxChars) {
+    issues.push({ code: "text.cta.long", severity: "warn", message: `肯定ボタンが ${fullWidthLength(s.cta)} 字（推奨 ${spec.buttonMaxChars} 字以内）`, suggestion: "「はい」「診断する」「知りたい」の短い言葉に" });
+  }
+  if (s.negative && fullWidthLength(s.negative) > 6) {
+    issues.push({ code: "text.negative.long", severity: "warn", message: "否定ボタンが長すぎます（6文字以内推奨）" });
+  }
+  for (const o of s.options ?? []) {
+    if (fullWidthLength(o) > 12) issues.push({ code: "text.option.long", severity: "warn", message: `選択肢「${o}」が長すぎます（12文字以内推奨）` });
   }
 
   // Minimum font -----------------------------------------------------------
@@ -77,7 +94,7 @@ export function runPreflight(brief: Brief, creative: Creative, bytes?: { format:
   }
 
   // NG words & risky expressions -------------------------------------------
-  const allText = [s.eyebrow, s.headline, s.sub, s.cta, s.badge ?? ""].join("\n");
+  const allText = [s.eyebrow, s.headline, s.sub, s.cta, s.negative ?? "", s.badge ?? "", ...(s.options ?? [])].join("\n");
   for (const ng of brief.brand.ngWords.map((w) => w.trim()).filter(Boolean)) {
     if (allText.includes(ng)) {
       issues.push({ code: "ng.word", severity: "error", message: `NGワード「${ng}」が含まれています`, suggestion: "クライアント規約の代替表現に置き換える" });
@@ -85,21 +102,14 @@ export function runPreflight(brief: Brief, creative: Creative, bytes?: { format:
   }
   for (const r of RISKY_EXPRESSIONS) {
     const m = allText.match(r.re);
-    if (m) {
-      issues.push({ code: "expr.risky", severity: "warn", message: `要注意表現（${r.label}）: 「${m[0]}」`, suggestion: r.suggestion });
-    }
+    if (m) issues.push({ code: "expr.risky", severity: "warn", message: `要注意表現（${r.label}）: 「${m[0]}」`, suggestion: r.suggestion });
   }
 
   // Bytes ------------------------------------------------------------------
   if (bytes) {
     const limit = bytes.format === "gif" ? spec.maxBytesGif : spec.maxBytesPng;
     if (bytes.size > limit) {
-      issues.push({
-        code: "spec.bytes",
-        severity: "error",
-        message: `${bytes.format.toUpperCase()} が ${(bytes.size / 1024).toFixed(0)}KB（上限 ${(limit / 1024).toFixed(0)}KB）`,
-        suggestion: bytes.format === "gif" ? "フレーム数を減らす／静止に変更" : "画像を圧縮する",
-      });
+      issues.push({ code: "spec.bytes", severity: "error", message: `${bytes.format.toUpperCase()} が ${(bytes.size / 1024).toFixed(0)}KB（上限 ${(limit / 1024).toFixed(0)}KB）`, suggestion: bytes.format === "gif" ? "フレーム数を減らす／静止に変更" : "画像を圧縮する" });
     }
   }
 
@@ -107,9 +117,5 @@ export function runPreflight(brief: Brief, creative: Creative, bytes?: { format:
   const penalty = issues.reduce((acc, i) => acc + (i.severity === "error" ? 25 : i.severity === "warn" ? 8 : 2), 0);
   const score = Math.max(0, 100 - penalty);
 
-  return {
-    score,
-    issues,
-    metrics: { contrastHeadline, contrastCta, minFontPx, headlineChars, bytes: bytes?.size },
-  };
+  return { score, issues, metrics: { contrastHeadline, contrastCta, minFontPx, headlineChars, bytes: bytes?.size } };
 }

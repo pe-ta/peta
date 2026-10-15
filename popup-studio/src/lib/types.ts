@@ -1,38 +1,73 @@
-// Domain types for Popup Studio (MVP).
+// Domain types for Popup Lab.
 // Kept deliberately flat: every entity is a JSON document keyed by id.
+//
+// v0.4: the taxonomy follows the inventory of 1,066 past ZEALS popups
+// (docs/07_popup_inventory.md): a 900x1265 canvas, a five-band structure
+// (ribbon / question headline / visual / badge / two buttons) and seven hooks.
 
+/** フック（切り口）。過去資産の分類 7 系統。 */
 export type AppealAxis =
-  | "price" // 価格・割引
-  | "scarcity" // 限定・期限
-  | "anxiety" // 不安解消・保証
-  | "diagnosis" // 診断・セルフチェック
-  | "social" // 社会的証明・実績
-  | "benefit"; // 特典・プレゼント
+  | "compatibility" // 相性診断: 「◯◯との相性をチェックしませんか？」
+  | "invitation" // 招待状: 「◯◯から招待状が届きました」
+  | "pain" // 悩み共感: 「脱毛したのに、また毛が生えてきた…」
+  | "campaign" // キャンペーン特典: 「現金プレゼントキャンペーン実施中」
+  | "quiz" // クイズ: 「最大何%OFFで受けられるでしょうか？」
+  | "type_choice" // 二択タイプ診断: 「お子様はどっち？ 体験型／積み上げ型」
+  | "price"; // 価格知りたい: 「結局いくらかかるの？」
 
-export type VisualAxis = "image" | "text" | "coupon";
+export const APPEAL_AXES: { id: AppealAxis; label: string; hint: string; be: string[] }[] = [
+  { id: "compatibility", label: "相性診断", hint: "「◯◯との相性をチェックしませんか？」自分事化。塾・保険・スクールで最多", be: ["自己関連性", "好奇心"] },
+  { id: "invitation", label: "招待状", hint: "「◯◯から招待状が届きました」特別扱い。銀行・証券・不動産", be: ["返報性", "特別感"] },
+  { id: "pain", label: "悩み共感", hint: "「〜したのに、また…」離脱理由の言語化。美容医療・金融", be: ["問題の顕在化", "共感"] },
+  { id: "campaign", label: "キャンペーン特典", hint: "「現金プレゼント実施中」「0円体験」数字が主役", be: ["ゲイン・フレーミング", "損失回避"] },
+  { id: "quiz", label: "クイズ", hint: "「最大何%OFFでしょうか？」答えを LINE で", be: ["好奇心ギャップ"] },
+  { id: "type_choice", label: "二択タイプ診断", hint: "「あなたはどっち？ A／B」ボタン自体が選択肢", be: ["自己診断", "コミットメント"] },
+  { id: "price", label: "価格知りたい", hint: "「結局いくらかかるの？」料金ページ離脱に", be: ["アンカリング", "不確実性の低減"] },
+];
+
+/** 旧 ID（v0.3 以前の保存データ）を新フックに読み替える。 */
+export const LEGACY_APPEAL: Record<string, AppealAxis> = {
+  diagnosis: "compatibility",
+  social: "compatibility",
+  anxiety: "pain",
+  scarcity: "campaign",
+  benefit: "campaign",
+};
+export function normalizeAppeal(id: string): AppealAxis {
+  return (APPEAL_AXES.some((a) => a.id === id) ? id : LEGACY_APPEAL[id] ?? "compatibility") as AppealAxis;
+}
+export function appealLabel(id: string) {
+  return APPEAL_AXES.find((a) => a.id === normalizeAppeal(id))?.label ?? id;
+}
+
+/** ビジュアル（中段）の様式。 */
+export type VisualAxis = "art" | "photo";
 
 export const VISUAL_AXES: { id: VisualAxis; label: string; hint: string }[] = [
-  { id: "text", label: "テキスト主体型", hint: "ブランド色の面に大きな見出し。数字が主役" },
-  { id: "image", label: "画像主体型", hint: "LPのOG画像や商品写真を上半分に。画像が無ければ装飾" },
-  { id: "coupon", label: "クーポン型", hint: "チケット風。割引・特典の受け取りを直感的に" },
+  { id: "art", label: "ブランド色の装飾", hint: "写真が無くても成立。吹き出し・図形で質問を強調" },
+  { id: "photo", label: "写真", hint: "LP の OG 画像や商品・人物写真を丸窓に。実績では人物写真が約3分の1" },
 ];
-export type Motion = "static" | "pop" | "slide" | "pulse";
+export const LEGACY_VISUAL: Record<string, VisualAxis> = { text: "art", image: "photo", coupon: "art" };
+export function normalizeVisual(id: string): VisualAxis {
+  return (VISUAL_AXES.some((v) => v.id === id) ? id : LEGACY_VISUAL[id] ?? "art") as VisualAxis;
+}
 
-export const APPEAL_AXES: { id: AppealAxis; label: string; hint: string }[] = [
-  { id: "price", label: "価格・割引", hint: "◯%OFF、初回◯円" },
-  { id: "scarcity", label: "限定・期限", hint: "今だけ、◯名限定、本日まで" },
-  { id: "anxiety", label: "不安解消", hint: "返金保証、無料相談、匿名OK" },
-  { id: "diagnosis", label: "診断・セルフチェック", hint: "30秒で分かる、3問で判定" },
-  { id: "social", label: "社会的証明", hint: "累計◯万人、満足度◯%" },
-  { id: "benefit", label: "特典", hint: "LINE限定クーポン、無料サンプル" },
-];
+/** 動き。実績の GIF は「点滅」「指カーソル」「装飾」の 3 型。 */
+export type Motion = "static" | "blink" | "cursor" | "pop";
 
-export const MOTIONS: { id: Motion; label: string }[] = [
-  { id: "static", label: "静止（PNG）" },
-  { id: "pop", label: "ポップイン（GIF）" },
-  { id: "slide", label: "スライドイン（GIF）" },
-  { id: "pulse", label: "CTA点滅（GIF）" },
+export const MOTIONS: { id: Motion; label: string; hint: string }[] = [
+  { id: "static", label: "静止（PNG）", hint: "まず静止で比較するのが速い" },
+  { id: "blink", label: "点滅（GIF）", hint: "肯定ボタンと帯を交互に光らせる。実績 GIF の 4 割がこの 2 フレーム型" },
+  { id: "cursor", label: "指カーソル（GIF）", hint: "指が肯定ボタンをタップする。行動の予告" },
+  { id: "pop", label: "ポップイン（GIF）", hint: "表示時に拡大しながら現れる" },
 ];
+export const LEGACY_MOTION: Record<string, Motion> = { pulse: "blink", slide: "pop" };
+export function normalizeMotion(id: string): Motion {
+  return (MOTIONS.some((m) => m.id === id) ? id : LEGACY_MOTION[id] ?? "static") as Motion;
+}
+
+/** レイアウト（テンプレート）。実績構造の 4 型。 */
+export type LayoutId = "question" | "invitation" | "campaign" | "choice";
 
 export interface BrandKit {
   primary: string; // hex
@@ -49,7 +84,7 @@ export type WinMetric = "ctr" | "line_add_rate" | "cvr";
 
 export const WIN_METRICS: { id: WinMetric; label: string; numerator: string; hint: string }[] = [
   { id: "line_add_rate", label: "LINE友だち追加率", numerator: "lineAdds", hint: "表示あたりの友だち追加。成果報酬の母数に最も近い" },
-  { id: "ctr", label: "クリック率", numerator: "clicks", hint: "表示あたりのクリック。早く結論が出るが、追加後の離脱を見逃す" },
+  { id: "ctr", label: "タップ率", numerator: "clicks", hint: "表示あたりの肯定ボタンのタップ。早く結論が出るが、追加後の離脱を見逃す" },
   { id: "cvr", label: "CV率", numerator: "conversions", hint: "表示あたりの最終CV。最も正しいが結論まで時間がかかる" },
 ];
 
@@ -79,12 +114,15 @@ export interface Brief {
   copySource: "ai" | "fallback";
 }
 
+/** 5 段構造のスロット。帯 / 質問見出し / ビジュアル / 小バッジ / ボタン対。 */
 export interface CreativeSlots {
-  eyebrow: string; // 小見出し (例: LINE限定)
-  headline: string;
-  sub: string;
-  cta: string;
-  badge?: string; // 例: 55%OFF
+  eyebrow: string; // 帯（リボン）: 「LINEで無料診断！」「招待状が届きました」
+  headline: string; // 質問見出し: 「◯◯との相性をチェックしませんか？」
+  sub: string; // 補足（小）: 「あなたに合ったプランをチェック」
+  cta: string; // 肯定ボタン: 「はい」「診断する」「知りたい」
+  negative?: string; // 否定ボタン: 「いいえ」「また今度」。空なら CTA 1 本
+  badge?: string; // 小バッジ: 「LINEで簡単30秒」「無料」「3問」
+  options?: string[]; // 多択レイアウトの選択肢（2〜3）
   imageUrl?: string;
   // colors can override brand kit per creative
   primary?: string;
@@ -126,9 +164,9 @@ export interface Critique {
   verdict: string; // 一言の辛口総評
   scores: {
     attention: number; // 注目: 0.5秒で目に入るか
-    clarity: number; // 訴求の明確さ: 何が得か1秒で分かるか
+    clarity: number; // 質問の明確さ: 何を聞かれているか1秒で分かるか
     fit: number; // 離脱文脈との適合: 離脱直前の心理に答えているか
-    cta: number; // CTA: 次の行動が具体的で低負荷か
+    cta: number; // ボタン対: 肯定が押しやすく、否定が自然な逃げ道か
     trust: number; // 信頼・ブランド整合
     risk: number; // 表現リスクの低さ（高いほど安全）
   };
@@ -139,6 +177,8 @@ export interface Critique {
     challengerWins: boolean;
     confidence: number; // 0-1
     reason: string;
+    /** チャンピオンとの差分（何が違うか）。比較推論の根拠。 */
+    diff?: string;
   };
 }
 
@@ -161,6 +201,17 @@ export interface Creative {
   experiment?: ExperimentState;
 }
 
+/** DNA タグ: 学習ログで集計する軸。案から機械的に導く。 */
+export interface Dna {
+  hook: AppealAxis;
+  structure: "two_buttons" | "single_cta" | "multi_choice";
+  visual: VisualAxis;
+  motion: Motion;
+  layout: string;
+  /** 行動経済学タグ（フック由来 + 文言由来）。 */
+  tags: string[];
+}
+
 /** Learning log: what we tried, what happened, what we try next. */
 export interface Learning {
   id: string;
@@ -172,6 +223,8 @@ export interface Learning {
   evidence?: string; // 例: 友だち追加率 3.1% vs 2.4%（P=0.97）
   nextHypothesis?: string;
   author: string;
+  /** 勝敗が出た案の DNA。タグ別の勝率集計に使う。 */
+  dna?: Dna;
 }
 
 export type RejectReason =

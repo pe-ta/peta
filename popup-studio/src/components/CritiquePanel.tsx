@@ -67,7 +67,8 @@ export function CritiquePanel({ critique, compact }: { critique: Critique; compa
         <div className={`rounded-md p-3 text-xs ${critique.vsChampion.challengerWins ? "bg-accent-soft text-accent" : "bg-bg text-muted border border-line"}`}>
           <span className="font-black">対チャンピオン予測: {critique.vsChampion.challengerWins ? "勝つ" : "負ける"}</span>
           <span className="ml-2 tabular-nums">確信度 {(critique.vsChampion.confidence * 100).toFixed(0)}%</span>
-          <span className="ml-2">{critique.vsChampion.reason}</span>
+          {critique.vsChampion.diff && <div className="mt-1">差分: {critique.vsChampion.diff}</div>}
+          <div className="mt-0.5">判定理由: {critique.vsChampion.reason}</div>
         </div>
       )}
       <div className="text-[11px] text-muted">

@@ -12,6 +12,8 @@ import { aiAvailable } from "./ai";
 import { compare, formatRate } from "./stats";
 import { APPEAL_AXES, MOTIONS, VISUAL_AXES, WIN_METRICS } from "./types";
 import type { AppealAxis, Brief, CreativeStatus, Learning, Motion, RejectReason, Review, VisualAxis, WinMetric } from "./types";
+import { TEMPLATES } from "./templates";
+import { dnaOf } from "./dna";
 
 // Helpers -------------------------------------------------------------------
 
@@ -85,8 +87,8 @@ export async function createBriefAction(formData: FormData) {
   const lpUrl = str(formData, "lpUrl");
   const fields = readBrandAndBrief(formData);
   if (!fields.offer || !fields.target) back("/briefs/new", { err: "オファーとターゲットは必須です" });
-  if (fields.appealAxes.length === 0) back("/briefs/new", { err: "訴求軸を1つ以上選んでください" });
-  if (fields.visualAxes.length === 0) fields.visualAxes = ["text"];
+  if (fields.appealAxes.length === 0) back("/briefs/new", { err: "フックを1つ以上選んでください" });
+  if (fields.visualAxes.length === 0) fields.visualAxes = ["art"];
   if (fields.motions.length === 0) fields.motions = ["static"];
 
   let briefId = "";
@@ -131,7 +133,7 @@ export async function updateBriefAction(formData: FormData) {
   const fields = readBrandAndBrief(formData, brief);
   if (!fields.offer || !fields.target) back(`/briefs/${id}/edit`, { err: "オファーとターゲットは必須です" });
   Object.assign(brief, fields, { updatedAt: nowIso() });
-  if (brief.appealAxes.length === 0) brief.appealAxes = ["benefit"];
+  if (brief.appealAxes.length === 0) brief.appealAxes = ["compatibility"];
   await db.briefs.put(brief);
   revalidatePath(`/briefs/${id}`);
   back(`/briefs/${id}`, { msg: "ブリーフを更新しました。既存の候補には反映されません（再生成で反映）" });
@@ -167,13 +169,20 @@ export async function updateCreativeAction(formData: FormData) {
   if (["live", "ended"].includes(creative.status)) back(`/creatives/${id}`, { err: "配信中・終了した案は編集できません（実験の比較対象が変わるため）" });
   const headline = str(formData, "headline");
   const cta = str(formData, "cta");
-  if (!headline || !cta) back(`/creatives/${id}`, { err: "見出しとCTAは必須です" });
+  if (!headline || !cta) back(`/creatives/${id}`, { err: "見出しと肯定ボタンは必須です" });
+  const options = str(formData, "options")
+    .split(/[、,\n／/]/)
+    .map((o) => o.trim())
+    .filter(Boolean)
+    .slice(0, 3);
   creative.slots = {
     eyebrow: str(formData, "eyebrow"),
     headline,
     sub: str(formData, "sub"),
     cta,
+    negative: str(formData, "negative") || undefined,
     badge: str(formData, "badge") || undefined,
+    options: options.length ? options : undefined,
     imageUrl: /^https?:\/\//.test(str(formData, "imageUrl")) ? str(formData, "imageUrl") : undefined,
     primary: hexOrUndefined(str(formData, "primary")),
     accent: hexOrUndefined(str(formData, "accent")),
@@ -181,6 +190,10 @@ export async function updateCreativeAction(formData: FormData) {
   creative.hypothesis = str(formData, "hypothesis", creative.hypothesis);
   const motion = str(formData, "motion") as Motion;
   if (MOTION_IDS.includes(motion)) creative.motion = motion;
+  const templateId = str(formData, "templateId");
+  if (TEMPLATES.some((t) => t.id === templateId)) creative.templateId = templateId;
+  const visual = str(formData, "visualAxis") as VisualAxis;
+  if (VISUAL_IDS.includes(visual)) creative.visualAxis = visual;
   creative.version += 1;
   creative.critique = undefined; // the critique described the previous version
   creative.updatedAt = nowIso();
@@ -381,6 +394,7 @@ export async function concludeAction(formData: FormData) {
     evidence,
     nextHypothesis: str(formData, "nextHypothesis") || undefined,
     author: str(formData, "author", "AP"),
+    dna: dnaOf(creative),
   };
   await db.learnings.put(learning);
   revalidatePath(`/briefs/${brief.id}`);

@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/store";
 import { verifyReviewToken } from "@/lib/review-token";
 import { clientDecisionAction } from "@/lib/actions";
-import { APPEAL_AXES, REJECT_REASONS } from "@/lib/types";
+import { appealLabel, REJECT_REASONS } from "@/lib/types";
 import { DevicePreview } from "@/components/DevicePreview";
 import { creativeImageUrl } from "@/lib/urls";
 import { Flash, readFlash } from "@/components/Flash";
@@ -50,7 +50,7 @@ export default async function ReviewPage({ params, searchParams }: { params: Pro
                   <div>
                     <div className="flex flex-wrap items-center gap-2 text-xs">
                       <span className="font-black">案 {idx + 1}</span>
-                      <span className="chip bg-accent-soft text-accent">{APPEAL_AXES.find((a) => a.id === c.appealAxis)?.label}</span>
+                      <span className="chip bg-accent-soft text-accent">{appealLabel(c.appealAxis)}</span>
                       <StatusChip status={c.status} />
                     </div>
                     <h2 className="mt-2 text-lg font-black">{c.slots.headline}</h2>

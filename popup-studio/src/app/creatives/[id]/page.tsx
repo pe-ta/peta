@@ -5,8 +5,9 @@ import { db } from "@/lib/store";
 import { runPreflight } from "@/lib/preflight";
 import { critiqueAction, deleteCreativeAction, setStatusAction, updateCreativeAction } from "@/lib/actions";
 import { aiAvailable } from "@/lib/ai";
-import { APPEAL_AXES, MOTIONS } from "@/lib/types";
-import { getTemplate } from "@/lib/templates";
+import { appealLabel, MOTIONS, normalizeMotion, normalizeVisual, VISUAL_AXES } from "@/lib/types";
+import { getTemplate, TEMPLATES } from "@/lib/templates";
+import { dnaOf, STRUCTURE_LABEL } from "@/lib/dna";
 import { PreflightList } from "@/components/PreflightList";
 import { StatusChip } from "@/components/StatusChip";
 import { CritiquePanel } from "@/components/CritiquePanel";
@@ -27,10 +28,12 @@ export default async function CreativePage({ params, searchParams }: { params: P
   const flash = readFlash(await searchParams);
   const preflight = runPreflight(brief, creative);
   const template = getTemplate(creative.templateId);
-  const fmt = creative.motion === "static" ? "png" : "gif";
+  const fmt = normalizeMotion(creative.motion) === "static" ? "png" : "gif";
   const img = creativeImageUrl(creative, brief, fmt);
   const isChampion = brief.championId === creative.id;
   const locked = ["live", "ended"].includes(creative.status);
+  const dna = dnaOf(creative);
+  const motionLabel = MOTIONS.find((m) => m.id === normalizeMotion(creative.motion))?.label;
 
   return (
     <div className="flex flex-col gap-6">
@@ -44,15 +47,21 @@ export default async function CreativePage({ params, searchParams }: { params: P
           <div className="mt-2 flex flex-wrap gap-1.5">
             {isChampion && <span className="chip bg-accent text-white">チャンピオン</span>}
             <StatusChip status={creative.status} />
-            <span className="chip bg-accent-soft text-accent">{APPEAL_AXES.find((a) => a.id === creative.appealAxis)?.label}</span>
+            <span className="chip bg-accent-soft text-accent">{appealLabel(creative.appealAxis)}</span>
             <span className="chip border border-line text-muted">{template.name}</span>
-            <span className="chip border border-line text-muted">{MOTIONS.find((m) => m.id === creative.motion)?.label}</span>
+            <span className="chip border border-line text-muted">{STRUCTURE_LABEL[dna.structure]}</span>
+            <span className="chip border border-line text-muted">{motionLabel}</span>
             <span className="chip border border-line text-muted">v{creative.version}</span>
+          </div>
+          <div className="mt-1.5 flex flex-wrap gap-1" title="DNA タグ（学びログで集計する軸）">
+            {dna.tags.map((t) => (
+              <span key={t} className="chip bg-bg text-[11px] text-muted">{t}</span>
+            ))}
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <a className="btn-ghost" href={creativeImageUrl(creative, brief, fmt, { download: "1" })}>{fmt.toUpperCase()} をダウンロード</a>
-          {creative.motion !== "static" && <a className="btn-ghost" href={creativeImageUrl(creative, brief, "png", { download: "1" })}>静止 PNG も</a>}
+          {fmt === "gif" && <a className="btn-ghost" href={creativeImageUrl(creative, brief, "png", { download: "1" })}>静止 PNG も</a>}
           {creative.status === "draft" && (
             <form action={setStatusAction}>
               <input type="hidden" name="creativeId" value={creative.id} />
@@ -74,7 +83,7 @@ export default async function CreativePage({ params, searchParams }: { params: P
           </div>
           <div className="rounded-md bg-bg p-3">
             <img src={img} alt={creative.slots.headline} className="mx-auto max-h-[560px] w-auto max-w-full rounded-md" />
-            {creative.motion !== "static" && <p className="mt-2 text-center text-[11px] text-muted">GIF（{MOTIONS.find((m) => m.id === creative.motion)?.label}）。一覧のサムネイルは静止画です。</p>}
+            {fmt === "gif" && <p className="mt-2 text-center text-[11px] text-muted">GIF（{motionLabel}）。一覧のサムネイルは静止画です。</p>}
           </div>
           <div className="rounded-md border border-line p-4">
             {creative.critique ? (
@@ -104,39 +113,69 @@ export default async function CreativePage({ params, searchParams }: { params: P
           ) : (
             <form action={updateCreativeAction} className="flex flex-col gap-4">
               <input type="hidden" name="creativeId" value={creative.id} />
-              <h2 className="text-sm font-black">テキストと配色を編集</h2>
-              <p className="text-xs text-muted">保存すると版が上がり（v{creative.version + 1}）、辛口分析はリセットされます。提出済みの案を直した場合は再提出してください。</p>
+              <h2 className="text-sm font-black">5 段構造を編集</h2>
+              <p className="text-xs text-muted">帯 → 質問見出し → ビジュアル → 小バッジ → ボタン対。保存すると版が上がり（v{creative.version + 1}）、辛口分析はリセットされます。</p>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="label" htmlFor="eyebrow">小見出し</label>
-                  <input id="eyebrow" name="eyebrow" defaultValue={creative.slots.eyebrow} className="input" maxLength={16} />
+                  <label className="label" htmlFor="eyebrow">帯（上部リボン）</label>
+                  <input id="eyebrow" name="eyebrow" defaultValue={creative.slots.eyebrow} className="input" placeholder="LINEで無料診断！" maxLength={20} />
                 </div>
                 <div>
-                  <label className="label" htmlFor="badge">バッジ（数字）</label>
-                  <input id="badge" name="badge" defaultValue={creative.slots.badge ?? ""} className="input" placeholder="55%OFF" maxLength={8} />
+                  <label className="label" htmlFor="badge">小バッジ{template.id === "campaign" ? "（大きな数字）" : ""}</label>
+                  <input id="badge" name="badge" defaultValue={creative.slots.badge ?? ""} className="input" placeholder={template.id === "campaign" ? "最大2万円" : "LINEで簡単30秒"} maxLength={12} />
                 </div>
               </div>
               <div>
-                <label className="label" htmlFor="headline">見出し *</label>
+                <label className="label" htmlFor="headline">質問見出し *（〜しませんか？ / 〜知りたい！）</label>
                 <input id="headline" name="headline" defaultValue={creative.slots.headline} className="input" required maxLength={40} />
               </div>
               <div>
-                <label className="label" htmlFor="sub">サブコピー</label>
-                <textarea id="sub" name="sub" defaultValue={creative.slots.sub} rows={2} className="input" maxLength={80} />
+                <label className="label" htmlFor="sub">補足（1 行）</label>
+                <input id="sub" name="sub" defaultValue={creative.slots.sub} className="input" maxLength={40} />
               </div>
-              <div>
-                <label className="label" htmlFor="cta">CTA *</label>
-                <input id="cta" name="cta" defaultValue={creative.slots.cta} className="input" required maxLength={20} />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="label" htmlFor="negative">否定ボタン（左・グレー）</label>
+                  <input id="negative" name="negative" defaultValue={creative.slots.negative ?? ""} className="input" placeholder="いいえ / また今度（空なら CTA 1 本）" maxLength={8} />
+                </div>
+                <div>
+                  <label className="label" htmlFor="cta">肯定ボタン（右・アクセント）*</label>
+                  <input id="cta" name="cta" defaultValue={creative.slots.cta} className="input" required placeholder="はい / 診断する / 知りたい" maxLength={12} />
+                </div>
               </div>
+              {template.id === "choice" && (
+                <div>
+                  <label className="label" htmlFor="options">選択肢（読点区切り・2〜3 個）</label>
+                  <input id="options" name="options" defaultValue={creative.slots.options?.join("、") ?? ""} className="input" placeholder="体験型、積み上げ型" />
+                </div>
+              )}
               <div className="grid gap-3 sm:grid-cols-3">
                 <div>
+                  <label className="label" htmlFor="templateId">レイアウト</label>
+                  <select id="templateId" name="templateId" defaultValue={template.id} className="input">
+                    {TEMPLATES.map((t) => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="label" htmlFor="visualAxis">ビジュアル</label>
+                  <select id="visualAxis" name="visualAxis" defaultValue={normalizeVisual(creative.visualAxis)} className="input">
+                    {VISUAL_AXES.map((v) => (
+                      <option key={v.id} value={v.id}>{v.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
                   <label className="label" htmlFor="motion">動き</label>
-                  <select id="motion" name="motion" defaultValue={creative.motion} className="input">
+                  <select id="motion" name="motion" defaultValue={normalizeMotion(creative.motion)} className="input">
                     {MOTIONS.map((m) => (
                       <option key={m.id} value={m.id}>{m.label}</option>
                     ))}
                   </select>
                 </div>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
                 <div>
                   <label className="label" htmlFor="primary">主色（上書き）</label>
                   <input id="primary" name="primary" defaultValue={creative.slots.primary ?? ""} className="input" placeholder={brief.brand.primary} pattern="^#?[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$" />
@@ -146,9 +185,9 @@ export default async function CreativePage({ params, searchParams }: { params: P
                   <input id="accent" name="accent" defaultValue={creative.slots.accent ?? ""} className="input" placeholder={brief.brand.accent} pattern="^#?[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$" />
                 </div>
               </div>
-              {template.visualAxis === "image" && (
+              {normalizeVisual(creative.visualAxis) === "photo" && (
                 <div>
-                  <label className="label" htmlFor="imageUrl">画像URL（https のみ。空なら装飾ビジュアル）</label>
+                  <label className="label" htmlFor="imageUrl">写真URL（https のみ。空なら装飾ビジュアル）</label>
                   <input id="imageUrl" name="imageUrl" type="url" defaultValue={creative.slots.imageUrl ?? ""} className="input" placeholder="https://... (LPのOG画像や商品写真)" />
                 </div>
               )}

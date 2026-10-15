@@ -1,5 +1,6 @@
 import Link from "next/link";
-import type { Learning } from "@/lib/types";
+import { appealLabel, type Learning } from "@/lib/types";
+import { STRUCTURE_LABEL } from "@/lib/dna";
 
 const OUTCOME: Record<Learning["outcome"], [string, string]> = {
   won: ["勝ち", "bg-accent-soft text-accent"],
@@ -28,6 +29,15 @@ export function LearningLog({ items, showBrief }: { items: Learning[]; showBrief
             </div>
             <div className="mt-1 font-bold">{l.hypothesis}</div>
             {l.evidence && <div className="text-xs text-muted">根拠: {l.evidence}</div>}
+            {l.dna && (
+              <div className="mt-1 flex flex-wrap gap-1">
+                <span className="chip border border-line text-muted">{appealLabel(l.dna.hook)}</span>
+                <span className="chip border border-line text-muted">{STRUCTURE_LABEL[l.dna.structure]}</span>
+                {l.dna.tags.map((t) => (
+                  <span key={t} className="chip bg-bg text-muted">{t}</span>
+                ))}
+              </div>
+            )}
             {l.nextHypothesis && <div className="mt-1 text-xs"><span className="font-bold text-accent">次 →</span> {l.nextHypothesis}</div>}
           </li>
         );

@@ -4,7 +4,7 @@ import path from "node:path";
 import satori, { type Font as FontOptions } from "satori";
 import { Resvg } from "@resvg/resvg-js";
 import { GIFEncoder, quantize, applyPalette } from "gifenc";
-import type { Brief, Creative } from "./types";
+import { normalizeMotion, type Brief, type Creative } from "./types";
 import { getTemplate, SPECS } from "./templates";
 
 /**
@@ -82,19 +82,28 @@ function rasterize(svg: string, width: number, scale: number) {
 
 /** Frame schedule per motion: [progress, delayMs][] */
 function frameSchedule(motion: Creative["motion"]): Array<[number, number]> {
-  switch (motion) {
-    case "pop":
-    case "slide": {
+  switch (normalizeMotion(motion)) {
+    case "pop": {
       const n = 14;
       const frames: Array<[number, number]> = [];
       for (let i = 0; i < n; i++) frames.push([i / (n - 1), 60]);
       frames[frames.length - 1][1] = 2800; // hold the resting state
       return frames;
     }
-    case "pulse": {
+    case "blink":
+      // The 2-frame alternation seen in 43% of past GIFs: ~0.6s per state.
+      return [
+        [0, 650],
+        [0.5, 650],
+      ];
+    case "cursor": {
+      // Finger travels in (0..0.75), taps (0.8..1), then the still frame holds.
+      // t = 1 is the still frame (no finger), so the tap frame stops just short of it.
       const n = 12;
       const frames: Array<[number, number]> = [];
-      for (let i = 0; i < n; i++) frames.push([i / n, 90]);
+      for (let i = 0; i < n; i++) frames.push([(i / (n - 1)) * 0.98, 80]);
+      frames[frames.length - 1][1] = 500;
+      frames.push([1, 1200]);
       return frames;
     }
     default:
@@ -122,7 +131,7 @@ export async function renderCreative(brief: Brief, creative: Creative, opts: Ren
 async function renderUncached(brief: Brief, creative: Creative, opts: RenderOptions): Promise<Rendered> {
   const spec = SPECS[brief.deviceSize];
   const scale = opts.scale ?? 1;
-  const effectiveFormat = opts.format === "gif" && creative.motion === "static" ? "png" : opts.format;
+  const effectiveFormat = opts.format === "gif" && normalizeMotion(creative.motion) === "static" ? "png" : opts.format;
 
   if (effectiveFormat === "png") {
     const { svg, degraded } = await renderSvgSafe(brief, creative, 1);

@@ -43,7 +43,7 @@ export function BriefForm({ action, brief, mode }: { action: (fd: FormData) => P
         </div>
         {mode === "create" ? (
           <div>
-            <label className="label" htmlFor="lpUrl">LP URL（タイトル・OG画像・配色を自動抽出）</label>
+            <label className="label" htmlFor="lpUrl">LP URL（タイトル・OG画像・配色を自動抽出。OG画像は「写真」ビジュアルに使われます）</label>
             <input id="lpUrl" name="lpUrl" type="url" className="input" placeholder="https://example.com/lp" />
           </div>
         ) : (
@@ -57,8 +57,8 @@ export function BriefForm({ action, brief, mode }: { action: (fd: FormData) => P
           <div>
             <label className="label" htmlFor="deviceSize">対象デバイス</label>
             <select id="deviceSize" name="deviceSize" className="input" defaultValue={b?.deviceSize ?? "sp"}>
-              <option value="sp">スマホ（640×800）</option>
-              <option value="pc">PC（800×500）</option>
+              <option value="sp">スマホ（900×1265・納品標準）</option>
+              <option value="pc">PC（1040×1040・暫定）</option>
             </select>
           </div>
         </div>
@@ -122,10 +122,10 @@ export function BriefForm({ action, brief, mode }: { action: (fd: FormData) => P
         <section className="card flex flex-col gap-5 p-5">
           <div>
             <h2 className="text-sm font-black">仮説グリッド</h2>
-            <p className="mt-1 text-xs text-muted">訴求軸 × レイアウト × 動き の組み合わせ数だけ候補が生成されます。コピーは訴求軸ごとに1セットで、レイアウトと動きの効果を切り分けて検証できます。最初は 6 案前後が扱いやすい数です。</p>
+            <p className="mt-1 text-xs text-muted">フック × ビジュアル × 動き の組み合わせ数だけ候補が生成されます。レイアウト（質問・招待状・キャンペーン・多択）はフックに応じて自動で選ばれ、コピーはフックごとに1セットです。最初は 4〜6 案が扱いやすい数です。</p>
           </div>
           <fieldset>
-            <legend className="label">訴求軸</legend>
+            <legend className="label">フック（切り口）<span className="ml-2 font-normal text-muted">過去 1,066 枚の実績から 7 系統</span></legend>
             <div className="grid gap-2 sm:grid-cols-2">
               {APPEAL_AXES.map((a, i) => (
                 <label key={a.id} className="flex cursor-pointer items-start gap-2 rounded-md border border-line p-2.5 text-sm has-checked:border-accent has-checked:bg-accent-soft">
@@ -140,11 +140,11 @@ export function BriefForm({ action, brief, mode }: { action: (fd: FormData) => P
           </fieldset>
           <div className="grid gap-4 sm:grid-cols-2">
             <fieldset>
-              <legend className="label">レイアウト</legend>
+              <legend className="label">ビジュアル</legend>
               <div className="flex flex-col gap-2">
                 {VISUAL_AXES.map((v, i) => (
                   <label key={v.id} className="flex items-start gap-2 rounded-md border border-line p-2.5 text-sm has-checked:border-accent has-checked:bg-accent-soft">
-                    <input type="checkbox" name="visualAxes" value={v.id} defaultChecked={i < 2} className="mt-1 accent-accent" />
+                    <input type="checkbox" name="visualAxes" value={v.id} defaultChecked={i < 1} className="mt-1 accent-accent" />
                     <span>
                       <span className="font-bold">{v.label}</span>
                       <span className="block text-xs text-muted">{v.hint}</span>
@@ -157,12 +157,16 @@ export function BriefForm({ action, brief, mode }: { action: (fd: FormData) => P
               <legend className="label">動き</legend>
               <div className="flex flex-col gap-2">
                 {MOTIONS.map((m, i) => (
-                  <label key={m.id} className="flex items-center gap-2 rounded-md border border-line p-2.5 text-sm has-checked:border-accent has-checked:bg-accent-soft">
-                    <input type="checkbox" name="motions" value={m.id} defaultChecked={i === 0} className="accent-accent" /> {m.label}
+                  <label key={m.id} className="flex items-start gap-2 rounded-md border border-line p-2.5 text-sm has-checked:border-accent has-checked:bg-accent-soft">
+                    <input type="checkbox" name="motions" value={m.id} defaultChecked={i === 0} className="mt-1 accent-accent" />
+                    <span>
+                      <span className="font-bold">{m.label}</span>
+                      <span className="block text-xs text-muted">{m.hint}</span>
+                    </span>
                   </label>
                 ))}
               </div>
-              <p className="mt-2 text-xs text-muted">GIF は 1 案あたり描画に数秒かかります。まず静止で比較し、勝ち筋に動きを足すのが速いです。</p>
+              <p className="mt-2 text-xs text-muted">実績の GIF 比率は 24%。まず静止で比較し、勝ち筋に動きを足すのが速いです。</p>
             </fieldset>
           </div>
         </section>
