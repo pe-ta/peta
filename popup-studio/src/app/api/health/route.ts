@@ -1,4 +1,4 @@
-import { db } from "@/lib/store";
+import { db, getStore } from "@/lib/store";
 import { runPreflight } from "@/lib/preflight";
 import { dnaOf } from "@/lib/dna";
 import { LIBRARY_META, findSimilar } from "@/lib/library";
@@ -18,7 +18,7 @@ export async function GET() {
   const report: Record<string, unknown> = {
     version: "0.4",
     node: process.version,
-    db: db.durable ? "postgres" : "memory",
+    db: getStore().durable ? "postgres" : "memory",
     ai: aiProviderName() ?? "none",
     library: LIBRARY_META.count,
   };
