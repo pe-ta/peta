@@ -3,6 +3,7 @@ import type { ReactElement } from "react";
 import type { Brief, Creative, CreativeSlots, Motion, LayoutId, AppealAxis, VisualAxis } from "../types";
 import { normalizeAppeal, normalizeMotion, normalizeVisual } from "../types";
 import { complementaryButton, contrast, ensureButtonColor, hueDistance, mix, normalizeHex, readableOn, saturation } from "../color";
+import { fullWidthLength } from "../text";
 
 /**
  * Templates are code. Each template is a function of (slots, animation progress)
@@ -163,26 +164,66 @@ function layoutFor(size: "sp" | "pc"): Layout {
 }
 
 /** Top ribbon with the eyebrow. A lighter tint on the blink frame. */
+/** Largest font size (<= max) at which text stays on one line within width. */
+function fitFont(text: string, width: number, max: number, min: number) {
+  const units = Math.max(1, fullWidthLength(text));
+  return Math.max(min, Math.min(max, Math.floor(width / (units * 1.04))));
+}
+
 function Ribbon({ text, bg, fg, L, lit }: { text: string; bg: string; fg: string; L: Layout; lit: boolean }) {
   const fill = lit ? mix(bg, "#ffffff", 0.14) : bg;
+  // Client names make eyebrows long ("〇〇から招待状が届きました"): shrink to one line instead of wrapping out of the band.
+  const marks = Math.round(L.W * 0.012) * 2 + Math.round(L.W * 0.02) * 2;
+  const fs = fitFont(text, L.W - L.pad * 2 - marks, L.f.eyebrow, Math.round(L.f.eyebrow * 0.55));
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: L.W, height: L.band, background: fill, color: fg, fontSize: L.f.eyebrow, fontWeight: 900, letterSpacing: 1 }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: L.W, height: L.band, background: fill, color: fg, fontSize: fs, fontWeight: 900, letterSpacing: fs < L.f.eyebrow ? 0 : 1, whiteSpace: "nowrap" }}>
       <div style={{ display: "flex", alignItems: "center", gap: Math.round(L.W * 0.02) }}>
-        <div style={{ display: "flex", width: Math.round(L.W * 0.012), height: Math.round(L.f.eyebrow * 0.9), background: fg, opacity: 0.9, transform: "rotate(18deg)", borderRadius: 4 }} />
+        <div style={{ display: "flex", width: Math.round(L.W * 0.012), height: Math.round(fs * 0.9), background: fg, opacity: 0.9, transform: "rotate(18deg)", borderRadius: 4 }} />
         <div style={{ display: "flex" }}>{text}</div>
-        <div style={{ display: "flex", width: Math.round(L.W * 0.012), height: Math.round(L.f.eyebrow * 0.9), background: fg, opacity: 0.9, transform: "rotate(-18deg)", borderRadius: 4 }} />
+        <div style={{ display: "flex", width: Math.round(L.W * 0.012), height: Math.round(fs * 0.9), background: fg, opacity: 0.9, transform: "rotate(-18deg)", borderRadius: 4 }} />
       </div>
     </div>
   );
+}
+
+const BREAK_AFTER = new Set([..."をでのがはにとへもや、。！？!?・"]);
+
+/**
+ * Splits a headline that does not fit on one line at a phrase boundary (after a particle or
+ * punctuation) so the two lines are as even as possible. Satori breaks Japanese at any
+ * character, which leaves tails like "ませ／んか？". Returns the text unsplit when it fits
+ * or when no boundary gives two lines that each fit.
+ */
+export function breakHeadline(text: string, width: number, fs: number): string[] {
+  const unit = fs * 1.0;
+  const fits = (t: string) => fullWidthLength(t) * unit <= width;
+  if (fits(text)) return [text];
+  const chars = [...text];
+  let best: { i: number; cost: number } | null = null;
+  for (let i = 2; i < chars.length - 2; i++) {
+    if (!BREAK_AFTER.has(chars[i - 1]) || BREAK_AFTER.has(chars[i])) continue;
+    const left = chars.slice(0, i).join("");
+    const right = chars.slice(i).join("");
+    if (!fits(left) || !fits(right)) continue;
+    const cost = Math.abs(fullWidthLength(left) - fullWidthLength(right));
+    if (!best || cost < best.cost) best = { i, cost };
+  }
+  return best ? [chars.slice(0, best.i).join(""), chars.slice(best.i).join("")] : [text];
 }
 
 function Headline({ text, color, L, size = L.f.headline }: { text: string; color: string; L: Layout; size?: number }) {
   // Long questions shrink a step so a lone "？" never wraps onto a third line.
   const n = [...text].length;
   const fs = Math.round(size * (n > 22 ? 0.82 : n > 18 ? 0.9 : 1));
+  const width = L.W - L.pad * 2;
+  const lines = breakHeadline(text, width, fs);
   return (
-    <div style={{ display: "flex", justifyContent: "center", width: L.W - L.pad * 2, color, fontSize: fs, fontWeight: 900, lineHeight: 1.28, letterSpacing: -0.5, textAlign: "center" }}>
-      {text}
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width, color, fontSize: fs, fontWeight: 900, lineHeight: 1.28, letterSpacing: -0.5, textAlign: "center" }}>
+      {lines.map((line, i) => (
+        <div key={i} style={{ display: "flex", justifyContent: "center", maxWidth: width }}>
+          {line}
+        </div>
+      ))}
     </div>
   );
 }
@@ -197,8 +238,10 @@ function artLabel(hook: AppealAxis) {
 
 /** Pill badge: 「LINEで簡単30秒」. Accent fill, white text. */
 function BadgePill({ text, bg, L }: { text: string; bg: string; L: Layout }) {
+  const fs = fitFont(text, L.W - L.pad * 2 - L.f.badge * 2.2, L.f.badge, Math.round(L.f.badge * 0.7));
+  // position: relative so the pill paints above the absolutely positioned layers of the visual it overlaps.
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", paddingTop: Math.round(L.f.badge * 0.38), paddingBottom: Math.round(L.f.badge * 0.38), paddingLeft: Math.round(L.f.badge * 1.1), paddingRight: Math.round(L.f.badge * 1.1), borderRadius: 999, background: bg, color: readableOn(bg), fontSize: L.f.badge, fontWeight: 900, letterSpacing: 0.5, boxShadow: "0 8px 18px rgba(0,0,0,0.18)", whiteSpace: "nowrap" }}>
+    <div style={{ display: "flex", position: "relative", alignItems: "center", justifyContent: "center", paddingTop: Math.round(fs * 0.38), paddingBottom: Math.round(fs * 0.38), paddingLeft: Math.round(fs * 1.1), paddingRight: Math.round(fs * 1.1), borderRadius: 999, background: bg, color: readableOn(bg), fontSize: fs, fontWeight: 900, letterSpacing: 0.5, boxShadow: "0 8px 18px rgba(0,0,0,0.18)", whiteSpace: "nowrap" }}>
       {text}
     </div>
   );
@@ -324,7 +367,7 @@ const question: Template = {
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: Math.round(L.pad * 0.4) }}>
             {url ? <PhotoVisual url={url} primary={c.primary} diameter={d} /> : <ArtVisual primary={c.primary} accent={c.accent} label={artLabel(normalizeAppeal(creative.appealAxis))} diameter={d} />}
             {s.badge ? (
-              <div style={{ display: "flex", marginTop: -Math.round(L.f.badge * 1.1) }}>
+              <div style={{ display: "flex", position: "relative", marginTop: -Math.round(L.f.badge * 1.1) }}>
                 <BadgePill text={s.badge} bg={c.cta} L={L} />
               </div>
             ) : null}
@@ -348,13 +391,14 @@ function Envelope({ primary, accent, label, width }: { primary: string; accent: 
   const cardW = Math.round(width * 0.82);
   const cardH = Math.round(h * 0.78);
   return (
-    <div style={{ display: "flex", position: "relative", width, height: h + Math.round(cardH * 0.35), alignItems: "flex-end", justifyContent: "center" }}>
+    <div style={{ display: "flex", position: "relative", width, height: Math.round(h * 1.32), alignItems: "flex-end", justifyContent: "center" }}>
       {/* back of the envelope */}
       <div style={{ position: "absolute", left: 0, bottom: 0, width, height: h, borderRadius: Math.round(width * 0.04), background: mix(primary, "#ffffff", 0.2) }} />
       {/* letter */}
-      <div style={{ position: "absolute", left: (width - cardW) / 2, bottom: Math.round(h * 0.3), display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: cardW, height: cardH, borderRadius: Math.round(width * 0.03), background: "#ffffff", boxShadow: "0 14px 30px rgba(0,0,0,0.18)", color: primary, fontSize: Math.round(width * 0.09), fontWeight: 900, textAlign: "center", lineHeight: 1.3, paddingLeft: Math.round(width * 0.05), paddingRight: Math.round(width * 0.05) }}>
+      {/* The pocket covers the letter's lower part and the seal sits on the pocket edge, so the label lives in the visible top half. */}
+      <div style={{ position: "absolute", left: (width - cardW) / 2, bottom: Math.round(h * 0.42), display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", paddingTop: Math.round(cardH * 0.14), width: cardW, height: cardH, borderRadius: Math.round(width * 0.03), background: "#ffffff", boxShadow: "0 14px 30px rgba(0,0,0,0.18)", color: primary, fontSize: Math.round(width * 0.09), fontWeight: 900, textAlign: "center", lineHeight: 1.3, paddingLeft: Math.round(width * 0.05), paddingRight: Math.round(width * 0.05) }}>
         <div style={{ display: "flex", width: Math.round(cardW * 0.5), height: 4, background: mix(accent, "#ffffff", 0.3), marginBottom: Math.round(width * 0.04) }} />
-        <div style={{ display: "flex" }}>{label}</div>
+        <div style={{ display: "flex", fontSize: fitFont(label, cardW - Math.round(width * 0.1), Math.round(width * 0.09), Math.round(width * 0.05)), whiteSpace: "nowrap" }}>{label}</div>
         <div style={{ display: "flex", width: Math.round(cardW * 0.5), height: 4, background: mix(accent, "#ffffff", 0.3), marginTop: Math.round(width * 0.04) }} />
       </div>
       {/* front pocket */}
@@ -444,7 +488,7 @@ const campaign: Template = {
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             {url ? <PhotoVisual url={url} primary={c.primary} diameter={d} /> : <ArtVisual primary={c.primary} accent={c.accent} label="LINE" diameter={d} />}
             {s.sub ? (
-              <div style={{ display: "flex", marginTop: -Math.round(L.f.badge * 1.1) }}>
+              <div style={{ display: "flex", position: "relative", marginTop: -Math.round(L.f.badge * 1.1) }}>
                 <BadgePill text={s.sub} bg={c.primary} L={L} />
               </div>
             ) : null}
@@ -605,7 +649,7 @@ const bubble: Template = {
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             {url ? <PhotoVisual url={url} primary={c.primary} diameter={d} /> : <ArtVisual primary={c.primary} accent={c.accent} label={artLabel(normalizeAppeal(creative.appealAxis))} diameter={d} />}
             {s.badge ? (
-              <div style={{ display: "flex", marginTop: -Math.round(L.f.badge * 1.1) }}>
+              <div style={{ display: "flex", position: "relative", marginTop: -Math.round(L.f.badge * 1.1) }}>
                 <BadgePill text={s.badge} bg={c.cta} L={L} />
               </div>
             ) : null}

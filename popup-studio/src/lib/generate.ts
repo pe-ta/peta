@@ -3,6 +3,7 @@ import { normalizeAppeal, normalizeMotion, normalizeVisual, type AppealAxis, typ
 import { generateCopy } from "./ai";
 import { resolveMotion, templateFor } from "./templates";
 import { db, newId, nowIso } from "./store";
+import { reconcileHypotheses } from "./hypotheses";
 
 /**
  * Hypothesis grid expansion: hook x visual x motion -> creatives.
@@ -23,8 +24,25 @@ export async function expandBrief(brief: Brief, opts?: { hypothesis?: Hypothesis
   const { variants, source, note } = await generateCopy(brief, axes, h ? { hypothesis: `${h.title}${h.rationale ? `（${h.rationale}）` : ""}` } : undefined);
   const created: Creative[] = [];
   const ts = nowIso();
+  // Grid generation registers one hypothesis per hook so every draft belongs to the backlog.
+  // A grid hypothesis for the same hook that has not been tested yet is reused, so regenerating does not pile up entries.
+  const existing = h ? [] : await db.hypotheses.listByBrief(brief.id);
+  const owners = new Map<string, Hypothesis>();
 
   for (const v of variants) {
+    let owner = h;
+    if (!owner) {
+      owner = existing.find((x) => x.source === "grid" && x.hook === v.appealAxis && (x.status === "backlog" || x.status === "drafting"));
+      if (owner) {
+        owner.title = v.hypothesis;
+        owner.rationale = v.rationale;
+        owner.updatedAt = ts;
+      } else {
+        owner = { id: newId("hy"), briefId: brief.id, createdAt: ts, updatedAt: ts, title: v.hypothesis, rationale: v.rationale, hook: v.appealAxis, source: "grid", priority: 2, status: "drafting", creativeIds: [], author: "自動生成" };
+      }
+      await db.hypotheses.put(owner);
+      owners.set(v.appealAxis, owner);
+    }
     const options = v.options?.map((o) => o.trim()).filter(Boolean).slice(0, 3) ?? [];
     for (const visual of visuals) {
       const template = templateFor(v.appealAxis, { options: options.length, visual });
@@ -43,7 +61,7 @@ export async function expandBrief(brief: Brief, opts?: { hypothesis?: Hypothesis
           appealAxis: v.appealAxis,
           visualAxis: visual,
           motion,
-          hypothesisId: h?.id,
+          hypothesisId: owner.id,
           hypothesis: h ? h.title : v.hypothesis,
           rationale: h ? v.hypothesis : v.rationale,
           slots: {
@@ -64,5 +82,6 @@ export async function expandBrief(brief: Brief, opts?: { hypothesis?: Hypothesis
       }
     }
   }
+  await reconcileHypotheses(brief.id, h ? [h.id] : [...owners.values()].map((o) => o.id));
   return { created, source, note };
 }

@@ -27,7 +27,25 @@ export interface LibraryEntry {
   tags: string[];
 }
 
-const data = library as { generated_at: string; count: number; industries: Record<string, number>; hooks: Record<string, number>; entries: LibraryEntry[] };
+const raw = library as { generated_at: string; count: number; industries: Record<string, number>; hooks: Record<string, number>; entries: LibraryEntry[] };
+
+// Names taken from Drive file paths are partly in decomposed form ("テ" + combining "゛"), which
+// neither matches "デンタル" nor displays reliably. Normalise every text field once at load.
+const nfc = (s: string) => s.normalize("NFC");
+const data = {
+  ...raw,
+  entries: raw.entries.map((e) => ({
+    ...e,
+    client: nfc(e.client),
+    job: nfc(e.job),
+    eyebrow: nfc(e.eyebrow),
+    headline: nfc(e.headline),
+    positive: e.positive && nfc(e.positive),
+    negative: e.negative && nfc(e.negative),
+    options: e.options && e.options.map(nfc),
+    badges: e.badges.map(nfc),
+  })),
+};
 
 export const LIBRARY_META = { generatedAt: data.generated_at, count: data.count, industries: data.industries, hooks: data.hooks };
 
@@ -49,27 +67,79 @@ function tokens(s: string) {
 }
 
 /**
- * Past cases close to a brief: same industry first, then same hook, then
- * shared words between the brief and the headline. Entries with a usable
- * button pair rank higher because they show the whole structure.
+ * Specialty groups inside broad industries. "美容・医療" alone puts a dental clinic next to a
+ * men's clinic; the specialty decides which past popups are actually comparable.
  */
-export function findSimilar(brief: Pick<Brief, "industry" | "clientName" | "offer" | "target">, hook?: AppealAxis, limit = 8): LibraryEntry[] {
+const SPECIALTIES: Array<[string, RegExp]> = [
+  ["dental", /歯科|デンタル|矯正|ホワイトニング|インプラント|歯/],
+  ["hair_removal", /脱毛|ムダ毛|vio/i],
+  ["hair_loss", /aga|薄毛|育毛|発毛|植毛|アートネイチャー|かつら|ウィッグ/i],
+  ["mens_health", /メンズ|男性|包茎|ed\b|ed治療|性病|泌尿/i],
+  ["cosmetic_surgery", /美容外科|整形|二重|豊胸|脂肪吸引|リフト/],
+  ["skin", /肌|シミ|ニキビ|毛穴|美容皮膚|スキンケア|化粧水|美容液/],
+  ["diet", /ダイエット|痩|体重|ジム|パーソナル|ピラティス|ヨガ/],
+  ["women_health", /ピル|婦人|妊活|更年期/],
+  ["card_bank", /カード|銀行|口座|ローン|融資|借入/],
+  ["insurance", /保険|共済|生命/],
+  ["invest", /投資|証券|nisa|fx|資産運用/i],
+  ["school_kids", /塾|小学|中学|高校|受験|お子/],
+  ["language", /英会話|英語|語学/],
+  ["license", /資格|講座|会計士|簿記|試験/],
+];
+
+function specialtiesOf(text: string) {
+  return new Set(SPECIALTIES.filter(([, re]) => re.test(text)).map(([k]) => k));
+}
+
+/** OCR fragments that read as noise: long Latin runs, or mostly non-Japanese characters. */
+export function looksGarbled(s: string) {
+  if (!s) return false;
+  if (/[A-Za-z]{12,}/.test(s)) return true;
+  const jp = (s.match(/[一-龠ぁ-んァ-ヶー]/g) ?? []).length;
+  return s.length >= 6 && jp / s.length < 0.4;
+}
+
+/**
+ * Past cases close to a brief: same specialty first, then industry, hook and shared words.
+ * Entries with a usable button pair rank higher because they show the whole structure.
+ */
+export function findSimilar(brief: Pick<Brief, "industry" | "clientName" | "offer" | "target"> & Partial<Pick<Brief, "lpTitle" | "lpDescription" | "exitContext">>, hook?: AppealAxis, limit = 8): LibraryEntry[] {
   const inds = INDUSTRY_ALIASES[brief.industry] ?? [brief.industry];
   const wanted = hook ? normalizeAppeal(hook) : undefined;
-  const words = new Set(tokens(`${brief.clientName} ${brief.offer} ${brief.target}`));
-  const scored = data.entries.map((e) => {
-    let score = 0;
-    if (inds[0] && e.industry === inds[0]) score += 6;
-    else if (inds.includes(e.industry)) score += 3;
-    if (wanted && e.hook !== "other" && normalizeAppeal(e.hook) === wanted) score += 4;
-    if (e.structure === "two_buttons" || e.structure === "multi_choice") score += 2;
-    if (e.eyebrow) score += 1;
-    for (const t of tokens(e.headline + " " + e.client)) if (words.has(t)) score += 2;
-    return { e, score };
-  });
+  const briefText = `${brief.clientName} ${brief.offer} ${brief.target} ${brief.lpTitle ?? ""} ${brief.lpDescription ?? ""}`;
+  const words = new Set(tokens(briefText));
+  const mine = specialtiesOf(briefText);
+  const scored = data.entries
+    .filter((e) => !looksGarbled(e.headline))
+    .map((e) => {
+      let score = 0;
+      if (inds[0] && e.industry === inds[0]) score += 6;
+      else if (inds.includes(e.industry)) score += 3;
+      const theirs = specialtiesOf(`${e.client} ${e.headline} ${e.eyebrow}`);
+      if (mine.size && theirs.size) {
+        const shared = [...theirs].some((k) => mine.has(k));
+        // Another specialty (a dental clinic for a men's clinic) is not a comparable case at all.
+        if (!shared) score -= 100;
+        else score += 8;
+      }
+      if (wanted && e.hook !== "other" && normalizeAppeal(e.hook) === wanted) score += 4;
+      if (e.structure === "two_buttons" || e.structure === "multi_choice") score += 2;
+      if (e.eyebrow && !looksGarbled(e.eyebrow)) score += 1;
+      for (const t of tokens(e.headline + " " + e.client)) if (words.has(t)) score += 2;
+      // Leading "_" / "-" in client names come from file naming, not the brand.
+      return { e: { ...e, client: e.client.replace(/^[_\-\s]+/, ""), eyebrow: looksGarbled(e.eyebrow) ? "" : e.eyebrow }, score };
+    });
+  // One entry per client so a single advertiser's variants do not fill the list.
+  const seen = new Set<string>();
   return scored
     .filter((s) => s.score > 2)
     .sort((a, b) => b.score - a.score || a.e.client.localeCompare(b.e.client))
+    .filter((s) => {
+      const k = s.e.client.replace(/[\s　\-_・／/]/g, "");
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    })
     .slice(0, limit)
     .map((s) => s.e);
 }

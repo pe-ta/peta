@@ -50,6 +50,8 @@ body {
 .btn-primary,
 .btn-ghost,
 .btn-danger {
+  white-space: nowrap;
+  flex-shrink: 0;
   @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-bold transition-colors disabled:opacity-50;
 }
 .btn-primary {
@@ -62,6 +64,7 @@ body {
   @apply border border-danger/40 text-danger bg-surface hover:bg-danger-soft;
 }
 .chip {
+  white-space: nowrap;
   @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold;
 }
 .card {

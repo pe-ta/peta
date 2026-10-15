@@ -208,7 +208,7 @@ export interface Creative {
  * 1 案件で比較する仮説の数を増やし、結論を出して次へ進む回転が North Star。
  */
 export type HypothesisStatus = "backlog" | "drafting" | "testing" | "concluded" | "dropped";
-export type HypothesisSource = "ap" | "learning" | "client" | "library";
+export type HypothesisSource = "ap" | "learning" | "client" | "library" | "grid";
 
 export interface Hypothesis {
   id: string;
@@ -240,6 +240,7 @@ export const HYPOTHESIS_SOURCES: { id: HypothesisSource; label: string }[] = [
   { id: "learning", label: "学びログから" },
   { id: "client", label: "クライアント要望" },
   { id: "library", label: "過去の勝ち型" },
+  { id: "grid", label: "仮説グリッド（自動）" },
 ];
 
 /** 配信結果の日次スナップショット（累計値）。配信基盤の CSV から取り込む。 */

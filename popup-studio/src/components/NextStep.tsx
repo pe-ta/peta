@@ -59,7 +59,7 @@ export function NextStep({ brief, creatives, reviewPath }: { brief: Brief; creat
   } else if (unanalyzed.length > 0) {
     step = 2;
     title = "辛口分析でふるいにかける";
-    body = <>未分析の候補が {unanalyzed.length} 案あります。「未分析 N 案を辛口分析」を押し、70 点以上を提出候補にしてください。50 点未満は直すより捨てる方が速いです。</>;
+    body = <>未分析の候補が {unanalyzed.length} 案あります。「未分析 {unanalyzed.length} 案を辛口分析」を押し、70 点以上を提出候補にしてください。50 点未満は直すより捨てる方が速いです。</>;
   } else if (drafts.length > 0) {
     step = 3;
     title = "クライアントに提出する";

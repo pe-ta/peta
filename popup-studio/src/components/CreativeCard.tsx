@@ -47,7 +47,7 @@ export function CreativeCard({
           <div className="flex flex-wrap gap-1">
             {isChampion && <span className="chip bg-accent text-white">チャンピオン</span>}
             <span className="chip border border-line text-muted">{appealLabel(creative.appealAxis)}</span>
-            <span className="chip border border-line text-muted">{getTemplate(creative.templateId).name.replace(/型$/, "")}</span>
+            {getTemplate(creative.templateId).name.replace(/型$/, "") !== appealLabel(creative.appealAxis) && <span className="chip border border-line text-muted">{getTemplate(creative.templateId).name.replace(/型$/, "")}</span>}
             <span className="chip border border-line text-muted">{VISUAL_AXES.find((v) => v.id === normalizeVisual(creative.visualAxis))?.label.replace(/ブランド色の/, "")}</span>
             <span className={`chip ${normalizeMotion(creative.motion) === "static" ? "border border-line text-muted" : "bg-warn-soft text-warn"}`}>{MOTIONS.find((m) => m.id === normalizeMotion(creative.motion))?.label.replace(/（.*）/, "")}</span>
           </div>
