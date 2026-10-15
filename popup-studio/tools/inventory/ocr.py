@@ -27,7 +27,9 @@ def main() -> int:
     ap.add_argument("--out", required=True)
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--max-side", type=int, default=1000)
+    ap.add_argument("--shard", default="0/1", help="i/n: process every n-th file starting at i (run n processes in parallel with separate --out files)")
     args = ap.parse_args()
+    shard_i, shard_n = (int(v) for v in args.shard.split("/"))
     import easyocr  # heavy import, keep it local
 
     reader = easyocr.Reader(["ja", "en"], gpu=False, verbose=False)
@@ -39,7 +41,8 @@ def main() -> int:
                 done.add(json.loads(line)["name"])
             except Exception:  # noqa: BLE001
                 pass
-    files = sorted(p for p in Path(args.src).iterdir() if p.suffix.lower() in IMAGE_EXT and p.name not in done)
+    files = sorted(p for p in Path(args.src).iterdir() if p.suffix.lower() in IMAGE_EXT)
+    files = [p for i, p in enumerate(files) if i % shard_n == shard_i and p.name not in done]
     if args.limit:
         files = files[: args.limit]
     with out.open("a", encoding="utf-8") as f:
