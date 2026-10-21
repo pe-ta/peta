@@ -1,0 +1,1484 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex,nofollow"><title>セルフチェックLP プレビュー</title>
+<style>body{margin:0;background:#fff}.lp-root{max-width:480px;margin:0 auto}</style><style>
+.lp-root {
+    font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Arial, sans-serif;
+    color: #010e23;
+    font-size: 17px;
+    line-height: 1.8;
+    padding: 0 15px;
+    background: #fff;
+}
+
+.lp-root * {
+    box-sizing: border-box;
+}
+
+.lp-root img,
+.lp-root picture,
+.lp-root source {
+    max-width: 100%;
+}
+
+.lp-root img {
+    display: inline;
+    height: auto;
+    margin: 0;
+}
+
+.lp-root p,
+.lp-root ul {
+    margin: 0;
+}
+
+.lp-root a {
+    text-decoration: none;
+}
+
+.lp-root button {
+    font: inherit;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.lp-root .lp-fv {
+    margin: 0 -15px;
+}
+
+.lp-root .lp-fv img {
+    display: block;
+    width: 100%;
+    max-width: none;
+}
+
+/* ===== FV直下：チップ＋開始ボタン ===== */
+.lp-root .mlc-chips {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 14px 0 12px;
+}
+
+.lp-root .mlc-chips li {
+    padding: 4px 10px;
+    border: 1.5px solid #1a3a6b;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a3a6b;
+    line-height: 1.4;
+    background: #fff;
+}
+
+.lp-root .mlc-chips b {
+    color: #E5484D;
+}
+
+.lp-root .mlc-start {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 12px 44px;
+    border-radius: 999px;
+    border: 3px solid #fff7e6;
+    background: linear-gradient(180deg, #ffb347 0%, #ff8c00 45%, #ff6a00 100%);
+    box-shadow: 0 6px 0 rgba(190, 80, 0, .4), 0 10px 18px rgba(0, 0, 0, .2);
+    text-align: center;
+    overflow: hidden;
+}
+
+.lp-root .mlc-start::before {
+    content: "▼";
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #fff;
+    font-size: 14px;
+}
+
+.lp-root .mlc-start::after {
+    content: "";
+    position: absolute;
+    top: -10%;
+    left: -75%;
+    width: 35%;
+    height: 120%;
+    background: linear-gradient(75deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .7) 50%, rgba(255, 255, 255, 0) 100%);
+    transform: skewX(-20deg);
+    animation: mlcShine 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.lp-root .mlc-start-main {
+    color: #fff;
+    font-size: 21px;
+    font-weight: 800;
+    line-height: 1.3;
+    text-shadow: 0 2px 3px rgba(150, 60, 0, .5);
+}
+
+.lp-root .mlc-start-sub {
+    margin-top: 2px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.lp-root .mlc-start-sub b {
+    color: #ffe94d;
+}
+
+.lp-root .mlc-start--bottom {
+    margin-top: 28px;
+}
+
+.lp-root .mlc-start--bottom::before {
+    content: "▶";
+}
+
+/* ===== お悩みチェック ===== */
+.lp-root .mlc-worry {
+    margin: 22px 0 0;
+    border: 3px solid #1a3a6b;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.lp-root .mlc-worry-h {
+    padding: 10px 12px;
+    background: #1a3a6b;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.lp-root .mlc-worry-list {
+    list-style: none;
+    padding: 8px 12px 4px;
+}
+
+.lp-root .mlc-worry-list li + li {
+    border-top: 1px solid #e6e9ef;
+}
+
+.lp-root .mlc-worry-list button {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 4px;
+    border: none;
+    background: none;
+    color: #1a1a1a;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.6;
+    text-align: left;
+    cursor: pointer;
+}
+
+.lp-root .mlc-worry-list button::before {
+    content: "";
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    margin-top: 1px;
+    border: 2.5px solid #1a3a6b;
+    border-radius: 4px;
+    background: #fff center/16px no-repeat;
+}
+
+.lp-root .mlc-worry-list button.is-on::before {
+    background-color: #E5484D;
+    border-color: #E5484D;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.5'%3E%3Cpolyline points='5 13 10 18 19 7'/%3E%3C/svg%3E");
+}
+
+.lp-root .mlc-worry-result {
+    padding: 12px 12px 14px;
+    background: #fff8d6;
+    font-size: 15px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.6;
+}
+
+.lp-root .mlc-worry-result b {
+    color: #E5484D;
+}
+
+/* ===== セルフチェック ===== */
+.lp-root .mlc-quiz {
+    max-width: 520px;
+    margin: 26px auto 0;
+    padding: 0 0 22px;
+    border: 2px solid #BBD6F8;
+    border-radius: 20px;
+    background: #F2F8FE;
+    box-shadow: 0 8px 20px rgba(47, 111, 237, .1);
+    overflow: hidden;
+    scroll-margin-top: 10px;
+}
+
+.lp-root .mlc-quiz-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #2F6FED;
+    color: #fff;
+}
+
+.lp-root .mlc-quiz-title {
+    font-size: 15px;
+    white-space: nowrap;
+    font-weight: 800;
+}
+
+.lp-root .mlc-quiz-gift {
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: #fff;
+    color: #E5484D;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.lp-root .mlc-quiz-gift b {
+    font-size: 15px;
+}
+
+.lp-root .mlc-progress {
+    height: 10px;
+    margin: 16px 18px 0;
+    border-radius: 999px;
+    background: #DCE6F5;
+    overflow: hidden;
+}
+
+.lp-root .mlc-progress-bar {
+    width: 10%;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #2F6FED, #22b8f0);
+    transition: width .4s ease;
+}
+
+.lp-root .mlc-progress-txt {
+    margin-top: 4px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #2F6FED;
+    text-align: center;
+}
+
+.lp-root .mlc-progress-txt b {
+    color: #E5484D;
+    font-size: 15px;
+}
+
+.lp-root .mlc-step {
+    display: none;
+    padding: 12px 18px 0;
+    text-align: center;
+}
+
+.lp-root .mlc-step.is-active {
+    display: block;
+    animation: mlcSlide .3s ease;
+}
+
+.lp-root .mlc-q-num {
+    font-size: 36px;
+    font-weight: 900;
+    color: #2F6FED;
+    line-height: 1.2;
+}
+
+.lp-root .mlc-q-num span {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: #E5484D;
+    color: #fff;
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.lp-root .mlc-q-text {
+    margin: 8px 0 22px;
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: #222;
+}
+
+.lp-root .mlc-ans {
+    display: flex;
+    gap: 12px;
+}
+
+.lp-root .mlc-ans--col {
+    flex-direction: column;
+    gap: 10px;
+}
+
+.lp-root .mlc-ans-btn {
+    flex: 1;
+    min-height: 60px;
+    padding: 12px 8px;
+    border: 2px solid #2F6FED;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 4px 0 #BBD6F8;
+    color: #1a3a6b;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.3;
+    cursor: pointer;
+    transition: transform .08s ease, box-shadow .08s ease;
+}
+
+.lp-root .mlc-ans-btn:active,
+.lp-root .mlc-ans-btn.is-selected {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #BBD6F8;
+    background: #2F6FED;
+    color: #fff;
+}
+
+.lp-root .mlc-back {
+    margin-top: 14px;
+    border: none;
+    background: none;
+    color: #6b7a90;
+    font-size: 13px;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.lp-root .mlc-loading {
+    padding: 34px 0 20px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a3a6b;
+    line-height: 1.6;
+}
+
+.lp-root .mlc-spinner {
+    display: block;
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 14px;
+    border: 5px solid #DCE6F5;
+    border-top-color: #2F6FED;
+    border-radius: 50%;
+    animation: mlcSpin .8s linear infinite;
+}
+
+/* ===== 結果 ===== */
+.lp-root .mlc-result-label {
+    display: inline-block;
+    padding: 2px 14px;
+    border-radius: 999px;
+    background: #1a3a6b;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.lp-root .mlc-result-type {
+    margin-top: 8px;
+    font-size: 26px;
+    font-weight: 900;
+    color: #1a3a6b;
+    line-height: 1.3;
+}
+
+.lp-root .mlc-result-type small {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.lp-root .mlc-level {
+    margin: 14px 0 0;
+    padding: 12px;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.lp-root .mlc-level-h {
+    font-size: 13px;
+    font-weight: 700;
+    color: #555;
+}
+
+.lp-root .mlc-level-meter {
+    display: flex;
+    gap: 4px;
+    margin: 6px 0;
+}
+
+.lp-root .mlc-level-meter span {
+    flex: 1;
+    height: 12px;
+    border-radius: 3px;
+    background: #e3e7ee;
+}
+
+.lp-root .mlc-level-meter span.is-on {
+    background: linear-gradient(90deg, #ffb347, #E5484D);
+}
+
+.lp-root .mlc-level-txt {
+    font-size: 20px;
+    font-weight: 900;
+    color: #E5484D;
+    line-height: 1.3;
+}
+
+.lp-root .mlc-level-txt small {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.lp-root .mlc-result-desc {
+    margin-top: 14px;
+    font-size: 15px;
+    line-height: 1.8;
+    text-align: left;
+    color: #222;
+}
+
+.lp-root .mlc-result-warn:empty,
+.lp-root .mlc-result-concern:empty {
+    display: none;
+}
+
+.lp-root .mlc-result-warn {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-left: 4px solid #E5484D;
+    background: #fff0f0;
+    font-size: 14px;
+    font-weight: 700;
+    color: #b42318;
+    line-height: 1.6;
+    text-align: left;
+}
+
+.lp-root .mlc-result-concern {
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.7;
+    text-align: left;
+    color: #222;
+}
+
+.lp-root .mlc-result-concern b,
+.lp-root .mlc-mk {
+    background: linear-gradient(transparent 62%, #FFF176 62%);
+    font-weight: 700;
+}
+
+.lp-root .mlc-ticket {
+    position: relative;
+    margin: 20px 4px 0;
+    padding: 14px 10px 12px;
+    border: 3px dashed #E5484D;
+    border-radius: 12px;
+    background: #fff;
+    line-height: 1.3;
+}
+
+.lp-root .mlc-ticket-tag {
+    position: absolute;
+    top: -13px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 2px 14px;
+    border-radius: 4px;
+    background: #E5484D;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.lp-root .mlc-ticket-sub {
+    font-size: 13px;
+    font-weight: 700;
+    color: #555;
+}
+
+.lp-root .mlc-ticket-main {
+    font-size: 26px;
+    font-weight: 900;
+    color: #E5484D;
+}
+
+.lp-root .mlc-ticket-main b {
+    font-size: 52px;
+    line-height: 1.1;
+}
+
+.lp-root .mlc-cta-lead {
+    margin-top: 18px;
+    font-size: 15px;
+    font-weight: 800;
+    color: #04a647;
+    animation: mlcBlink 1.4s ease-in-out infinite;
+}
+
+.lp-root .mlc-line-wrap {
+    margin-top: 6px;
+}
+
+.lp-root .mlc-line-btn {
+    display: block;
+    line-height: 0;
+    animation: mlcFloat 2.2s ease-in-out infinite;
+}
+
+.lp-root .mlc-line-btn img {
+    display: block;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.lp-root .mlc-line-notes {
+    list-style: none;
+    margin-top: 10px;
+    padding: 0;
+    text-align: left;
+}
+
+.lp-root .mlc-line-notes li {
+    position: relative;
+    padding-left: 20px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #444;
+}
+
+.lp-root .mlc-line-notes li + li {
+    margin-top: 4px;
+}
+
+.lp-root .mlc-line-notes li::before {
+    content: "✓";
+    position: absolute;
+    left: 2px;
+    color: #06c755;
+    font-weight: 900;
+}
+
+.lp-root .mlc-disclaimer {
+    margin-top: 12px;
+    font-size: 11px;
+    color: #888;
+    line-height: 1.6;
+    text-align: left;
+}
+
+/* ===== 選ばれる理由 ===== */
+.lp-root .mlc-sec-h {
+    margin: 44px 0 16px;
+    font-size: 21px;
+    font-weight: 800;
+    color: #1a3a6b;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.lp-root .mlc-sec-h b {
+    color: #E5484D;
+}
+
+.lp-root .mlc-reason {
+    margin-top: 16px;
+    padding: 18px 16px;
+    border-radius: 14px;
+    background: #F2F8FE;
+    text-align: center;
+}
+
+.lp-root .mlc-reason-num {
+    font-size: 28px;
+    font-weight: 900;
+    color: #2F6FED;
+    line-height: 1;
+}
+
+.lp-root .mlc-reason-h {
+    margin: 8px 0 12px;
+    font-size: 18px;
+    font-weight: 800;
+    color: #1a3a6b;
+    line-height: 1.5;
+}
+
+.lp-root .mlc-reason img {
+    display: block;
+    width: 100%;
+    border-radius: 8px;
+}
+
+.lp-root .mlc-reason-p {
+    margin-top: 12px;
+    font-size: 15px;
+    line-height: 1.8;
+    text-align: left;
+}
+
+/* ===== FAQ ===== */
+.lp-root .mlc-faq {
+    margin-top: 10px;
+    border: 1.5px solid #DCE3EE;
+    border-radius: 10px;
+    background: #fff;
+}
+
+.lp-root .mlc-faq summary {
+    position: relative;
+    padding: 12px 36px 12px 40px;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.5;
+    list-style: none;
+    cursor: pointer;
+}
+
+.lp-root .mlc-faq summary::-webkit-details-marker {
+    display: none;
+}
+
+.lp-root .mlc-faq summary::before {
+    content: "Q";
+    position: absolute;
+    left: 14px;
+    top: 11px;
+    color: #2F6FED;
+    font-weight: 900;
+}
+
+.lp-root .mlc-faq summary::after {
+    content: "+";
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #2F6FED;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.lp-root .mlc-faq[open] summary::after {
+    content: "−";
+}
+
+.lp-root .mlc-faq p {
+    padding: 0 14px 14px 40px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #333;
+}
+
+/* ===== 追従バー ===== */
+.mlc-sticky {
+    position: fixed;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%) translateY(130%);
+    width: 100%;
+    max-width: 620px;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+    z-index: 99998;
+    transition: transform .35s ease;
+    pointer-events: none;
+    box-sizing: border-box;
+}
+
+.mlc-sticky.show {
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+}
+
+.mlc-sticky-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 56px;
+    padding: 8px 44px 8px 12px;
+    border-radius: 40px;
+    border: 2px solid #fff;
+    background: linear-gradient(180deg, #ffb347 0%, #ff8c00 45%, #ff6a00 100%);
+    box-shadow: 0 4px 0 rgba(190, 80, 0, .4);
+    text-decoration: none !important;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.mlc-sticky.is-line .mlc-sticky-inner {
+    background: linear-gradient(180deg, #4fd97a 0%, #06c755 50%, #04a647 100%);
+    box-shadow: 0 4px 0 rgba(3, 110, 60, .4);
+    animation: mlcFloat 2.4s ease-in-out infinite;
+}
+
+.mlc-sticky-inner::after {
+    content: "";
+    position: absolute;
+    top: -10%;
+    left: -60%;
+    width: 35%;
+    height: 120%;
+    background: linear-gradient(75deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .65) 50%, rgba(255, 255, 255, 0) 100%);
+    transform: skewX(-20deg);
+    animation: mlcShine 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.mlc-sticky-badge {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #E5484D;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.1;
+    text-align: center;
+}
+
+.mlc-sticky-txt {
+    color: #fff;
+    font-size: 17px;
+    font-weight: 800;
+    white-space: nowrap;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+}
+
+.mlc-sticky-sec {
+    color: #ffe94d;
+}
+
+.mlc-sticky-arr {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #fff;
+    color: #ff6a00;
+    font-size: 12px;
+}
+
+.mlc-sticky.is-line .mlc-sticky-arr {
+    color: #04a647;
+}
+
+/* ===== 離脱防止ポップアップ ===== */
+.mlc-exit {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: none;
+}
+
+.mlc-exit.show {
+    display: block;
+}
+
+.mlc-exit-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, .6);
+}
+
+.mlc-exit-box {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 380px;
+    padding: 28px 22px 18px;
+    border-radius: 18px;
+    background: #fff;
+    text-align: center;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, .4);
+    animation: mlcPop .25s ease;
+    box-sizing: border-box;
+}
+
+.mlc-exit-x {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: none;
+    color: #888;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.mlc-exit-h {
+    margin: 0 0 14px;
+    font-size: 22px;
+    font-weight: 800;
+    color: #1a3a6b;
+    line-height: 1.4;
+}
+
+.mlc-exit-p {
+    margin: 0 0 20px;
+    font-size: 15px;
+    color: #333;
+    line-height: 1.8;
+}
+
+.mlc-exit-p b {
+    font-weight: 800;
+}
+
+.mlc-exit-p .mlc-r {
+    color: #E5484D;
+}
+
+.mlc-exit-cta {
+    display: block;
+    width: 100%;
+    padding: 15px 10px;
+    border-radius: 40px;
+    background: linear-gradient(180deg, #ffb347 0%, #ff8c00 45%, #ff6a00 100%);
+    box-shadow: 0 5px 0 rgba(190, 80, 0, .4);
+    color: #fff;
+    font-size: 18px;
+    font-weight: 800;
+    text-decoration: none !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .3);
+    box-sizing: border-box;
+}
+
+.mlc-exit.is-line .mlc-exit-cta {
+    background: linear-gradient(180deg, #4fd97a 0%, #06c755 50%, #04a647 100%);
+    box-shadow: 0 5px 0 rgba(3, 110, 60, .4);
+}
+
+.mlc-exit-no {
+    display: inline-block;
+    margin-top: 14px;
+    border: none;
+    background: none;
+    color: #999;
+    font-size: 13px;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* ===== アニメーション ===== */
+@keyframes mlcShine {
+    0% { left: -75%; }
+    25% { left: 125%; }
+    100% { left: 125%; }
+}
+
+@keyframes mlcFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+@keyframes mlcSlide {
+    0% { opacity: 0; transform: translateX(24px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes mlcSpin {
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes mlcBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .45; }
+}
+
+@keyframes mlcPop {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(.9); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@media (max-width: 360px) {
+    .lp-root .mlc-start-main { font-size: 19px; }
+    .lp-root .mlc-q-text { font-size: 19px; }
+    .mlc-sticky-txt { font-size: 15px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lp-root *,
+    .mlc-sticky *,
+    .mlc-exit * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+</style>
+<!-- X conversion tracking base code -->
+<script>
+    ! function(e, t, n, s, u, a) {
+        e.twq || (s = e.twq = function() {
+                s.exe ? s.exe.apply(s, arguments) : s.queue.push(arguments);
+            }, s.version = '1.1', s.queue = [], u = t.createElement(n), u.async = !0, u.src = 'https://static.ads-twitter.com/uwt.js',
+            a = t.getElementsByTagName(n)[0], a.parentNode.insertBefore(u, a))
+    }(window, document, 'script');
+    twq('config', 'omfcg');
+</script>
+<!-- End X conversion tracking base code -->
+
+<!-- start Promolayer JS code-->
+<script type="module" src="https://modules.promolayer.io/index.js" data-pluid="reEFRRPwYaa7bKbCKHi0hJ9LINX2" data-workspace="dwfKLQLO8uXakcNGZPV7" crossorigin async></script><!-- end Promolayer JS code-->
+</head><body>
+<div class="lp-root">
+
+    <!-- ===== FV（画像は既存のまま／遅延読み込みしない） ===== -->
+    <div class="lp-fv" style="text-align:center;">
+        <picture>
+            <source type="image/webp" srcset="https://file.mysquadbeyond.com/uploads/article_photo/photo/7283345/8997a1c0-fc32-4543-af08-982e31120714.webp">
+            <source type="image/avif" srcset="https://file.mysquadbeyond.com/uploads/article_photo/photo/7283345/8997a1c0-fc32-4543-af08-982e31120714.avif"><img src="https://file.mysquadbeyond.com/uploads/article_photo/photo/7283345/8997a1c0-fc32-4543-af08-982e31120714.png" width="309" height="509" loading="eager" fetchpriority="high" alt="メンズライフクリニック 無料セルフチェック">
+        </picture>
+    </div>
+
+    <!-- ===== FV直下：不安を消すチップ ＋ 開始導線 ===== -->
+    <div class="sb-custom"><span contenteditable="false">
+            <div class="sb-custom-part-mlc2trust">
+                <ul class="mlc-chips">
+                    <li><b>無料</b></li>
+                    <li><b>匿名</b>OK</li>
+                    <li><b>3問</b>・約30秒</li>
+                    <li>写真<b>不要</b></li>
+                </ul>
+                <a href="javascript:void(0)" class="mlc-start" data-mlc-start draggable="false">
+                    <span class="mlc-start-main">今すぐQ1に答える</span>
+                    <span class="mlc-start-sub">回答した方だけに<b>55%OFFクーポン</b></span>
+                </a>
+            </div>
+        </span></div>
+
+    <!-- ===== お悩みチェック（タップ式・小さなYESを積み上げる） ===== -->
+    <div class="sb-custom"><span contenteditable="false">
+            <div class="sb-custom-part-mlc2worry">
+                <div class="mlc-worry">
+                    <p class="mlc-worry-h">当てはまるものをタップ</p>
+                    <ul class="mlc-worry-list">
+                        <li><button type="button" data-mlc-worry>彼女やパートナーの視線が気になり、自信が持てない</button></li>
+                        <li><button type="button" data-mlc-worry>ニオイなど衛生面が不安</button></li>
+                        <li><button type="button" data-mlc-worry>服装や髪型を整えても、最後に引け目を感じる</button></li>
+                        <li><button type="button" data-mlc-worry>プールや温泉で周囲の目が気になる</button></li>
+                    </ul>
+                    <p class="mlc-worry-result" id="mlc-worry-result">1つでも当てはまるなら、<br><b>3問のセルフチェック</b>で治療推奨レベルを確認しましょう</p>
+                </div>
+            </div>
+        </span></div>
+
+    <!-- ===== セルフチェック本体（ページ内で完結・1画面1問） ===== -->
+    <div class="sb-custom"><span contenteditable="false">
+            <div class="sb-custom-part-mlc2quiz">
+                <div class="mlc-quiz" id="survey-wrapper">
+                    <div class="mlc-quiz-head">
+                        <p class="mlc-quiz-title">無料セルフチェック</p>
+                        <p class="mlc-quiz-gift">回答完了で<b>55%OFF</b>クーポン</p>
+                    </div>
+                    <div class="mlc-progress" aria-hidden="true"><div class="mlc-progress-bar" id="mlc-progress-bar"></div></div>
+                    <p class="mlc-progress-txt" id="mlc-progress-txt">あと<b>3問</b>で結果が出ます</p>
+
+                    <!-- Q1 -->
+                    <div class="mlc-step is-active" data-mlc-step="1">
+                        <p class="mlc-q-num notranslate" translate="no">Q1</p>
+                        <p class="mlc-q-text">普段、皮はかぶっているが、<br>剥くことはできる</p>
+                        <div class="mlc-ans mlc-ans--row">
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q1" data-v="yes">はい</button>
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q1" data-v="no">いいえ</button>
+                        </div>
+                    </div>
+
+                    <!-- Q2 -->
+                    <div class="mlc-step" data-mlc-step="2">
+                        <p class="mlc-q-num notranslate" translate="no">Q2</p>
+                        <p class="mlc-q-text">露茎した際に、<br>締め付けを感じる</p>
+                        <div class="mlc-ans mlc-ans--row">
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q2" data-v="yes">はい</button>
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q2" data-v="no">いいえ</button>
+                        </div>
+                        <button type="button" class="mlc-back" data-mlc-back>← 前の質問に戻る</button>
+                    </div>
+
+                    <!-- Q3 -->
+                    <div class="mlc-step" data-mlc-step="3">
+                        <p class="mlc-q-num notranslate" translate="no">Q3<span>ラスト！</span></p>
+                        <p class="mlc-q-text">一番気になるお悩みは？</p>
+                        <div class="mlc-ans mlc-ans--col">
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q3" data-v="smell">臭いが気になる</button>
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q3" data-v="confidence">自信を持てない</button>
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q3" data-v="disease">病気のリスク</button>
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q3" data-v="pe">早漏を改善したい</button>
+                        </div>
+                        <button type="button" class="mlc-back" data-mlc-back>← 前の質問に戻る</button>
+                    </div>
+
+                    <!-- 判定中 -->
+                    <div class="mlc-step" data-mlc-step="loading">
+                        <div class="mlc-loading">
+                            <span class="mlc-spinner"></span>
+                            <p>回答をもとに<br>治療推奨レベルを判定中…</p>
+                        </div>
+                    </div>
+
+                    <!-- 結果 -->
+                    <div class="mlc-step" data-mlc-step="result">
+                        <div class="mlc-result">
+                            <p class="mlc-result-label">あなたのセルフチェック結果</p>
+                            <p class="mlc-result-type"><span id="mlc-result-type">仮性包茎</span><small>タイプの可能性</small></p>
+
+                            <div class="mlc-level">
+                                <p class="mlc-level-h">治療推奨レベル</p>
+                                <div class="mlc-level-meter" id="mlc-level-meter">
+                                    <span></span><span></span><span></span><span></span><span></span>
+                                </div>
+                                <p class="mlc-level-txt" id="mlc-level-txt">レベル3／中</p>
+                            </div>
+
+                            <p class="mlc-result-desc" id="mlc-result-desc"></p>
+                            <p class="mlc-result-warn" id="mlc-result-warn"></p>
+                            <p class="mlc-result-concern" id="mlc-result-concern"></p>
+
+                            <!-- 「発行済み」で手放したくない心理をつくる -->
+                            <div class="mlc-ticket">
+                                <p class="mlc-ticket-tag">発行済み</p>
+                                <p class="mlc-ticket-sub">セルフチェック回答者限定</p>
+                                <p class="mlc-ticket-main"><b>55%</b>OFF</p>
+                                <p class="mlc-ticket-sub">LINE限定クーポン</p>
+                            </div>
+
+                            <p class="mlc-cta-lead">▼ 受け取りはLINEから（約10秒）</p>
+                            <div class="mlc-line-wrap">
+                                <a href="https://line.me/R/app/2008012979-MBmEj213?channel_id=e39ad12e-58e6-48c5-bd2c-725427ee7bf8&amp;inflow_route_id=6a3bbd521200ad0dbabeeab4&amp;liff_id=2008012979-MBmEj213&amp;redirect_uri=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40203pbdac&amp;suid=VOZtdEphfx&amp;tenant_id=alifexoqodovexuz" class="mlc-line-btn js-line-link _unTrackingLink_a5of4_150" id="line-cta" data-mlc-place="result" draggable="false">
+                                    <img src="https://file.mysquadbeyond.com/uploads/article_photo/photo/7275483/13cb84a1-99ea-4c9b-a76b-461b2262401f.png" alt="55％OFFクーポン付き LINE追加で診断結果を受け取る">
+                                </a>
+                            </div>
+                            <ul class="mlc-line-notes">
+                                <li>友だち追加後、トークに<b>診断結果の詳細とクーポン</b>が届きます</li>
+                                <li>受け取り後のブロック・削除はいつでも可能です</li>
+                            </ul>
+                            <p class="mlc-disclaimer">※本セルフチェックは目安です。正確な診断は医師の診察により行います。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </span></div>
+
+    <!-- ===== 選ばれる理由（既存の解説を結果の下に集約） ===== -->
+    <div class="sb-custom"><span contenteditable="false">
+            <div class="sb-custom-part-mlc2reason">
+                <p class="mlc-sec-h">メンズライフクリニックが<br>選ばれる<b>3つの理由</b></p>
+                <div class="mlc-reason">
+                    <p class="mlc-reason-num">01</p>
+                    <p class="mlc-reason-h">ミリ単位で微調整する<br>「オーダーメイド」施術</p>
+                    <picture>
+                        <img loading="lazy" src="https://file.mysquadbeyond.com/uploads/article_photo/photo/7130693/31096c58-8cb7-415c-a4ae-94cb605f9d66.png" alt="" draggable="false">
+                    </picture>
+                    <p class="mlc-reason-p">皮の余り方や形状は一人ひとり異なります。機械的な一律の施術ではなく、熟練のスタッフが状態に合わせて調整。傷跡が<span class="mlc-mk">目立ちにくい</span>、<span class="mlc-mk">自然な仕上がり</span>を目指します。</p>
+                </div>
+                <div class="mlc-reason">
+                    <p class="mlc-reason-num">02</p>
+                    <p class="mlc-reason-h">周囲の目が気にならない<br>完全プライベート空間</p>
+                    <picture>
+                        <source type="image/webp" srcset="https://file.mysquadbeyond.com/uploads/article_photo/photo/7130726/a85943e2-8215-4c2c-a37d-8443a1793226.webp">
+                        <img loading="lazy" src="https://file.mysquadbeyond.com/uploads/article_photo/photo/7130726/a85943e2-8215-4c2c-a37d-8443a1793226.jpg" alt="" draggable="false">
+                    </picture>
+                    <p class="mlc-reason-p">周囲の目が一切気にならない<span class="mlc-mk">完全プライベート空間</span>を徹底。デリケートなお悩みも安心してご相談いただけます。</p>
+                </div>
+                <div class="mlc-reason">
+                    <p class="mlc-reason-num">03</p>
+                    <p class="mlc-reason-h">スタッフは<br>全員男性のみ</p>
+                    <picture>
+                        <source type="image/webp" srcset="https://file.mysquadbeyond.com/uploads/article_photo/photo/7130762/d87a6e7d-06ef-44d9-9e68-bb8269cedb2c.webp">
+                        <img loading="lazy" src="https://file.mysquadbeyond.com/uploads/article_photo/photo/7130762/d87a6e7d-06ef-44d9-9e68-bb8269cedb2c.png" alt="" draggable="false">
+                    </picture>
+                    <p class="mlc-reason-p">女性スタッフに見られる心配はありません。人には言いにくいお悩みも、<span class="mlc-mk">リラックスしてご相談</span>いただけます。</p>
+                </div>
+            </div>
+        </span></div>
+
+    <!-- ===== よくある不安（LINE追加前の最後のブレーキを外す） ===== -->
+    <div class="sb-custom"><span contenteditable="false">
+            <div class="sb-custom-part-mlc2faq">
+                <p class="mlc-sec-h">よくあるご質問</p>
+                <details class="mlc-faq">
+                    <summary>セルフチェックは本当に無料ですか？</summary>
+                    <p>はい、無料です。3つの質問に答えるだけで、その場で治療推奨レベルの目安がわかります。</p>
+                </details>
+                <details class="mlc-faq">
+                    <summary>LINEを追加すると何が届きますか？</summary>
+                    <p>セルフチェックの診断結果の詳細と、55%OFFのLINE限定クーポンが届きます。</p>
+                </details>
+                <details class="mlc-faq">
+                    <summary>LINEを追加したら必ず受診しないといけませんか？</summary>
+                    <p>いいえ。クーポンを受け取るだけでも問題ありません。不要になればいつでもブロック・削除できます。</p>
+                </details>
+                <details class="mlc-faq">
+                    <summary>無理に剥いて確認したほうがいいですか？</summary>
+                    <p>締め付けを感じる場合は重症化リスクの可能性があるため、無理に剥かないでください。今の状態のままお気軽にご相談ください。</p>
+                </details>
+                <a href="javascript:void(0)" class="mlc-start mlc-start--bottom" data-mlc-start draggable="false">
+                    <span class="mlc-start-main" data-mlc-start-label>30秒セルフチェックに答える</span>
+                    <span class="mlc-start-sub">回答した方だけに<b>55%OFFクーポン</b></span>
+                </a>
+            </div>
+        </span></div>
+
+    <div><br></div>
+
+    <!-- ===== 追従バー（状態に応じて文言と遷移先が変わる） ===== -->
+    <div id="mlc-sticky" class="mlc-sticky">
+        <a href="javascript:void(0)" class="mlc-sticky-inner" id="mlc-sticky-link" data-mlc-place="sticky" draggable="false">
+            <span class="mlc-sticky-badge" id="mlc-sticky-badge">無料</span>
+            <span class="mlc-sticky-txt" id="mlc-sticky-txt"><span class="mlc-sticky-sec">30秒</span>セルフチェックを開始</span>
+            <span class="mlc-sticky-arr">▶</span>
+        </a>
+    </div>
+
+    <!-- ===== 離脱防止ポップアップ（状態に応じて文言が変わる） ===== -->
+    <div id="mlc-exit" class="mlc-exit">
+        <div class="mlc-exit-overlay" data-mlc-close></div>
+        <div class="mlc-exit-box">
+            <button type="button" class="mlc-exit-x" data-mlc-close aria-label="閉じる">×</button>
+            <p class="mlc-exit-h" id="mlc-exit-h">お悩みのまま<br>本当に大丈夫ですか？</p>
+            <p class="mlc-exit-p" id="mlc-exit-p">今なら<b>たった30秒のセルフチェック</b>で<br>治療推奨レベルと<br><b class="mlc-r">55%OFFクーポン</b>を<br>お受け取りいただけます。</p>
+            <a href="javascript:void(0)" class="mlc-exit-cta" id="mlc-exit-cta" data-mlc-place="exit" draggable="false">無料でセルフチェックを受ける</a>
+            <button type="button" class="mlc-exit-no" data-mlc-close>今回は見送る</button>
+        </div>
+    </div>
+</div>
+<script>
+(function() {
+    // 各オファーURL（LINE）
+    var OFFER_URLS = {
+        // ①仮性オファー（suid=VOZtdEphfx）
+        kasei: "https://line.me/R/app/2008012979-MBmEj213?channel_id=e39ad12e-58e6-48c5-bd2c-725427ee7bf8&inflow_route_id=6a3bbd521200ad0dbabeeab4&liff_id=2008012979-MBmEj213&redirect_uri=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40203pbdac&suid=VOZtdEphfx&tenant_id=alifexoqodovexuz",
+        // ③カントンオファー（suid=VOZtszErdo）
+        kanton: "https://line.me/R/app/2008012979-MBmEj213?channel_id=e39ad12e-58e6-48c5-bd2c-725427ee7bf8&inflow_route_id=6a4b6136edcd5ea9b339f2f8&liff_id=2008012979-MBmEj213&redirect_uri=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40203pbdac&suid=VOZtszErdo&tenant_id=alifexoqodovexuz",
+        // ②真性オファー（suid=VOZtoKRrhI）
+        shinsei: "https://line.me/R/app/2008012979-MBmEj213?channel_id=e39ad12e-58e6-48c5-bd2c-725427ee7bf8&inflow_route_id=6a4b6124e36fc961c80b570d&liff_id=2008012979-MBmEj213&redirect_uri=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40203pbdac&suid=VOZtoKRrhI&tenant_id=alifexoqodovexuz"
+    };
+
+    // 結果画面の文言（医療広告ガイドラインに配慮し「可能性」「目安」で表現）
+    var RESULTS = {
+        kasei: {
+            type: "仮性包茎",
+            level: 3,
+            levelText: "レベル3／中",
+            desc: "普段は剥ける状態でも、皮の余り方や形状は一人ひとり異なります。ニオイや見た目など、日常のお悩みにつながることもあります。メンズライフクリニックでは、ミリ単位で微調整する<b class=\"mlc-mk\">オーダーメイド施術</b>で、自然な仕上がりを目指します。",
+            warn: ""
+        },
+        kanton: {
+            type: "カントン包茎",
+            level: 5,
+            levelText: "レベル5／高<small>早めのご相談がおすすめです</small>",
+            desc: "露茎した際に締め付け感がある方は、<b class=\"mlc-mk\">重症化リスクの可能性</b>があります。メンズライフクリニックでは、一人ひとりの締め付け状況に応じて緻密な計算をして治療します。",
+            warn: "無理に剥かないようにしてください。"
+        },
+        shinsei: {
+            type: "真性包茎",
+            level: 4,
+            levelText: "レベル4／高",
+            desc: "普段剥くことができない状態は、ご自身での対処が難しいケースです。皮の状態は一人ひとり異なるため、<b class=\"mlc-mk\">今の状態のまま</b>お気軽にご相談ください。",
+            warn: "無理に剥かないようにしてください。"
+        }
+    };
+
+    var CONCERNS = {
+        smell: "臭いが気になる",
+        confidence: "自信を持てない",
+        disease: "病気のリスク",
+        pe: "早漏を改善したい"
+    };
+
+    var STORE_KEY = "mlc_selfcheck_v2";
+    var state = { q1: null, q2: null, q3: null, done: false };
+    var trail = [];
+    var current = "1";
+
+    var quiz = document.getElementById("survey-wrapper");
+    if (!quiz) return;
+
+    function track(name, extra) {
+        try {
+            window.dataLayer = window.dataLayer || [];
+            var ev = { event: name, mlc_segment: state.done ? getSegment() : null };
+            for (var k in extra) ev[k] = extra[k];
+            window.dataLayer.push(ev);
+        } catch (e) {}
+    }
+
+    function save() {
+        try { sessionStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+    }
+
+    function load() {
+        try {
+            var s = JSON.parse(sessionStorage.getItem(STORE_KEY) || "null");
+            if (s && s.done) state = s;
+        } catch (e) {}
+    }
+
+    function getSegment() {
+        if (state.q1 === "no") return "shinsei"; // 真性（剥けない）
+        if (state.q1 === "yes" && state.q2 === "yes") return "kanton"; // カントン（締付あり）
+        return "kasei"; // 仮性（締付なし）
+    }
+
+    function remaining() {
+        if (current === "1") return 3;
+        if (current === "2") return 2;
+        if (current === "3") return 1;
+        return 0;
+    }
+
+    function setProgress() {
+        var bar = document.getElementById("mlc-progress-bar");
+        var txt = document.getElementById("mlc-progress-txt");
+        var pct = { "1": 10, "2": 45, "3": 75, loading: 95, result: 100 }[current];
+        if (bar) bar.style.width = pct + "%";
+        if (!txt) return;
+        if (current === "result") txt.innerHTML = "<b>回答完了！</b>結果が出ました";
+        else if (current === "loading") txt.innerHTML = "判定中…";
+        else if (current === "3") txt.innerHTML = "<b>あと1問</b>で結果が出ます";
+        else txt.innerHTML = "あと<b>" + remaining() + "問</b>で結果が出ます";
+    }
+
+    function show(step) {
+        var steps = quiz.querySelectorAll("[data-mlc-step]");
+        for (var i = 0; i < steps.length; i++) {
+            steps[i].classList.toggle("is-active", steps[i].getAttribute("data-mlc-step") === step);
+        }
+        current = step;
+        setProgress();
+        updateSticky();
+    }
+
+    function scrollToQuiz(force) {
+        var r = quiz.getBoundingClientRect();
+        if (force || r.top < 0 || r.top > window.innerHeight * 0.35) {
+            quiz.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }
+
+    function renderResult() {
+        var seg = getSegment();
+        var res = RESULTS[seg];
+        document.getElementById("mlc-result-type").textContent = res.type;
+        document.getElementById("mlc-level-txt").innerHTML = res.levelText;
+        document.getElementById("mlc-result-desc").innerHTML = res.desc;
+        document.getElementById("mlc-result-warn").textContent = res.warn;
+        var c = CONCERNS[state.q3];
+        document.getElementById("mlc-result-concern").innerHTML = c ?
+            "あなたのお悩み：<b>" + c + "</b><br>LINEでお届けする診断結果の詳細とあわせて、お気軽にご相談ください。" : "";
+        var bars = document.querySelectorAll("#mlc-level-meter span");
+        for (var i = 0; i < bars.length; i++) bars[i].classList.toggle("is-on", i < res.level);
+        var links = document.querySelectorAll(".js-line-link");
+        for (var j = 0; j < links.length; j++) links[j].setAttribute("href", OFFER_URLS[seg]);
+    }
+
+    function finish() {
+        show("loading");
+        scrollToQuiz(false);
+        setTimeout(function() {
+            state.done = true;
+            save();
+            renderResult();
+            setLineMode();
+            show("result");
+            scrollToQuiz(true);
+            track("mlc_result_view", { mlc_concern: state.q3 });
+        }, 1200);
+    }
+
+    function answer(btn) {
+        var q = btn.getAttribute("data-q");
+        var v = btn.getAttribute("data-v");
+        var sibs = btn.parentElement.querySelectorAll(".mlc-ans-btn");
+        for (var i = 0; i < sibs.length; i++) sibs[i].classList.remove("is-selected");
+        btn.classList.add("is-selected");
+        state[q] = v;
+        track("mlc_answer_" + q, { mlc_value: v });
+
+        setTimeout(function() {
+            trail.push(current);
+            if (q === "q1") {
+                // 剥けない方には「露茎時の締め付け」は該当しないため Q2 をスキップ
+                if (v === "no") { state.q2 = null; show("3"); } else show("2");
+                scrollToQuiz(false);
+            } else if (q === "q2") {
+                show("3");
+                scrollToQuiz(false);
+            } else {
+                finish();
+            }
+        }, 220);
+    }
+
+    function back() {
+        var prev = trail.pop();
+        if (prev) {
+            show(prev);
+            scrollToQuiz(false);
+        }
+    }
+
+    // ===== 追従バー ＆ 離脱ポップアップ =====
+    var bar = document.getElementById("mlc-sticky");
+    var stickyLink = document.getElementById("mlc-sticky-link");
+    var exitBox = document.getElementById("mlc-exit");
+    var exitCta = document.getElementById("mlc-exit-cta");
+
+    function setLineMode() {
+        // 結果表示後は、追従バー・ポップアップから直接LINEへ
+        var url = OFFER_URLS[getSegment()];
+        [stickyLink, exitCta].forEach(function(a) {
+            if (!a) return;
+            a.setAttribute("href", url);
+            a.classList.add("js-line-link", "_unTrackingLink_a5of4_150");
+        });
+        if (bar) bar.classList.add("is-line");
+        if (exitBox) exitBox.classList.add("is-line");
+        var badge = document.getElementById("mlc-sticky-badge");
+        if (badge) badge.innerHTML = "55%<br>OFF";
+        var labels = document.querySelectorAll("[data-mlc-start-label]");
+        for (var i = 0; i < labels.length; i++) labels[i].textContent = "診断結果を確認する";
+        setText("mlc-sticky-txt", "LINEで<span class=\"mlc-sticky-sec\">クーポン</span>を受け取る");
+        setText("mlc-exit-h", "クーポンを受け取らずに<br>戻りますか？");
+        setText("mlc-exit-p", "あなたの<b>診断結果の詳細</b>と<br><b class=\"mlc-r\">55%OFFクーポン</b>は<br>まだ受け取られていません。");
+        setText("mlc-exit-cta", "LINEで受け取る（無料）");
+    }
+
+    function setText(id, html) {
+        var el = document.getElementById(id);
+        if (el) el.innerHTML = html;
+    }
+
+    function updateSticky() {
+        if (!bar) return;
+        if (!state.done) {
+            var n = remaining();
+            if (current !== "1" && n > 0) {
+                setText("mlc-sticky-txt", "続きから回答する<span class=\"mlc-sticky-sec\">（あと" + n + "問）</span>");
+                setText("mlc-exit-h", "あと" + n + "問で<br>結果が出ます！");
+                setText("mlc-exit-p", "ここでやめるのはもったいない！<br>回答を終えると<br><b>治療推奨レベル</b>と<br><b class=\"mlc-r\">55%OFFクーポン</b>が受け取れます。");
+                setText("mlc-exit-cta", "続きから回答する");
+            }
+        }
+        onScroll();
+    }
+
+    function onScroll() {
+        if (!bar) return;
+        var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+        var show = y > 300;
+        var target = state.done ? document.getElementById("line-cta") : quiz;
+        if (target) {
+            var r = target.getBoundingClientRect();
+            if (r.top < window.innerHeight * 0.9 && r.bottom > 0) show = false;
+        }
+        bar.classList.toggle("show", show);
+    }
+
+    function closeExit() {
+        if (exitBox) exitBox.classList.remove("show");
+    }
+
+    var exitShown = false;
+    try { window.history.pushState({ mlc: 1 }, "", location.href); } catch (e) {}
+    window.addEventListener("popstate", function() {
+        if (exitShown || !exitBox) return;
+        exitBox.classList.add("show");
+        exitShown = true;
+        track("mlc_exit_popup", {});
+        try { window.history.pushState({ mlc: 1 }, "", location.href); } catch (e) {}
+    });
+
+    // ===== クリック処理（イベント委譲） =====
+    document.addEventListener("click", function(e) {
+        var t = e.target.closest ? e.target : e.target.parentElement;
+        if (!t || !t.closest) return;
+        var el;
+
+        if ((el = t.closest(".js-line-link"))) {
+            // LINE遷移（CV計測）
+            try { twq("event", "tw-omfcg-rd72l", {}); } catch (err) {}
+            track("mlc_line_click", { mlc_place: el.getAttribute("data-mlc-place") || "" });
+            closeExit();
+            return;
+        }
+        if ((el = t.closest("[data-mlc-answer]"))) { answer(el); return; }
+        if (t.closest("[data-mlc-back]")) { back(); return; }
+        if (t.closest("[data-mlc-start]") || t.closest("#mlc-sticky-link") || t.closest("#mlc-exit-cta")) {
+            e.preventDefault();
+            closeExit();
+            scrollToQuiz(true);
+            track("mlc_start_click", {});
+            return;
+        }
+        if (t.closest("[data-mlc-close]")) { closeExit(); return; }
+        if ((el = t.closest("[data-mlc-worry]"))) {
+            el.classList.toggle("is-on");
+            var n = document.querySelectorAll("[data-mlc-worry].is-on").length;
+            var box = document.getElementById("mlc-worry-result");
+            if (box) {
+                box.innerHTML = n > 0 ?
+                    "<b>" + n + "つ</b>当てはまりました。<br>下の<b>3問セルフチェック</b>で治療推奨レベルを確認しましょう" :
+                    "1つでも当てはまるなら、<br><b>3問のセルフチェック</b>で治療推奨レベルを確認しましょう";
+            }
+        }
+    });
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+
+    // LINEアプリから戻ってきた方には結果をそのまま表示
+    load();
+    if (state.done) {
+        renderResult();
+        setLineMode();
+        show("result");
+    } else {
+        show("1");
+    }
+})();
+</script>
+</body></html>

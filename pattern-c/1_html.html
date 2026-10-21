@@ -1,0 +1,221 @@
+<div class="lp-root">
+
+    <!-- ===== FV（画像は既存のまま／遅延読み込みしない） ===== -->
+    <div class="lp-fv" style="text-align:center;">
+        <picture>
+            <source type="image/webp" srcset="https://file.mysquadbeyond.com/uploads/article_photo/photo/7283345/8997a1c0-fc32-4543-af08-982e31120714.webp">
+            <source type="image/avif" srcset="https://file.mysquadbeyond.com/uploads/article_photo/photo/7283345/8997a1c0-fc32-4543-af08-982e31120714.avif"><img src="https://file.mysquadbeyond.com/uploads/article_photo/photo/7283345/8997a1c0-fc32-4543-af08-982e31120714.png" width="309" height="509" loading="eager" fetchpriority="high" alt="メンズライフクリニック 無料セルフチェック">
+        </picture>
+    </div>
+
+    <!-- ===== FV直下：不安を消すチップ ＋ 開始導線 ===== -->
+    <div class="sb-custom"><span contenteditable="false">
+            <div class="sb-custom-part-mlc2trust">
+                <ul class="mlc-chips">
+                    <li><b>無料</b></li>
+                    <li><b>匿名</b>OK</li>
+                    <li><b>3問</b>・約30秒</li>
+                    <li>写真<b>不要</b></li>
+                </ul>
+                <a href="javascript:void(0)" class="mlc-start" data-mlc-start draggable="false">
+                    <span class="mlc-start-main">今すぐQ1に答える</span>
+                    <span class="mlc-start-sub">回答した方だけに<b>55%OFFクーポン</b></span>
+                </a>
+            </div>
+        </span></div>
+
+    <!-- ===== お悩みチェック（タップ式・小さなYESを積み上げる） ===== -->
+    <div class="sb-custom"><span contenteditable="false">
+            <div class="sb-custom-part-mlc2worry">
+                <div class="mlc-worry">
+                    <p class="mlc-worry-h">当てはまるものをタップ</p>
+                    <ul class="mlc-worry-list">
+                        <li><button type="button" data-mlc-worry>彼女やパートナーの視線が気になり、自信が持てない</button></li>
+                        <li><button type="button" data-mlc-worry>ニオイなど衛生面が不安</button></li>
+                        <li><button type="button" data-mlc-worry>服装や髪型を整えても、最後に引け目を感じる</button></li>
+                        <li><button type="button" data-mlc-worry>プールや温泉で周囲の目が気になる</button></li>
+                    </ul>
+                    <p class="mlc-worry-result" id="mlc-worry-result">1つでも当てはまるなら、<br><b>3問のセルフチェック</b>で治療推奨レベルを確認しましょう</p>
+                </div>
+            </div>
+        </span></div>
+
+    <!-- ===== セルフチェック本体（ページ内で完結・1画面1問） ===== -->
+    <div class="sb-custom"><span contenteditable="false">
+            <div class="sb-custom-part-mlc2quiz">
+                <div class="mlc-quiz" id="survey-wrapper">
+                    <div class="mlc-quiz-head">
+                        <p class="mlc-quiz-title">無料セルフチェック</p>
+                        <p class="mlc-quiz-gift">回答完了で<b>55%OFF</b>クーポン</p>
+                    </div>
+                    <div class="mlc-progress" aria-hidden="true"><div class="mlc-progress-bar" id="mlc-progress-bar"></div></div>
+                    <p class="mlc-progress-txt" id="mlc-progress-txt">あと<b>3問</b>で結果が出ます</p>
+
+                    <!-- Q1 -->
+                    <div class="mlc-step is-active" data-mlc-step="1">
+                        <p class="mlc-q-num notranslate" translate="no">Q1</p>
+                        <p class="mlc-q-text">普段、皮はかぶっているが、<br>剥くことはできる</p>
+                        <div class="mlc-ans mlc-ans--row">
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q1" data-v="yes">はい</button>
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q1" data-v="no">いいえ</button>
+                        </div>
+                    </div>
+
+                    <!-- Q2 -->
+                    <div class="mlc-step" data-mlc-step="2">
+                        <p class="mlc-q-num notranslate" translate="no">Q2</p>
+                        <p class="mlc-q-text">露茎した際に、<br>締め付けを感じる</p>
+                        <div class="mlc-ans mlc-ans--row">
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q2" data-v="yes">はい</button>
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q2" data-v="no">いいえ</button>
+                        </div>
+                        <button type="button" class="mlc-back" data-mlc-back>← 前の質問に戻る</button>
+                    </div>
+
+                    <!-- Q3 -->
+                    <div class="mlc-step" data-mlc-step="3">
+                        <p class="mlc-q-num notranslate" translate="no">Q3<span>ラスト！</span></p>
+                        <p class="mlc-q-text">一番気になるお悩みは？</p>
+                        <div class="mlc-ans mlc-ans--col">
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q3" data-v="smell">臭いが気になる</button>
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q3" data-v="confidence">自信を持てない</button>
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q3" data-v="disease">病気のリスク</button>
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q3" data-v="pe">早漏を改善したい</button>
+                        </div>
+                        <button type="button" class="mlc-back" data-mlc-back>← 前の質問に戻る</button>
+                    </div>
+
+                    <!-- 判定中 -->
+                    <div class="mlc-step" data-mlc-step="loading">
+                        <div class="mlc-loading">
+                            <span class="mlc-spinner"></span>
+                            <p>回答をもとに<br>治療推奨レベルを判定中…</p>
+                        </div>
+                    </div>
+
+                    <!-- 結果 -->
+                    <div class="mlc-step" data-mlc-step="result">
+                        <div class="mlc-result">
+                            <p class="mlc-result-label">あなたのセルフチェック結果</p>
+                            <p class="mlc-result-type"><span id="mlc-result-type">仮性包茎</span><small>タイプの可能性</small></p>
+
+                            <div class="mlc-level">
+                                <p class="mlc-level-h">治療推奨レベル</p>
+                                <div class="mlc-level-meter" id="mlc-level-meter">
+                                    <span></span><span></span><span></span><span></span><span></span>
+                                </div>
+                                <p class="mlc-level-txt" id="mlc-level-txt">レベル3／中</p>
+                            </div>
+
+                            <p class="mlc-result-desc" id="mlc-result-desc"></p>
+                            <p class="mlc-result-warn" id="mlc-result-warn"></p>
+                            <p class="mlc-result-concern" id="mlc-result-concern"></p>
+
+                            <!-- 「発行済み」で手放したくない心理をつくる -->
+                            <div class="mlc-ticket">
+                                <p class="mlc-ticket-tag">発行済み</p>
+                                <p class="mlc-ticket-sub">セルフチェック回答者限定</p>
+                                <p class="mlc-ticket-main"><b>55%</b>OFF</p>
+                                <p class="mlc-ticket-sub">LINE限定クーポン</p>
+                            </div>
+
+                            <p class="mlc-cta-lead">▼ 受け取りはLINEから（約10秒）</p>
+                            <div class="mlc-line-wrap">
+                                <a href="https://line.me/R/app/2008012979-MBmEj213?channel_id=e39ad12e-58e6-48c5-bd2c-725427ee7bf8&amp;inflow_route_id=6a3bbd521200ad0dbabeeab4&amp;liff_id=2008012979-MBmEj213&amp;redirect_uri=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40203pbdac&amp;suid=VOZtdEphfx&amp;tenant_id=alifexoqodovexuz" class="mlc-line-btn js-line-link _unTrackingLink_a5of4_150" id="line-cta" data-mlc-place="result" draggable="false">
+                                    <img src="https://file.mysquadbeyond.com/uploads/article_photo/photo/7275483/13cb84a1-99ea-4c9b-a76b-461b2262401f.png" alt="55％OFFクーポン付き LINE追加で診断結果を受け取る">
+                                </a>
+                            </div>
+                            <ul class="mlc-line-notes">
+                                <li>友だち追加後、トークに<b>診断結果の詳細とクーポン</b>が届きます</li>
+                                <li>受け取り後のブロック・削除はいつでも可能です</li>
+                            </ul>
+                            <p class="mlc-disclaimer">※本セルフチェックは目安です。正確な診断は医師の診察により行います。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </span></div>
+
+    <!-- ===== 選ばれる理由（既存の解説を結果の下に集約） ===== -->
+    <div class="sb-custom"><span contenteditable="false">
+            <div class="sb-custom-part-mlc2reason">
+                <p class="mlc-sec-h">メンズライフクリニックが<br>選ばれる<b>3つの理由</b></p>
+                <div class="mlc-reason">
+                    <p class="mlc-reason-num">01</p>
+                    <p class="mlc-reason-h">ミリ単位で微調整する<br>「オーダーメイド」施術</p>
+                    <picture>
+                        <img loading="lazy" src="https://file.mysquadbeyond.com/uploads/article_photo/photo/7130693/31096c58-8cb7-415c-a4ae-94cb605f9d66.png" alt="" draggable="false">
+                    </picture>
+                    <p class="mlc-reason-p">皮の余り方や形状は一人ひとり異なります。機械的な一律の施術ではなく、熟練のスタッフが状態に合わせて調整。傷跡が<span class="mlc-mk">目立ちにくい</span>、<span class="mlc-mk">自然な仕上がり</span>を目指します。</p>
+                </div>
+                <div class="mlc-reason">
+                    <p class="mlc-reason-num">02</p>
+                    <p class="mlc-reason-h">周囲の目が気にならない<br>完全プライベート空間</p>
+                    <picture>
+                        <source type="image/webp" srcset="https://file.mysquadbeyond.com/uploads/article_photo/photo/7130726/a85943e2-8215-4c2c-a37d-8443a1793226.webp">
+                        <img loading="lazy" src="https://file.mysquadbeyond.com/uploads/article_photo/photo/7130726/a85943e2-8215-4c2c-a37d-8443a1793226.jpg" alt="" draggable="false">
+                    </picture>
+                    <p class="mlc-reason-p">周囲の目が一切気にならない<span class="mlc-mk">完全プライベート空間</span>を徹底。デリケートなお悩みも安心してご相談いただけます。</p>
+                </div>
+                <div class="mlc-reason">
+                    <p class="mlc-reason-num">03</p>
+                    <p class="mlc-reason-h">スタッフは<br>全員男性のみ</p>
+                    <picture>
+                        <source type="image/webp" srcset="https://file.mysquadbeyond.com/uploads/article_photo/photo/7130762/d87a6e7d-06ef-44d9-9e68-bb8269cedb2c.webp">
+                        <img loading="lazy" src="https://file.mysquadbeyond.com/uploads/article_photo/photo/7130762/d87a6e7d-06ef-44d9-9e68-bb8269cedb2c.png" alt="" draggable="false">
+                    </picture>
+                    <p class="mlc-reason-p">女性スタッフに見られる心配はありません。人には言いにくいお悩みも、<span class="mlc-mk">リラックスしてご相談</span>いただけます。</p>
+                </div>
+            </div>
+        </span></div>
+
+    <!-- ===== よくある不安（LINE追加前の最後のブレーキを外す） ===== -->
+    <div class="sb-custom"><span contenteditable="false">
+            <div class="sb-custom-part-mlc2faq">
+                <p class="mlc-sec-h">よくあるご質問</p>
+                <details class="mlc-faq">
+                    <summary>セルフチェックは本当に無料ですか？</summary>
+                    <p>はい、無料です。3つの質問に答えるだけで、その場で治療推奨レベルの目安がわかります。</p>
+                </details>
+                <details class="mlc-faq">
+                    <summary>LINEを追加すると何が届きますか？</summary>
+                    <p>セルフチェックの診断結果の詳細と、55%OFFのLINE限定クーポンが届きます。</p>
+                </details>
+                <details class="mlc-faq">
+                    <summary>LINEを追加したら必ず受診しないといけませんか？</summary>
+                    <p>いいえ。クーポンを受け取るだけでも問題ありません。不要になればいつでもブロック・削除できます。</p>
+                </details>
+                <details class="mlc-faq">
+                    <summary>無理に剥いて確認したほうがいいですか？</summary>
+                    <p>締め付けを感じる場合は重症化リスクの可能性があるため、無理に剥かないでください。今の状態のままお気軽にご相談ください。</p>
+                </details>
+                <a href="javascript:void(0)" class="mlc-start mlc-start--bottom" data-mlc-start draggable="false">
+                    <span class="mlc-start-main" data-mlc-start-label>30秒セルフチェックに答える</span>
+                    <span class="mlc-start-sub">回答した方だけに<b>55%OFFクーポン</b></span>
+                </a>
+            </div>
+        </span></div>
+
+    <div><br></div>
+
+    <!-- ===== 追従バー（状態に応じて文言と遷移先が変わる） ===== -->
+    <div id="mlc-sticky" class="mlc-sticky">
+        <a href="javascript:void(0)" class="mlc-sticky-inner" id="mlc-sticky-link" data-mlc-place="sticky" draggable="false">
+            <span class="mlc-sticky-badge" id="mlc-sticky-badge">無料</span>
+            <span class="mlc-sticky-txt" id="mlc-sticky-txt"><span class="mlc-sticky-sec">30秒</span>セルフチェックを開始</span>
+            <span class="mlc-sticky-arr">▶</span>
+        </a>
+    </div>
+
+    <!-- ===== 離脱防止ポップアップ（状態に応じて文言が変わる） ===== -->
+    <div id="mlc-exit" class="mlc-exit">
+        <div class="mlc-exit-overlay" data-mlc-close></div>
+        <div class="mlc-exit-box">
+            <button type="button" class="mlc-exit-x" data-mlc-close aria-label="閉じる">×</button>
+            <p class="mlc-exit-h" id="mlc-exit-h">お悩みのまま<br>本当に大丈夫ですか？</p>
+            <p class="mlc-exit-p" id="mlc-exit-p">今なら<b>たった30秒のセルフチェック</b>で<br>治療推奨レベルと<br><b class="mlc-r">55%OFFクーポン</b>を<br>お受け取りいただけます。</p>
+            <a href="javascript:void(0)" class="mlc-exit-cta" id="mlc-exit-cta" data-mlc-place="exit" draggable="false">無料でセルフチェックを受ける</a>
+            <button type="button" class="mlc-exit-no" data-mlc-close>今回は見送る</button>
+        </div>
+    </div>
+</div>

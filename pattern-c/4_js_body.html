@@ -1,0 +1,296 @@
+<script>
+(function() {
+    // 各オファーURL（LINE）
+    var OFFER_URLS = {
+        // ①仮性オファー（suid=VOZtdEphfx）
+        kasei: "https://line.me/R/app/2008012979-MBmEj213?channel_id=e39ad12e-58e6-48c5-bd2c-725427ee7bf8&inflow_route_id=6a3bbd521200ad0dbabeeab4&liff_id=2008012979-MBmEj213&redirect_uri=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40203pbdac&suid=VOZtdEphfx&tenant_id=alifexoqodovexuz",
+        // ③カントンオファー（suid=VOZtszErdo）
+        kanton: "https://line.me/R/app/2008012979-MBmEj213?channel_id=e39ad12e-58e6-48c5-bd2c-725427ee7bf8&inflow_route_id=6a4b6136edcd5ea9b339f2f8&liff_id=2008012979-MBmEj213&redirect_uri=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40203pbdac&suid=VOZtszErdo&tenant_id=alifexoqodovexuz",
+        // ②真性オファー（suid=VOZtoKRrhI）
+        shinsei: "https://line.me/R/app/2008012979-MBmEj213?channel_id=e39ad12e-58e6-48c5-bd2c-725427ee7bf8&inflow_route_id=6a4b6124e36fc961c80b570d&liff_id=2008012979-MBmEj213&redirect_uri=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40203pbdac&suid=VOZtoKRrhI&tenant_id=alifexoqodovexuz"
+    };
+
+    // 結果画面の文言（医療広告ガイドラインに配慮し「可能性」「目安」で表現）
+    var RESULTS = {
+        kasei: {
+            type: "仮性包茎",
+            level: 3,
+            levelText: "レベル3／中",
+            desc: "普段は剥ける状態でも、皮の余り方や形状は一人ひとり異なります。ニオイや見た目など、日常のお悩みにつながることもあります。メンズライフクリニックでは、ミリ単位で微調整する<b class=\"mlc-mk\">オーダーメイド施術</b>で、自然な仕上がりを目指します。",
+            warn: ""
+        },
+        kanton: {
+            type: "カントン包茎",
+            level: 5,
+            levelText: "レベル5／高<small>早めのご相談がおすすめです</small>",
+            desc: "露茎した際に締め付け感がある方は、<b class=\"mlc-mk\">重症化リスクの可能性</b>があります。メンズライフクリニックでは、一人ひとりの締め付け状況に応じて緻密な計算をして治療します。",
+            warn: "無理に剥かないようにしてください。"
+        },
+        shinsei: {
+            type: "真性包茎",
+            level: 4,
+            levelText: "レベル4／高",
+            desc: "普段剥くことができない状態は、ご自身での対処が難しいケースです。皮の状態は一人ひとり異なるため、<b class=\"mlc-mk\">今の状態のまま</b>お気軽にご相談ください。",
+            warn: "無理に剥かないようにしてください。"
+        }
+    };
+
+    var CONCERNS = {
+        smell: "臭いが気になる",
+        confidence: "自信を持てない",
+        disease: "病気のリスク",
+        pe: "早漏を改善したい"
+    };
+
+    var STORE_KEY = "mlc_selfcheck_v2";
+    var state = { q1: null, q2: null, q3: null, done: false };
+    var trail = [];
+    var current = "1";
+
+    var quiz = document.getElementById("survey-wrapper");
+    if (!quiz) return;
+
+    function track(name, extra) {
+        try {
+            window.dataLayer = window.dataLayer || [];
+            var ev = { event: name, mlc_segment: state.done ? getSegment() : null };
+            for (var k in extra) ev[k] = extra[k];
+            window.dataLayer.push(ev);
+        } catch (e) {}
+    }
+
+    function save() {
+        try { sessionStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+    }
+
+    function load() {
+        try {
+            var s = JSON.parse(sessionStorage.getItem(STORE_KEY) || "null");
+            if (s && s.done) state = s;
+        } catch (e) {}
+    }
+
+    function getSegment() {
+        if (state.q1 === "no") return "shinsei"; // 真性（剥けない）
+        if (state.q1 === "yes" && state.q2 === "yes") return "kanton"; // カントン（締付あり）
+        return "kasei"; // 仮性（締付なし）
+    }
+
+    function remaining() {
+        if (current === "1") return 3;
+        if (current === "2") return 2;
+        if (current === "3") return 1;
+        return 0;
+    }
+
+    function setProgress() {
+        var bar = document.getElementById("mlc-progress-bar");
+        var txt = document.getElementById("mlc-progress-txt");
+        var pct = { "1": 10, "2": 45, "3": 75, loading: 95, result: 100 }[current];
+        if (bar) bar.style.width = pct + "%";
+        if (!txt) return;
+        if (current === "result") txt.innerHTML = "<b>回答完了！</b>結果が出ました";
+        else if (current === "loading") txt.innerHTML = "判定中…";
+        else if (current === "3") txt.innerHTML = "<b>あと1問</b>で結果が出ます";
+        else txt.innerHTML = "あと<b>" + remaining() + "問</b>で結果が出ます";
+    }
+
+    function show(step) {
+        var steps = quiz.querySelectorAll("[data-mlc-step]");
+        for (var i = 0; i < steps.length; i++) {
+            steps[i].classList.toggle("is-active", steps[i].getAttribute("data-mlc-step") === step);
+        }
+        current = step;
+        setProgress();
+        updateSticky();
+    }
+
+    function scrollToQuiz(force) {
+        var r = quiz.getBoundingClientRect();
+        if (force || r.top < 0 || r.top > window.innerHeight * 0.35) {
+            quiz.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }
+
+    function renderResult() {
+        var seg = getSegment();
+        var res = RESULTS[seg];
+        document.getElementById("mlc-result-type").textContent = res.type;
+        document.getElementById("mlc-level-txt").innerHTML = res.levelText;
+        document.getElementById("mlc-result-desc").innerHTML = res.desc;
+        document.getElementById("mlc-result-warn").textContent = res.warn;
+        var c = CONCERNS[state.q3];
+        document.getElementById("mlc-result-concern").innerHTML = c ?
+            "あなたのお悩み：<b>" + c + "</b><br>LINEでお届けする診断結果の詳細とあわせて、お気軽にご相談ください。" : "";
+        var bars = document.querySelectorAll("#mlc-level-meter span");
+        for (var i = 0; i < bars.length; i++) bars[i].classList.toggle("is-on", i < res.level);
+        var links = document.querySelectorAll(".js-line-link");
+        for (var j = 0; j < links.length; j++) links[j].setAttribute("href", OFFER_URLS[seg]);
+    }
+
+    function finish() {
+        show("loading");
+        scrollToQuiz(false);
+        setTimeout(function() {
+            state.done = true;
+            save();
+            renderResult();
+            setLineMode();
+            show("result");
+            scrollToQuiz(true);
+            track("mlc_result_view", { mlc_concern: state.q3 });
+        }, 1200);
+    }
+
+    function answer(btn) {
+        var q = btn.getAttribute("data-q");
+        var v = btn.getAttribute("data-v");
+        var sibs = btn.parentElement.querySelectorAll(".mlc-ans-btn");
+        for (var i = 0; i < sibs.length; i++) sibs[i].classList.remove("is-selected");
+        btn.classList.add("is-selected");
+        state[q] = v;
+        track("mlc_answer_" + q, { mlc_value: v });
+
+        setTimeout(function() {
+            trail.push(current);
+            if (q === "q1") {
+                // 剥けない方には「露茎時の締め付け」は該当しないため Q2 をスキップ
+                if (v === "no") { state.q2 = null; show("3"); } else show("2");
+                scrollToQuiz(false);
+            } else if (q === "q2") {
+                show("3");
+                scrollToQuiz(false);
+            } else {
+                finish();
+            }
+        }, 220);
+    }
+
+    function back() {
+        var prev = trail.pop();
+        if (prev) {
+            show(prev);
+            scrollToQuiz(false);
+        }
+    }
+
+    // ===== 追従バー ＆ 離脱ポップアップ =====
+    var bar = document.getElementById("mlc-sticky");
+    var stickyLink = document.getElementById("mlc-sticky-link");
+    var exitBox = document.getElementById("mlc-exit");
+    var exitCta = document.getElementById("mlc-exit-cta");
+
+    function setLineMode() {
+        // 結果表示後は、追従バー・ポップアップから直接LINEへ
+        var url = OFFER_URLS[getSegment()];
+        [stickyLink, exitCta].forEach(function(a) {
+            if (!a) return;
+            a.setAttribute("href", url);
+            a.classList.add("js-line-link", "_unTrackingLink_a5of4_150");
+        });
+        if (bar) bar.classList.add("is-line");
+        if (exitBox) exitBox.classList.add("is-line");
+        var badge = document.getElementById("mlc-sticky-badge");
+        if (badge) badge.innerHTML = "55%<br>OFF";
+        var labels = document.querySelectorAll("[data-mlc-start-label]");
+        for (var i = 0; i < labels.length; i++) labels[i].textContent = "診断結果を確認する";
+        setText("mlc-sticky-txt", "LINEで<span class=\"mlc-sticky-sec\">クーポン</span>を受け取る");
+        setText("mlc-exit-h", "クーポンを受け取らずに<br>戻りますか？");
+        setText("mlc-exit-p", "あなたの<b>診断結果の詳細</b>と<br><b class=\"mlc-r\">55%OFFクーポン</b>は<br>まだ受け取られていません。");
+        setText("mlc-exit-cta", "LINEで受け取る（無料）");
+    }
+
+    function setText(id, html) {
+        var el = document.getElementById(id);
+        if (el) el.innerHTML = html;
+    }
+
+    function updateSticky() {
+        if (!bar) return;
+        if (!state.done) {
+            var n = remaining();
+            if (current !== "1" && n > 0) {
+                setText("mlc-sticky-txt", "続きから回答する<span class=\"mlc-sticky-sec\">（あと" + n + "問）</span>");
+                setText("mlc-exit-h", "あと" + n + "問で<br>結果が出ます！");
+                setText("mlc-exit-p", "ここでやめるのはもったいない！<br>回答を終えると<br><b>治療推奨レベル</b>と<br><b class=\"mlc-r\">55%OFFクーポン</b>が受け取れます。");
+                setText("mlc-exit-cta", "続きから回答する");
+            }
+        }
+        onScroll();
+    }
+
+    function onScroll() {
+        if (!bar) return;
+        var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+        var show = y > 300;
+        var target = state.done ? document.getElementById("line-cta") : quiz;
+        if (target) {
+            var r = target.getBoundingClientRect();
+            if (r.top < window.innerHeight * 0.9 && r.bottom > 0) show = false;
+        }
+        bar.classList.toggle("show", show);
+    }
+
+    function closeExit() {
+        if (exitBox) exitBox.classList.remove("show");
+    }
+
+    var exitShown = false;
+    try { window.history.pushState({ mlc: 1 }, "", location.href); } catch (e) {}
+    window.addEventListener("popstate", function() {
+        if (exitShown || !exitBox) return;
+        exitBox.classList.add("show");
+        exitShown = true;
+        track("mlc_exit_popup", {});
+        try { window.history.pushState({ mlc: 1 }, "", location.href); } catch (e) {}
+    });
+
+    // ===== クリック処理（イベント委譲） =====
+    document.addEventListener("click", function(e) {
+        var t = e.target.closest ? e.target : e.target.parentElement;
+        if (!t || !t.closest) return;
+        var el;
+
+        if ((el = t.closest(".js-line-link"))) {
+            // LINE遷移（CV計測）
+            try { twq("event", "tw-omfcg-rd72l", {}); } catch (err) {}
+            track("mlc_line_click", { mlc_place: el.getAttribute("data-mlc-place") || "" });
+            closeExit();
+            return;
+        }
+        if ((el = t.closest("[data-mlc-answer]"))) { answer(el); return; }
+        if (t.closest("[data-mlc-back]")) { back(); return; }
+        if (t.closest("[data-mlc-start]") || t.closest("#mlc-sticky-link") || t.closest("#mlc-exit-cta")) {
+            e.preventDefault();
+            closeExit();
+            scrollToQuiz(true);
+            track("mlc_start_click", {});
+            return;
+        }
+        if (t.closest("[data-mlc-close]")) { closeExit(); return; }
+        if ((el = t.closest("[data-mlc-worry]"))) {
+            el.classList.toggle("is-on");
+            var n = document.querySelectorAll("[data-mlc-worry].is-on").length;
+            var box = document.getElementById("mlc-worry-result");
+            if (box) {
+                box.innerHTML = n > 0 ?
+                    "<b>" + n + "つ</b>当てはまりました。<br>下の<b>3問セルフチェック</b>で治療推奨レベルを確認しましょう" :
+                    "1つでも当てはまるなら、<br><b>3問のセルフチェック</b>で治療推奨レベルを確認しましょう";
+            }
+        }
+    });
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+
+    // LINEアプリから戻ってきた方には結果をそのまま表示
+    load();
+    if (state.done) {
+        renderResult();
+        setLineMode();
+        show("result");
+    } else {
+        show("1");
+    }
+})();
+</script>
