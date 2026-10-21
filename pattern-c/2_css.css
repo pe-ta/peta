@@ -410,6 +410,7 @@
 }
 
 .lp-root .mlc-level {
+    position: relative;
     margin: 14px 0 0;
     padding: 12px;
     border-radius: 12px;
@@ -422,34 +423,43 @@
     color: #555;
 }
 
-.lp-root .mlc-level-meter {
+/* モザイク：色ブロックを重ねて「判定済みだが見えない」状態にする（実際のレベルは持たない） */
+.lp-root .mlc-level-mosaic {
+    height: 64px;
+    margin-top: 6px;
+    border-radius: 8px;
+    background: #ec8a6c;
+    background:
+        conic-gradient(rgba(255, 255, 255, .3) 25%, transparent 0 50%, rgba(120, 20, 20, .15) 0 75%, transparent 0) 5px 3px / 26px 22px,
+        conic-gradient(transparent 25%, rgba(255, 255, 255, .25) 0 50%, transparent 0 75%, rgba(90, 30, 10, .18) 0) 0 0 / 38px 30px,
+        conic-gradient(#f2a07e 25%, #e97a5f 0 50%, #f5bb95 0 75%, #e45a4f 0) 0 0 / 14px 14px;
+}
+
+.lp-root .mlc-level-lock {
+    position: absolute;
+    left: 50%;
+    top: 62%;
+    transform: translate(-50%, -50%);
     display: flex;
-    gap: 4px;
-    margin: 6px 0;
-}
-
-.lp-root .mlc-level-meter span {
-    flex: 1;
-    height: 12px;
-    border-radius: 3px;
-    background: #e3e7ee;
-}
-
-.lp-root .mlc-level-meter span.is-on {
-    background: linear-gradient(90deg, #ffb347, #E5484D);
-}
-
-.lp-root .mlc-level-txt {
-    font-size: 20px;
-    font-weight: 900;
-    color: #E5484D;
-    line-height: 1.3;
-}
-
-.lp-root .mlc-level-txt small {
-    display: block;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(26, 58, 107, .92);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, .2);
+    color: #fff;
     font-size: 13px;
     font-weight: 700;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+.lp-root .mlc-level-lock b {
+    color: #7ef0a6;
+}
+
+.lp-root .mlc-level-lock-ico {
+    font-size: 14px;
 }
 
 .lp-root .mlc-result-desc {
