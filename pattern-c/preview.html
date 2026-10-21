@@ -368,7 +368,7 @@ function mlcInit() {
         document.getElementById("mlc-result-warn").textContent = res.warn;
         var c = CONCERNS[state.q3];
         document.getElementById("mlc-result-concern").innerHTML = c ?
-            "あなたのお悩み：<b>" + c + "</b><br>治療推奨レベルとあわせてLINEでお届けします。" : "";
+            "あなたのお悩み：<b>" + c + "</b><br>治療推奨レベルの確認とあわせて、LINEでお気軽にご相談ください。" : "";
         var links = document.querySelectorAll(".js-line-link");
         for (var j = 0; j < links.length; j++) links[j].setAttribute("href", OFFER_URLS[seg]);
     }
