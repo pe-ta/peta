@@ -150,8 +150,8 @@ function mlcInit() {
             busy = false;
             trail.push(current);
             if (q === "q1") {
-                // 剥けない方には「露茎時の締め付け」は該当しないため Q2 をスキップ
-                if (v === "no") { state.q2 = null; show("3"); } else show("2");
+                // どの回答でも Q1→Q2→Q3 の順に進む（判定は Q1「いいえ」なら Q2 に関係なく真性）
+                show("2");
                 scrollToQuiz(false);
             } else if (q === "q2") {
                 show("3");
