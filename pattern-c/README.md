@@ -5,11 +5,14 @@ Squad Beyond の4ペインにそのまま貼れる構成です（現行LPと同�
 | ファイル | 貼り付け先 |
 |---|---|
 | `1_html.html` | HTML |
-| `2_css.css` | CSS |
-| `3_js_head.html` | Javascript Head |
+| `3_js_head.html` | Javascript Head（**CSSもここに含まれています**） |
 | `4_js_body.html` | Javascript Body |
+| `2_css.css` | CSSペインは空のままでOK（貼っても二重適用にはなりません） |
 
-`preview.html` は確認用に4ファイルを結合したものです（`./build_preview.sh` で再生成）。
+Squad Beyond の CSS ペインが反映されないケースがあったため、CSS は `3_js_head.html` 内のスクリプトから `<style>` として差し込んでいます。
+`2_css.css` が編集用の元ファイルです。CSSを直したら `python3 build_js_head.py` で `3_js_head.html` を再生成してください（計測タグは `3_js_head.tracking.html`）。
+
+`preview.html` は確認用に結合したものです（`./build_preview.sh` で再生成）。
 
 ## 現行LPから変えたこと（CVRへの効き方の大きい順）
 
