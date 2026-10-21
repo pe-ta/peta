@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 """2_css.css を、JS Head から <style> として差し込むスクリプトに変換して 3_js_head.html を作る。
 Squad Beyond で CSS ペインが反映されない場合でもスタイルが当たるようにするため。"""
-import json, pathlib
+import json, pathlib, re
 d = pathlib.Path(__file__).parent
 css = (d / "2_css.css").read_text()
+# 貼り付けやすいように圧縮（コメント削除・空白を詰める）
+css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+css = re.sub(r"\s+", " ", css)
+css = re.sub(r"\s*([{};,])\s*", r"\1", css)
+css = re.sub(r":\s+", ":", css).replace(";}", "}").strip()
 tracking = (d / "3_js_head.tracking.html").read_text()
-inject = f"""<!-- LPのCSS（CSSペインが反映されない環境向けにスクリプトから差し込む。2_css.css から自動生成） -->
+inject = f"""<!-- LPのCSS（CSSペインが反映されない場合の保険。2_css.css を圧縮して自動生成） -->
 <script>
     (function() {{
         if (document.getElementById("mlc-lp-css")) return;

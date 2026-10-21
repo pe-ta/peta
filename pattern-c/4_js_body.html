@@ -1,5 +1,5 @@
 <script>
-(function() {
+function mlcInit() {
     // 各オファーURL（LINE）
     var OFFER_URLS = {
         // ①仮性オファー（suid=VOZtdEphfx）
@@ -46,6 +46,7 @@
     var state = { q1: null, q2: null, q3: null, done: false };
     var trail = [];
     var current = "1";
+    var busy = false; // 連打による二重遷移を防ぐ
 
     var quiz = document.getElementById("survey-wrapper");
     if (!quiz) return;
@@ -143,6 +144,8 @@
     }
 
     function answer(btn) {
+        if (busy) return;
+        busy = true;
         var q = btn.getAttribute("data-q");
         var v = btn.getAttribute("data-v");
         var sibs = btn.parentElement.querySelectorAll(".mlc-ans-btn");
@@ -152,6 +155,7 @@
         track("mlc_answer_" + q, { mlc_value: v });
 
         setTimeout(function() {
+            busy = false;
             trail.push(current);
             if (q === "q1") {
                 // 剥けない方には「露茎時の締め付け」は該当しないため Q2 をスキップ
@@ -167,6 +171,7 @@
     }
 
     function back() {
+        if (busy) return;
         var prev = trail.pop();
         if (prev) {
             show(prev);
@@ -209,7 +214,13 @@
         if (!bar) return;
         if (!state.done) {
             var n = remaining();
-            if (current !== "1" && n > 0) {
+            if (current === "1") {
+                // Q1に戻ったときは初期文言に戻す
+                setText("mlc-sticky-txt", "<span class=\"mlc-sticky-sec\">30秒</span>セルフチェックを開始");
+                setText("mlc-exit-h", "お悩みのまま<br>本当に大丈夫ですか？");
+                setText("mlc-exit-p", "今なら<b>たった30秒のセルフチェック</b>で<br>治療推奨レベルと<br><b class=\"mlc-r\">55%OFFクーポン</b>を<br>お受け取りいただけます。");
+                setText("mlc-exit-cta", "無料でセルフチェックを受ける");
+            } else if (n > 0) {
                 setText("mlc-sticky-txt", "続きから回答する<span class=\"mlc-sticky-sec\">（あと" + n + "問）</span>");
                 setText("mlc-exit-h", "あと" + n + "問で<br>結果が出ます！");
                 setText("mlc-exit-p", "ここでやめるのはもったいない！<br>回答を終えると<br><b>治療推奨レベル</b>と<br><b class=\"mlc-r\">55%OFFクーポン</b>が受け取れます。");
@@ -292,5 +303,8 @@
     } else {
         show("1");
     }
-})();
+}
+// JS Body が HTML より先に読み込まれても動くように、DOM構築後に初期化
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mlcInit);
+else mlcInit();
 </script>
