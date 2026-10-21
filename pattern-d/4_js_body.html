@@ -1,0 +1,173 @@
+<script>
+function mldInit() {
+    // 各オファーURL（LINE）
+    var OFFER_URLS = {
+        // ①仮性オファー（suid=VOZtdEphfx）
+        kasei: "https://line.me/R/app/2008012979-MBmEj213?channel_id=e39ad12e-58e6-48c5-bd2c-725427ee7bf8&inflow_route_id=6a3bbd521200ad0dbabeeab4&liff_id=2008012979-MBmEj213&redirect_uri=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40203pbdac&suid=VOZtdEphfx&tenant_id=alifexoqodovexuz",
+        // ③カントンオファー（suid=VOZtszErdo）
+        kanton: "https://line.me/R/app/2008012979-MBmEj213?channel_id=e39ad12e-58e6-48c5-bd2c-725427ee7bf8&inflow_route_id=6a4b6136edcd5ea9b339f2f8&liff_id=2008012979-MBmEj213&redirect_uri=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40203pbdac&suid=VOZtszErdo&tenant_id=alifexoqodovexuz",
+        // ②真性オファー（suid=VOZtoKRrhI）
+        shinsei: "https://line.me/R/app/2008012979-MBmEj213?channel_id=e39ad12e-58e6-48c5-bd2c-725427ee7bf8&inflow_route_id=6a4b6124e36fc961c80b570d&liff_id=2008012979-MBmEj213&redirect_uri=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40203pbdac&suid=VOZtoKRrhI&tenant_id=alifexoqodovexuz"
+    };
+
+    // タイプ別の文言（「わからない」は現行LPの既定と同じく仮性オファーへ）
+    var TYPES = {
+        kasei: {
+            url: "kasei",
+            title: "A：仮性包茎タイプ",
+            msg: "普段は剥ける状態でも、皮の余り方や形状は一人ひとり異なります。ミリ単位で微調整する「オーダーメイド」で、自然な仕上がりを目指します。",
+            warn: ""
+        },
+        kanton: {
+            url: "kanton",
+            title: "B：カントン包茎タイプ",
+            msg: "露茎した際に締め付け感がある方は、重症化リスクの可能性があります。一人ひとりの締め付け状況に応じて、緻密な計算をして治療します。",
+            warn: "無理に剥かないようにしてください。"
+        },
+        shinsei: {
+            url: "shinsei",
+            title: "C：真性包茎タイプ",
+            msg: "剥くことができない状態は、ご自身での対処が難しいケースです。今の状態のまま、お気軽にご相談ください。",
+            warn: "無理に剥かないようにしてください。"
+        },
+        unknown: {
+            url: "kasei",
+            title: "タイプがわからない方",
+            msg: "ご自身で判断できなくても大丈夫です。まずはLINEでクーポンを受け取り、今の状態をお気軽にご相談ください。",
+            warn: ""
+        }
+    };
+
+    var STORE_KEY = "mlc_type_select_v1";
+    var selected = null;
+
+    var select = document.getElementById("mld-select");
+    var panel = document.getElementById("mld-panel");
+    if (!select || !panel) return;
+
+    var bar = document.getElementById("mld-sticky");
+    var stickyLink = document.getElementById("mld-sticky-link");
+    var exitBox = document.getElementById("mld-exit");
+    var exitCta = document.getElementById("mld-exit-cta");
+    var mainLine = document.getElementById("mld-line-main");
+
+    function track(name, extra) {
+        try {
+            window.dataLayer = window.dataLayer || [];
+            var ev = { event: name, mld_type: selected };
+            for (var k in extra) ev[k] = extra[k];
+            window.dataLayer.push(ev);
+        } catch (e) {}
+    }
+
+    function setText(id, html) {
+        var el = document.getElementById(id);
+        if (el) el.innerHTML = html;
+    }
+
+    function goTo(el) {
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function choose(type, fromUser) {
+        var t = TYPES[type];
+        if (!t) return;
+        selected = type;
+        try { sessionStorage.setItem(STORE_KEY, type); } catch (e) {}
+
+        var btns = select.querySelectorAll("[data-mld-type]");
+        for (var i = 0; i < btns.length; i++) {
+            btns[i].classList.toggle("is-selected", btns[i].getAttribute("data-mld-type") === type);
+        }
+        document.getElementById("mld-panel-type").textContent = t.title;
+        document.getElementById("mld-panel-msg").textContent = t.msg;
+        document.getElementById("mld-panel-warn").textContent = t.warn;
+        panel.classList.add("is-open");
+
+        // 選んだ後は、追従バー・ポップアップからもタイプ別のLINEへ直接
+        var url = OFFER_URLS[t.url];
+        [mainLine, stickyLink, exitCta].forEach(function(a) {
+            if (!a) return;
+            a.setAttribute("href", url);
+            a.classList.add("js-mld-line", "_unTrackingLink_a5of4_150");
+        });
+        if (bar) bar.classList.add("is-line");
+        if (exitBox) exitBox.classList.add("is-line");
+        setText("mld-sticky-txt", "LINEでクーポンを受け取る");
+        setText("mld-exit-h", "クーポンを受け取らずに<br>戻りますか？");
+        setText("mld-exit-p", "あなたのタイプ（" + t.title + "）向けの<br>情報と<b>55%OFFクーポン</b>は<br>まだ受け取られていません。");
+        setText("mld-exit-cta", "LINEで受け取る（無料）");
+
+        if (fromUser) {
+            track("mld_type_select", {});
+            setTimeout(function() { goTo(panel); }, 60);
+        }
+        onScroll();
+    }
+
+    function onScroll() {
+        if (!bar) return;
+        var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+        var show = y > 400;
+        var target = selected ? mainLine : select;
+        if (target) {
+            var r = target.getBoundingClientRect();
+            if (r.top < window.innerHeight * 0.9 && r.bottom > 0) show = false;
+        }
+        bar.classList.toggle("show", show);
+    }
+
+    function closeExit() {
+        if (exitBox) exitBox.classList.remove("show");
+    }
+
+    var exitShown = false;
+    try { window.history.pushState({ mld: 1 }, "", location.href); } catch (e) {}
+    window.addEventListener("popstate", function() {
+        if (exitShown || !exitBox) return;
+        exitBox.classList.add("show");
+        exitShown = true;
+        track("mld_exit_popup", {});
+        try { window.history.pushState({ mld: 1 }, "", location.href); } catch (e) {}
+    });
+
+    // ===== クリック処理（イベント委譲） =====
+    document.addEventListener("click", function(e) {
+        var t = e.target.closest ? e.target : e.target.parentElement;
+        if (!t || !t.closest) return;
+        var el;
+
+        if ((el = t.closest(".js-mld-line"))) {
+            // LINE遷移（CV計測）
+            try { twq("event", "tw-omfcg-rd72l", {}); } catch (err) {}
+            track("mld_line_click", { mld_place: el.getAttribute("data-mld-place") || "" });
+            closeExit();
+            return;
+        }
+        if ((el = t.closest("[data-mld-type]"))) {
+            choose(el.getAttribute("data-mld-type"), true);
+            return;
+        }
+        if (t.closest("[data-mld-go]") || t.closest("#mld-sticky-link") || t.closest("#mld-exit-cta")) {
+            e.preventDefault();
+            closeExit();
+            goTo(select);
+            track("mld_go_select", {});
+            return;
+        }
+        if (t.closest("[data-mld-close]")) closeExit();
+    });
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+
+    // LINEアプリから戻ってきた方には、選んだタイプをそのまま表示
+    var saved = null;
+    try { saved = sessionStorage.getItem(STORE_KEY); } catch (e) {}
+    if (saved && TYPES[saved]) choose(saved, false);
+    onScroll();
+}
+// JS Body が HTML より先に読み込まれても動くように、DOM構築後に初期化
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mldInit);
+else mldInit();
+</script>
