@@ -21,4 +21,22 @@ inject = f"""<!-- LPのCSS（CSSペインが反映されない場合の保険。
     }})();
 </script>
 """
-(d / "3_js_head.html").write_text(inject + "\n" + tracking)
+notranslate = """<!-- 自動翻訳を止める（ブラウザに日本語ページとして扱わせ、英訳などに勝手に変換させない） -->
+<meta name="google" content="notranslate">
+<script>
+    (function() {
+        var h = document.documentElement;
+        h.setAttribute("lang", "ja");
+        h.setAttribute("translate", "no");
+        h.classList.add("notranslate");
+        if (!document.querySelector('meta[name="google"][content="notranslate"]')) {
+            var m = document.createElement("meta");
+            m.name = "google";
+            m.content = "notranslate";
+            (document.head || h).appendChild(m);
+        }
+    })();
+</script>
+
+"""
+(d / "3_js_head.html").write_text(notranslate + inject + "\n" + tracking)

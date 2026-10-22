@@ -12,19 +12,17 @@ function mlcInit() {
 
     // 結果画面の文言（医療広告ガイドラインに配慮し「可能性」「目安」で表現）
     // 治療推奨レベルはLINEで初めて伝えるため、ここには持たない
+    // 真性・カントンはクーポン対象外のため、タイプ名（〇〇包茎）は画面に出さない
     var RESULTS = {
         kasei: {
-            type: "仮性包茎",
             desc: "普段は剥ける状態でも、皮の余り方や形状は一人ひとり異なります。ニオイや見た目など、日常のお悩みにつながることもあります。メンズライフクリニックでは、ミリ単位で微調整する<b class=\"mlc-mk\">オーダーメイド施術</b>で、自然な仕上がりを目指します。",
             warn: ""
         },
         kanton: {
-            type: "カントン包茎",
             desc: "露茎した際に締め付け感がある方は、<b class=\"mlc-mk\">重症化リスクの可能性</b>があります。メンズライフクリニックでは、一人ひとりの締め付け状況に応じて緻密な計算をして治療します。",
             warn: "無理に剥かないようにしてください。"
         },
         shinsei: {
-            type: "真性包茎",
             desc: "普段剥くことができない状態は、ご自身での対処が難しいケースです。皮の状態は一人ひとり異なるため、<b class=\"mlc-mk\">今の状態のまま</b>お気軽にご相談ください。",
             warn: "無理に剥かないようにしてください。"
         }
@@ -111,7 +109,6 @@ function mlcInit() {
     function renderResult() {
         var seg = getSegment();
         var res = RESULTS[seg];
-        document.getElementById("mlc-result-type").textContent = res.type;
         document.getElementById("mlc-result-desc").innerHTML = res.desc;
         document.getElementById("mlc-result-warn").textContent = res.warn;
         var c = CONCERNS[state.q3];
