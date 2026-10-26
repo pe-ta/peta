@@ -1,0 +1,1454 @@
+<!-- ===== ここから：HTML欄にこのファイルの全文を貼る（CSS欄・JS欄は空でOK） ===== -->
+<style>
+.lp-root {
+    font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Arial, sans-serif;
+    color: #010e23;
+    font-size: 17px;
+    line-height: 1.8;
+    padding: 0 15px;
+    background: #fff;
+}
+
+.lp-root * {
+    box-sizing: border-box;
+}
+
+.lp-root img,
+.lp-root picture,
+.lp-root source {
+    max-width: 100%;
+}
+
+.lp-root img {
+    display: inline;
+    height: auto;
+    margin: 0;
+}
+
+.lp-root p,
+.lp-root ul {
+    margin: 0;
+}
+
+.lp-root a {
+    text-decoration: none;
+}
+
+.lp-root button {
+    font: inherit;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.lp-root .lp-fv {
+    margin: 0 -15px;
+}
+
+.lp-root .lp-fv img {
+    display: block;
+    width: 100%;
+    max-width: none;
+}
+
+/* ===== FV直下：チップ＋開始ボタン ===== */
+.lp-root .mlc-chips {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 14px 0 12px;
+}
+
+.lp-root .mlc-chips li {
+    padding: 4px 10px;
+    border: 1.5px solid #1a3a6b;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a3a6b;
+    line-height: 1.4;
+    background: #fff;
+}
+
+.lp-root .mlc-chips b {
+    color: #E5484D;
+}
+
+.lp-root .mlc-start {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 12px 44px;
+    border-radius: 999px;
+    border: 3px solid #fff7e6;
+    background: linear-gradient(180deg, #ffb347 0%, #ff8c00 45%, #ff6a00 100%);
+    box-shadow: 0 6px 0 rgba(190, 80, 0, .4), 0 10px 18px rgba(0, 0, 0, .2);
+    text-align: center;
+    overflow: hidden;
+}
+
+.lp-root .mlc-start::before {
+    content: "▼";
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #fff;
+    font-size: 14px;
+}
+
+.lp-root .mlc-start::after {
+    content: "";
+    position: absolute;
+    top: -10%;
+    left: -75%;
+    width: 35%;
+    height: 120%;
+    background: linear-gradient(75deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .7) 50%, rgba(255, 255, 255, 0) 100%);
+    transform: skewX(-20deg);
+    animation: mlcShine 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.lp-root .mlc-start-main {
+    color: #fff;
+    font-size: 21px;
+    font-weight: 800;
+    line-height: 1.3;
+    text-shadow: 0 2px 3px rgba(150, 60, 0, .5);
+}
+
+.lp-root .mlc-start-sub {
+    margin-top: 2px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.lp-root .mlc-start-sub b {
+    color: #ffe94d;
+}
+
+.lp-root .mlc-start--bottom {
+    margin-top: 28px;
+}
+
+.lp-root .mlc-start--bottom::before {
+    content: "▶";
+}
+
+/* ===== お悩みチェック ===== */
+.lp-root .mlc-worry {
+    margin: 22px 0 0;
+    border: 3px solid #1a3a6b;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.lp-root .mlc-worry-h {
+    padding: 10px 12px;
+    background: #1a3a6b;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.lp-root .mlc-worry-list {
+    list-style: none;
+    padding: 8px 12px 4px;
+}
+
+.lp-root .mlc-worry-list li + li {
+    border-top: 1px solid #e6e9ef;
+}
+
+.lp-root .mlc-worry-list button {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 4px;
+    border: none;
+    background: none;
+    color: #1a1a1a;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.6;
+    text-align: left;
+    cursor: pointer;
+}
+
+.lp-root .mlc-worry-list button::before {
+    content: "";
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    margin-top: 1px;
+    border: 2.5px solid #1a3a6b;
+    border-radius: 4px;
+    background: #fff center/16px no-repeat;
+}
+
+.lp-root .mlc-worry-list button.is-on::before {
+    background-color: #E5484D;
+    border-color: #E5484D;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.5'%3E%3Cpolyline points='5 13 10 18 19 7'/%3E%3C/svg%3E");
+}
+
+.lp-root .mlc-worry-result {
+    padding: 12px 12px 14px;
+    background: #fff8d6;
+    font-size: 15px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.6;
+}
+
+.lp-root .mlc-worry-result b {
+    color: #E5484D;
+}
+
+/* ===== セルフチェック ===== */
+.lp-root .mlc-quiz {
+    max-width: 520px;
+    margin: 26px auto 0;
+    padding: 0 0 22px;
+    border: 2px solid #BBD6F8;
+    border-radius: 20px;
+    background: #F2F8FE;
+    box-shadow: 0 8px 20px rgba(47, 111, 237, .1);
+    overflow: hidden;
+    scroll-margin-top: 10px;
+}
+
+.lp-root .mlc-quiz-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #2F6FED;
+    color: #fff;
+}
+
+.lp-root .mlc-quiz-title {
+    font-size: 15px;
+    white-space: nowrap;
+    font-weight: 800;
+}
+
+.lp-root .mlc-quiz-gift {
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: #fff;
+    color: #E5484D;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.lp-root .mlc-quiz-gift b {
+    font-size: 15px;
+}
+
+.lp-root .mlc-progress {
+    height: 10px;
+    margin: 16px 18px 0;
+    border-radius: 999px;
+    background: #DCE6F5;
+    overflow: hidden;
+}
+
+.lp-root .mlc-progress-bar {
+    width: 10%;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #2F6FED, #22b8f0);
+    transition: width .4s ease;
+}
+
+.lp-root .mlc-progress-txt {
+    margin-top: 4px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #2F6FED;
+    text-align: center;
+}
+
+.lp-root .mlc-progress-txt b {
+    color: #E5484D;
+    font-size: 15px;
+}
+
+.lp-root .mlc-step {
+    display: none;
+    padding: 12px 18px 0;
+    text-align: center;
+}
+
+.lp-root .mlc-step.is-active {
+    display: block;
+    animation: mlcSlide .3s ease;
+}
+
+.lp-root .mlc-q-num {
+    font-size: 36px;
+    font-weight: 900;
+    color: #2F6FED;
+    line-height: 1.2;
+}
+
+.lp-root .mlc-q-num span {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: #E5484D;
+    color: #fff;
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.lp-root .mlc-q-text {
+    margin: 8px 0 22px;
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: #222;
+}
+
+.lp-root .mlc-ans {
+    display: flex;
+    gap: 12px;
+}
+
+.lp-root .mlc-ans--col {
+    flex-direction: column;
+    gap: 10px;
+}
+
+.lp-root .mlc-ans-btn {
+    flex: 1;
+    min-height: 60px;
+    padding: 12px 8px;
+    border: 2px solid #2F6FED;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 4px 0 #BBD6F8;
+    color: #1a3a6b;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.3;
+    cursor: pointer;
+    transition: transform .08s ease, box-shadow .08s ease;
+}
+
+.lp-root .mlc-ans-btn:active,
+.lp-root .mlc-ans-btn.is-selected {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #BBD6F8;
+    background: #2F6FED;
+    color: #fff;
+}
+
+.lp-root .mlc-back {
+    margin-top: 14px;
+    border: none;
+    background: none;
+    color: #6b7a90;
+    font-size: 13px;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.lp-root .mlc-loading {
+    padding: 34px 0 20px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a3a6b;
+    line-height: 1.6;
+}
+
+.lp-root .mlc-spinner {
+    display: block;
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 14px;
+    border: 5px solid #DCE6F5;
+    border-top-color: #2F6FED;
+    border-radius: 50%;
+    animation: mlcSpin .8s linear infinite;
+}
+
+/* ===== 結果 ===== */
+.lp-root .mlc-result-label {
+    display: inline-block;
+    padding: 2px 14px;
+    border-radius: 999px;
+    background: #1a3a6b;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* 包茎タイプ：結果画面の主役 */
+.lp-root .mlc-level {
+    margin: 12px 0 0;
+    padding: 0 0 16px;
+    border: 3px solid #E5484D;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 6px 18px rgba(229, 72, 77, .25);
+    overflow: hidden;
+}
+
+.lp-root .mlc-level-h {
+    padding: 10px 8px 12px;
+    background: linear-gradient(90deg, #E5484D 0%, #ff7a00 100%);
+    color: #fff;
+    font-weight: 900;
+    line-height: 1.25;
+    letter-spacing: .03em;
+    text-shadow: 0 2px 0 rgba(120, 0, 0, .35);
+}
+
+.lp-root .mlc-level-h-you {
+    display: block;
+    font-size: 17px;
+}
+
+.lp-root .mlc-level-h-main {
+    display: block;
+    font-size: 30px;
+    white-space: nowrap;
+}
+
+.lp-root .mlc-level-h-sub {
+    display: block;
+    margin-bottom: 2px;
+    color: #ffe94d;
+    font-size: 13px;
+    letter-spacing: .05em;
+}
+
+.lp-root .mlc-type {
+    margin: 14px 12px 0;
+    padding: 16px 10px 18px;
+    border-radius: 10px;
+    background: #fff4f4;
+    line-height: 1.2;
+}
+
+.lp-root .mlc-type-sub {
+    font-size: 13px;
+    font-weight: 700;
+    color: #7a1a00;
+}
+
+.lp-root .mlc-type-name {
+    display: block;
+    margin-top: 4px;
+    font-size: 40px;
+    font-weight: 900;
+    color: #E5484D;
+    letter-spacing: .04em;
+    white-space: nowrap;
+    animation: mlcPopIn .4s ease;
+}
+
+.lp-root .mlc-type-note {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #888;
+}
+
+.lp-root .mlc-result-desc {
+    margin-top: 14px;
+    font-size: 15px;
+    line-height: 1.8;
+    text-align: left;
+    color: #222;
+}
+
+.lp-root .mlc-result-warn:empty,
+.lp-root .mlc-result-concern:empty {
+    display: none;
+}
+
+.lp-root .mlc-result-warn {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-left: 4px solid #E5484D;
+    background: #fff0f0;
+    font-size: 14px;
+    font-weight: 700;
+    color: #b42318;
+    line-height: 1.6;
+    text-align: left;
+}
+
+.lp-root .mlc-result-concern {
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.7;
+    text-align: left;
+    color: #222;
+}
+
+.lp-root .mlc-result-concern b,
+.lp-root .mlc-mk {
+    background: linear-gradient(transparent 62%, #FFF176 62%);
+    font-weight: 700;
+}
+
+.lp-root .mlc-cta-lead {
+    margin-top: 18px;
+    font-size: 15px;
+    font-weight: 800;
+    color: #E5484D;
+    animation: mlcBlink 1.4s ease-in-out infinite;
+}
+
+.lp-root .mlc-cta-wrap {
+    margin-top: 6px;
+}
+
+.lp-root .mlc-cta-btn {
+    display: block;
+    line-height: 0;
+    animation: mlcFloat 2.2s ease-in-out infinite;
+}
+
+.lp-root .mlc-cta-btn img {
+    display: block;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.lp-root .mlc-cta-notes {
+    list-style: none;
+    margin-top: 10px;
+    padding: 0;
+    text-align: left;
+}
+
+.lp-root .mlc-cta-notes li {
+    position: relative;
+    padding-left: 20px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #444;
+}
+
+.lp-root .mlc-cta-notes li + li {
+    margin-top: 4px;
+}
+
+.lp-root .mlc-cta-notes li::before {
+    content: "✓";
+    position: absolute;
+    left: 2px;
+    color: #ff6a00;
+    font-weight: 900;
+}
+
+.lp-root .mlc-disclaimer {
+    margin-top: 12px;
+    font-size: 11px;
+    color: #888;
+    line-height: 1.6;
+    text-align: left;
+}
+
+/* ===== 選ばれる理由 ===== */
+.lp-root .mlc-sec-h {
+    margin: 44px 0 16px;
+    font-size: 21px;
+    font-weight: 800;
+    color: #1a3a6b;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.lp-root .mlc-sec-h b {
+    color: #E5484D;
+}
+
+.lp-root .mlc-reason {
+    margin-top: 16px;
+    padding: 18px 16px;
+    border-radius: 14px;
+    background: #F2F8FE;
+    text-align: center;
+}
+
+.lp-root .mlc-reason-num {
+    font-size: 28px;
+    font-weight: 900;
+    color: #2F6FED;
+    line-height: 1;
+}
+
+.lp-root .mlc-reason-h {
+    margin: 8px 0 12px;
+    font-size: 18px;
+    font-weight: 800;
+    color: #1a3a6b;
+    line-height: 1.5;
+}
+
+.lp-root .mlc-reason img {
+    display: block;
+    width: 100%;
+    border-radius: 8px;
+}
+
+.lp-root .mlc-reason-p {
+    margin-top: 12px;
+    font-size: 15px;
+    line-height: 1.8;
+    text-align: left;
+}
+
+/* ===== FAQ ===== */
+.lp-root .mlc-faq {
+    margin-top: 10px;
+    border: 1.5px solid #DCE3EE;
+    border-radius: 10px;
+    background: #fff;
+}
+
+.lp-root .mlc-faq summary {
+    position: relative;
+    padding: 12px 36px 12px 40px;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.5;
+    list-style: none;
+    cursor: pointer;
+}
+
+.lp-root .mlc-faq summary::-webkit-details-marker {
+    display: none;
+}
+
+.lp-root .mlc-faq summary::before {
+    content: "Q";
+    position: absolute;
+    left: 14px;
+    top: 11px;
+    color: #2F6FED;
+    font-weight: 900;
+}
+
+.lp-root .mlc-faq summary::after {
+    content: "+";
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #2F6FED;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.lp-root .mlc-faq[open] summary::after {
+    content: "−";
+}
+
+.lp-root .mlc-faq p {
+    padding: 0 14px 14px 40px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #333;
+}
+
+/* ===== 追従バー ===== */
+.mlc-sticky {
+    position: fixed;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%) translateY(130%);
+    width: 100%;
+    max-width: 620px;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+    z-index: 99998;
+    transition: transform .35s ease;
+    pointer-events: none;
+    box-sizing: border-box;
+}
+
+.mlc-sticky.show {
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+}
+
+.mlc-sticky-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 56px;
+    padding: 8px 44px 8px 12px;
+    border-radius: 40px;
+    border: 2px solid #fff;
+    background: linear-gradient(180deg, #ffb347 0%, #ff8c00 45%, #ff6a00 100%);
+    box-shadow: 0 4px 0 rgba(190, 80, 0, .4);
+    text-decoration: none !important;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.mlc-sticky.is-cta .mlc-sticky-inner {
+    animation: mlcFloat 2.4s ease-in-out infinite;
+}
+
+.mlc-sticky-inner::after {
+    content: "";
+    position: absolute;
+    top: -10%;
+    left: -60%;
+    width: 35%;
+    height: 120%;
+    background: linear-gradient(75deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .65) 50%, rgba(255, 255, 255, 0) 100%);
+    transform: skewX(-20deg);
+    animation: mlcShine 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.mlc-sticky-badge {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #E5484D;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.1;
+    text-align: center;
+}
+
+.mlc-sticky-txt {
+    color: #fff;
+    font-size: 17px;
+    font-weight: 800;
+    white-space: nowrap;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+}
+
+.mlc-sticky-sec {
+    color: #ffe94d;
+}
+
+.mlc-sticky-arr {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #fff;
+    color: #ff6a00;
+    font-size: 12px;
+}
+
+/* ===== 離脱防止ポップアップ ===== */
+.mlc-exit {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: none;
+}
+
+.mlc-exit.show {
+    display: block;
+}
+
+.mlc-exit-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, .6);
+}
+
+.mlc-exit-box {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 380px;
+    padding: 28px 22px 18px;
+    border-radius: 18px;
+    background: #fff;
+    text-align: center;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, .4);
+    animation: mlcPop .25s ease;
+    box-sizing: border-box;
+}
+
+.mlc-exit-x {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: none;
+    color: #888;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.mlc-exit-h {
+    margin: 0 0 14px;
+    font-size: 22px;
+    font-weight: 800;
+    color: #1a3a6b;
+    line-height: 1.4;
+}
+
+.mlc-exit-p {
+    margin: 0 0 20px;
+    font-size: 15px;
+    color: #333;
+    line-height: 1.8;
+}
+
+.mlc-exit-p b {
+    font-weight: 800;
+}
+
+.mlc-exit-p .mlc-r {
+    color: #E5484D;
+}
+
+.mlc-exit-cta {
+    display: block;
+    width: 100%;
+    padding: 15px 10px;
+    border-radius: 40px;
+    background: linear-gradient(180deg, #ffb347 0%, #ff8c00 45%, #ff6a00 100%);
+    box-shadow: 0 5px 0 rgba(190, 80, 0, .4);
+    color: #fff;
+    font-size: 18px;
+    font-weight: 800;
+    text-decoration: none !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .3);
+    box-sizing: border-box;
+}
+
+.mlc-exit-no {
+    display: inline-block;
+    margin-top: 14px;
+    border: none;
+    background: none;
+    color: #999;
+    font-size: 13px;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* ===== アニメーション ===== */
+@keyframes mlcShine {
+    0% { left: -75%; }
+    25% { left: 125%; }
+    100% { left: 125%; }
+}
+
+@keyframes mlcFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+@keyframes mlcSlide {
+    0% { opacity: 0; transform: translateX(24px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes mlcSpin {
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes mlcBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .45; }
+}
+
+@keyframes mlcPopIn {
+    0% { opacity: 0; transform: scale(.6); }
+    70% { transform: scale(1.1); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes mlcPop {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(.9); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@media (max-width: 360px) {
+    .lp-root .mlc-start-main { font-size: 19px; }
+    .lp-root .mlc-q-text { font-size: 19px; }
+    .lp-root .mlc-level-h-main { font-size: 26px; }
+    .lp-root .mlc-type-name { font-size: 34px; }
+    .mlc-sticky-txt { font-size: 15px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lp-root *,
+    .mlc-sticky *,
+    .mlc-exit * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+</style>
+<div class="lp-root notranslate" translate="no" lang="ja">
+
+    <!-- ===== FV（画像は既存のまま／遅延読み込みしない） ===== -->
+    <div class="lp-fv" style="text-align:center;">
+        <picture>
+            <source type="image/webp" data-srcset="https://file.mysquadbeyond.com/uploads/article_photo/photo/7283345/8997a1c0-fc32-4543-af08-982e31120714.webp">
+            <source type="image/avif" data-srcset="https://file.mysquadbeyond.com/uploads/article_photo/photo/7283345/8997a1c0-fc32-4543-af08-982e31120714.avif">
+            <img src="https://file.mysquadbeyond.com/lazy.png" width="309" height="509" loading="eager" fetchpriority="high" alt="メンズライフクリニック 無料セルフチェック" data-src="https://file.mysquadbeyond.com/uploads/article_photo/photo/7283345/8997a1c0-fc32-4543-af08-982e31120714.png" class="lazyload">
+        </picture>
+    </div>
+
+    <!-- ===== FV直下：不安を消すチップ ＋ 開始導線 ===== -->
+    <div class="sb-custom"><span contenteditable="false">
+            <div class="sb-custom-part-mlc2trust">
+                <ul class="mlc-chips">
+                    <li><b>無料</b></li>
+                    <li><b>匿名</b>OK</li>
+                    <li><b>3問</b>・約30秒</li>
+                    <li>写真<b>不要</b></li>
+                </ul>
+                <a href="javascript:void(0)" class="mlc-start" data-mlc-start draggable="false">
+                    <span class="mlc-start-main">今すぐQ1に答える</span>
+                    <span class="mlc-start-sub">あなたの<b>包茎タイプ</b>がその場で分かります</span>
+                </a>
+            </div>
+        </span></div>
+
+    <!-- ===== お悩みチェック（タップ式・小さなYESを積み上げる） ===== -->
+    <div class="sb-custom"><span contenteditable="false">
+            <div class="sb-custom-part-mlc2worry">
+                <div class="mlc-worry">
+                    <p class="mlc-worry-h">当てはまるものをタップ</p>
+                    <ul class="mlc-worry-list">
+                        <li><button type="button" data-mlc-worry>彼女やパートナーの視線が気になり、自信が持てない</button></li>
+                        <li><button type="button" data-mlc-worry>ニオイなど衛生面が不安</button></li>
+                        <li><button type="button" data-mlc-worry>服装や髪型を整えても、最後に引け目を感じる</button></li>
+                        <li><button type="button" data-mlc-worry>プールや温泉で周囲の目が気になる</button></li>
+                    </ul>
+                    <p class="mlc-worry-result" id="mlc-worry-result">1つでも当てはまるなら、<br><b>3問のセルフチェック</b>で包茎タイプを確認しましょう</p>
+                </div>
+            </div>
+        </span></div>
+
+    <!-- ===== セルフチェック本体（ページ内で完結・1画面1問） ===== -->
+    <div class="sb-custom"><span contenteditable="false">
+            <div class="sb-custom-part-mlc2quiz">
+                <div class="mlc-quiz" id="survey-wrapper">
+                    <div class="mlc-quiz-head">
+                        <p class="mlc-quiz-title">無料セルフチェック</p>
+                        <p class="mlc-quiz-gift">結果は<b>その場で表示</b></p>
+                    </div>
+                    <div class="mlc-progress" aria-hidden="true"><div class="mlc-progress-bar" id="mlc-progress-bar"></div></div>
+                    <p class="mlc-progress-txt" id="mlc-progress-txt">あと<b>3問</b>で結果が出ます</p>
+
+                    <!-- Q1 -->
+                    <div class="mlc-step is-active" data-mlc-step="1">
+                        <p class="mlc-q-num notranslate" translate="no">Q1</p>
+                        <p class="mlc-q-text">普段、皮はかぶっているが、<br>剥くことはできますか？</p>
+                        <div class="mlc-ans mlc-ans--col">
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q1" data-v="yes">剥くことができる</button>
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q1" data-v="no">剥くことができない</button>
+                        </div>
+                    </div>
+
+                    <!-- Q2 -->
+                    <div class="mlc-step" data-mlc-step="2">
+                        <p class="mlc-q-num notranslate" translate="no">Q2</p>
+                        <p class="mlc-q-text">露茎した際に、<br>締め付けを感じますか？</p>
+                        <div class="mlc-ans mlc-ans--col">
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q2" data-v="yes">強い締め付け・痛みを感じる</button>
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q2" data-v="no">締め付けを感じない</button>
+                        </div>
+                        <button type="button" class="mlc-back" data-mlc-back>← 前の質問に戻る</button>
+                    </div>
+
+                    <!-- Q3 -->
+                    <div class="mlc-step" data-mlc-step="3">
+                        <p class="mlc-q-num notranslate" translate="no">Q3<span>ラスト！</span></p>
+                        <p class="mlc-q-text">一番気になるお悩みは？</p>
+                        <div class="mlc-ans mlc-ans--col">
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q3" data-v="smell">臭いが気になる</button>
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q3" data-v="confidence">自信を持てない</button>
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q3" data-v="disease">病気のリスク</button>
+                            <button type="button" class="mlc-ans-btn" data-mlc-answer data-q="q3" data-v="pe">早漏を改善したい</button>
+                        </div>
+                        <button type="button" class="mlc-back" data-mlc-back>← 前の質問に戻る</button>
+                    </div>
+
+                    <!-- 判定中 -->
+                    <div class="mlc-step" data-mlc-step="loading">
+                        <div class="mlc-loading">
+                            <span class="mlc-spinner"></span>
+                            <p>回答をもとに<br>包茎タイプを判定中…</p>
+                        </div>
+                    </div>
+
+                    <!-- 結果 -->
+                    <div class="mlc-step" data-mlc-step="result">
+                        <div class="mlc-result">
+                            <p class="mlc-result-label">あなたのセルフチェック結果</p>
+                            <!-- 包茎タイプを主役にして、その場で表示する（JSが mlc-result-type に入れる） -->
+                            <div class="mlc-level">
+                                <p class="mlc-level-h"><span class="mlc-level-h-sub">＼ 判定が完了しました ／</span><span class="mlc-level-h-you">あなたの</span><span class="mlc-level-h-main">包茎タイプ</span></p>
+                                <div class="mlc-type">
+                                    <p class="mlc-type-sub">セルフチェックの結果</p>
+                                    <p class="mlc-type-name" id="mlc-result-type"></p>
+                                    <p class="mlc-type-note">※回答内容からの目安です</p>
+                                </div>
+                            </div>
+
+                            <p class="mlc-result-desc" id="mlc-result-desc"></p>
+                            <p class="mlc-result-warn" id="mlc-result-warn"></p>
+                            <p class="mlc-result-concern" id="mlc-result-concern"></p>
+
+                            <p class="mlc-cta-lead">▼ 診断結果をもとに無料で相談する</p>
+                            <div class="mlc-cta-wrap">
+                                <a href="https://www.mens-life-clinic.com/w/inquiry/contact_z/" class="mlc-cta-btn js-cta-link _unTrackingLink_a5of4_150" id="contact-cta" data-mlc-place="result" draggable="false">
+                                    <img src="data:image/webp;base64,UklGRkRcAABXRUJQVlA4WAoAAAAQAAAAkwIABQEAQUxQSIcSAAAB36e2bRvG7f/DU9eISPAnsSQJWJLk1m28CwgAVav7H5ik8iDK3xH9n4DPS/S5w+FSRPzETIdhindmZqcBERnxwnpAZLpvrAu470Yf8MxcjT4gZQKf0Yqrqh3UxGHrLu6b4P6LUUMgvyJeV0Oa1IskgreaudqRNAhWVUvVB1RFkFXpfdSKle5toKoW7pJ3oXtB95QigueMN+LaPSMk6RjxxbUhMyKOcl890gsyInDu87hPZhrjDcmD3FMhSLI+4Km1mbUBRDT0msKgbSNJSfmz3r2nRRAREwCkDMZ7+vBAL+EIo6orKENZRZndcigrniMcAqm+Ohv6IR0Bl7MqgK///8+/0bZ9XK/3r6lSbltmyrG127Zt8zbst8DW0r5k22PbM50iKLZGTRFMmrSNv6+F3y8Zbfw+9j0iJsCvtW3LJEm2dT3WJDJ3nwPrqONBttgid2t9BN0iMzOj3cL/W7iZuXmO0S5FxARQtW3b2dvMdcNcJZgeVN1tpsLS/9D6BJHen7p/3y+oMe5FETEB/B/lzRg/U+kGk9fPFNqZzH21y43badLY4TqnfSXL8dCxqSsg0An6apWjEUF0g+aJGxAQQCHnfUXKfiIkEoRMVgEB7JBGi7CvQtmNQjvRTtltpkinCKIgWtMS1K0m2yRqp6KU1CZohghgS2yJoixiLUHdUrJNkjZttd1JynQVBe0oSMixIdtuIdmWlNLQdhiGkye+/DIe/ph52j8H9M9xYk5RXBfRXCFF0C0jSFFltB3V6ePHXz1+8K3Je2p+YLy//7IWioqsFhER1O0hSCnDqEajkyfn54/umMgXBwdeHZi1kF2RW7SDbgdBSdtRo3F6cX7+rSl9+vVXf4NaTZGSiGAfX1DexTAao/H14fwnU/v51x8fK2tFQCCkAwIB9rEF5Z3e1Wj0ydeHf78zwc/89xNjIohJAqEdiI89KO9ERuP0cPWdaf7O/z41j2BokRYEwz4sBKH07Pq3u2b6D3zNO38/uF4CiQHmdB9RSAnFf1ffme3bv+Fn1x76rzRJIISAwA4fdtmUh1d/vzblP//7vvZfRlYSEiCS1nHYxxJC1ejdyf9/v3496eD6n/z8TaeXQ0IgwLTmYy7tPrz+6/Xr12b+5ns2vU0IAgELhn0UoZJGjT//u2sBnPqz/1ohAKKT5rgPYr/tGJfXn1oEz/7JBTZYE4x9AKGNzTfX31kIe44sg5igzRz38ralNocza+GhhRMtqWQ+1DTqm8Ndq2FP75ErmJLmwwylOjyyIu6a7fc2s9lHEOLkcNea2NP74n93zWFmbu41tSPVuHxkXdz123/R8boxH2W5uGtl7Jk+okWTAGGvL+DkidVx00uLFhNCDHttIeTrR9bH5s3pYgghjL00CJ9nidx0bKS0IBz34vbsWCPoOXI67XXspX0e9eTSKyG0x5q9plBZ3vhaktZxXus2wJ49dcXNN74aSL6kl5GN3kR12TRJzOfiQOJ2N3oZcrnKgLDBvOBjlQbJLXoldtSbG3q5lyuOybf03qJQPUbN+TdnVc6jd3MswCh15x+cCFUn79/LVyuPpauK0jYI9q6UkXFqz6lrHSrIzb2LoIjOHqP+HL0qIiJ09i4D2OYYNeiAFNsoEXsH65cXqUKXR0pBUAzBni4tleGJOoSpi3YimvcZOoqzj1CLDl1FsE2IPRkEQZ+nHn1zkmJblWBPFSCQTH5bRTL7b9cQoZA8eSBAsvSxLRUJ3/bfYAopIvZEkO6lL6Im/YZ3hxAU18hTBwgk419PXfpT/04KVK2F7GkgdH5sV2Vy8IueNErSAXuSAIFw4vOpTb/3hQVBSpJnDpAs3bylOtnyPQ8S25UkYk8RpM34fdSnX3d6RkRF8sQBcukeatSBS6urAiJpA3uCWXf8cJXCk6trSAEElPCkATJ2K3Xq2YE1I1ISkgTsYXNz7HClwkOrUTAFghJPmdbYrdSqg4MGoUAgCexBc/PE4WqFf5sxKO2gzFMKl3ZQr779hLQL7RCP3iGBE/dVLJxZFIS0pL2HMAmzV6laV0O3CMzjJ/DS51Ut150BlI3vAXMUprZULVtn6RQI6XjwgOObqFu3TyKCygc/p/rmbZVL30kQpLuwux0LcxPUrosrgCqqzGNneONQ9bJ7xDZCh+43x/Kpvuplx2laigaF3Wldh3+V+vXKgpJAgM0exp+erGC2jmgJhA3eKYDtn6eC3TMobmy2u6zr5V+pYXh3uUi6thn3Ezj+ZBWzOmEJYcP3EtT/vFbF9PYrQNab7Q4BbD9DFbtluBhC92zuHcCLZ+sYLswV1g1z/4TkqyuZlYlWWoixewRI03xVJdPb3wIUi7w9tJPc1FvJbDlSSAsbNncNaX8etezwcgRFlblzOh+oZq7MhI3G7gMkTT2z/AnAbjf3hkAgaXJfNeNxlJbTmfsGcqCa6X0T6Opg7piq8dg6e3wWIFLkzklOFprTl4MRKrqTaJwtNNMXIRrldOxtlJX2wrIxQEd3jKh6tNBcmUsJKbmWhr1htxgPF5rleYLEUpg7Rllp5xsD4Lm8vbR9tdA0c5FgKnlkVtqkSWjYZveKWmwamjQ0Zrb7kNWGhpBcNoPdJ1+sNSFpApube1Pqy6WGpAnJvuiNWXC3EYAY7E05WkvN/oQkDPPAxWYJIGDYvUJtewkSws3dB8JcVUPo3NkD++uaWjnkAwqpcD54scIRP6DuixXNBT68E1WNXT1IqtqlGWLrZvcRYKCimZpL6AzN3XWuomGetoS8zY0MVjTjS0lo5952wOWKhqUAKN0LEHWgohkDkHbd6k0ozC1UM9dsIeZm7ilahqqZeQMIHsldBdXBamZCCe2QR8pANTMHYlpJd1Fsl3pmshCD5ITuAIJCfy2zdkmMEAm5r0IpvlPJTFuIENMR9QZBsPP1SmaiKN1nubdiGahkzikSDF09ULDoq5XMmIUNlojeZIwpXDlTxVy6XmMkJGPuKmIMPlPFDN8sYAA3o71N2kbhySrm3IFgwJg5rrcBBkrAgYUKZmH+OmnHJIN1DzCIWXu2ghm5kbYEsGaiOxgBLE9VMIN3SSQSWDN3NgJoeXKhelm40gcagGCOu4NgEEMpz1UvIzcEbQqNG1h3OM4cffD7a5fBuwRshEDJsbuY8zduvb5uWbjycTAYG0l55NhAHvmeuuX4vdGmBGLIVd0rbE598PvrlsG7BCOBYCfd5Thm4sT4V9Usnzi0GQQiIbnmtPs0WCH+00/XLCdvByMxEEjG3LOxUaO8dcv19crk8gEEUkIiTZXu5MAI8le/XK+8dBuA2BgI5pHTQMEHv+a6WmVh+C40ADEkXNjsTsbmKPz7j9Uqb39BCZSACTFx+hCg4EPfXqksjN6BBkkMBLZ54HQQhPnHK5UjnwdiAGICYbO7GRsQ5S+nqpSFkTsFkACBRMfHHEXQv6xS3vk8ke50EPPQMcQI/s9UhTI1facgBkOgEZg9wBgQhdXfqVCOfL4gYGIgpu1h27TJhb3VyQQHEDmOGeYJIwFIMthXmZS3vkRTrDnOnO8xCRAAubLWU5ccu2WHMdp1rGE7PDgkgUDC0T1VibN7QZyWWbNs9iAEEgDh3J6aJN8w+zbAdYwM0xNESCAAXliqSeCBvpcXiSa2LOZx+xK6B7dVJdxxyxNA88bHhZAAiCwf31OVcMv9D8IaskZ7gl0FRHH6Ql0C//vSFvR/Xa+VpwwIIAIy2FuZrP7JP7SDrrm5h4Gwru2Xm7qE0V9AS0flKQME0sLi0pHtdQn9RZPJ6bCHAaGtKDp9pjL50d8cFOU4TxggCAiqZxbrku//i79nOe4w7GHrBrFosbwyU5X48d+knTCY5xVEtZS31qqSH/6d/0Ang3nKYehaJWlWXvnG7RXJppXVkKQFcbrHYW4e0qwMfX1FwoFRAgQwYJ5yUKkgSTN7oibZukwSQDa6x51OSdIkyVyTeoQdE7SThBzmWec0CAlJTbJnjtCWje4J5mZNICRNTULPu6CSrg7PWwUkCUmTemT/BTolre2wZ5mEBCBNyLVahF2LgIKKMs86x5gQmoZk6lotsvLb07Qlh5knndOQSNKEEGYqEZ79X0Aixxz3DOdBDARI4Np0JTL/mwgoJcwzDwgBQvfochXCf4oo5Dz2NF+elo4uVCFj5wFEQpkn3Vkgrbbo5LkahGFVIMeZdysqXh1aqUA2L4IbddxTZb1Oiw5N1x+7h+yUhHm3USJj//BV31577Np7wQhmc+zdIAjw0Jlf2F938GVvQ3RzWtj7KESFjP/DF33n5qrjnlNNCZhh3msd0CiSp1/5oS+qOXZun4lh3uducVAEARb+c+m7Kw5uHwGDkapnup2koAgi5PQTr83VG4cuBiTlgD0dQYwUEJCsvfL4fK2xf1re4zx3ZygFCwgKsLq6+srj85XGZAgRKXquL1YQUdAI8Mazt3/dngqjR6ITzbzfAIIKmkI79r9ycVtfU1tw8CJEkI2x56sgQVFEQCSG+eG5vt7KoncJOTZXm/euUKIoRDCwev5Mz+4tNUVCPLjaZvZ+RFEoIEYxdLp4aoQtvdVEg+HYNDPvsYN0K6JRkHXQ+dNnrpbdTRVBYsRqXqGIGBWNroeFhfETZy+XLVs+1+Qnn0A0NW323kwBpCBGIYAotkuZH+s/NnJ1xUl0af7qI3//l7OfdCb3YWg077pDIYphCylBF81//vWf/O2//OM3f/M3fpPvm2//mv9/+b+/01/4l3/+p3/G93zr1//iT33Ni1naSrCZ2bs6DUl1cruy2HVsYf/0T//8z5c/3f72us2UNk2OICUp7L9/+ee+9qVc3B/QKw0RjJWk5Hw1E9Mlg1UkNDVConSDv/mdn3wp87uEvI4cg2xrzjusBc1xMnYdbYpkfiZKV+V0v/W1P/zJ5NxhOhN6d+Q8GKaDxHXRkGWyLrGkBE2NIKVKMfjlH/kkI6LkNQ45XcYO1aJdTZnMaUZTIZmbCZUqOZ2fv/TJY7bZSUhFqVfAIPOllQhlhFhMrIpkfiY6KjTjP/565ZPGyTsCmorQK2AYOxlFiiyJEVprUBJNjkhKR8yynfrDTxpnb6ZdqZAXORjzhZ1fyTFNky61SpL5maRUMrVlZfXQJ4nxXbtAgrZdi3oJDMaQDk4iBDnNWhQ0OYKiI+KSWV1d6/vkcPw+kGgslyqvc25HUKogWo5NVBKZnZGUHNBida3Y98lgcvmgEoMx5bXuhmkRBbUIrdVFs5EZmoN0MhprRcsng1e/AMC4Lm0J0cvATvAFK7Qgp7Xa2TY1cpoisSBrpQi9H7mzkweNxHRpjPJ6d3ZMagcic51YbjJFzwSthYLs6PuIrT23v0QwrC0X16qXg904hsh5TpugTVOjQ5DIWstqA/mIvbALMAasTZeIXg+7FTl2qC20ZjczNKcRQysqELj2UTp7ftcaRjq/pg154TtxoyRItiGzNOQ8uyaY2f7j79/Pt14uX/O1ydiGDWavCjshwjFywyZI3lg5jcG832/YLl+zHDBjm9c/XxhC5m6hYGGzP3kn23a5YLGzsdmrO+7saHabLt1AvnjM3/33e2qYL/8QTjs2fRO6sQP97d9/+Iptc9wWM+YDbv7cHPOF+dtTH7KZ5XzJ5ktnH86Nmyp9wc7eWl09OfchWhst3GqMSzHGxzZvd7LDOlQqZejYh2Z0opRy7VrMjK1ynE+iUXHhkfM/csuHYfLI5i/dIloL2+XyNbuIDPsEkhCBc/+z4zv2flBnTy1/3gEwiWkzlw3mM2kVgDn1zFzP/g/g8unBg7cfAMGFdrFdbAt9LhGVGDM7fLnpe18ujQzntju3GAHJmDCsMuwTx95SRAQS1s6fGL9y894d661Nzc9MTlx30807iUg0jsPCZo7zWTQoRJAkAd89N7/YezBNmJsn4iFAACNAM7Zy2oF9EiFJRLAJQSQuXUxIAihgEFIIxhijE518Gm2lqFDS0NYYgjSEiLKuwURmm27k0+lypVodmuscd73kdNI0x40Llk+rRVEisk66XHemWZZpM+ai+oKWkM4iJUktctoarWnO1wUzLpZPqbmZDkq0ZGRo0Bi2k81Un1BOE7WrItKIJqZhsHVpZms+p+4QoogUyjTBZJjl0k5cmj6jMOeFK0WLyM1cYowxc8GoTyl2g5qrXUlN64a1xhiXZs2MQ59P2MHc7GQJ7aSZ42bN2Fo+sQ5jZ1RLy+01DMbYMsc+qzCMoZVERoe1DFs2x2nzuXUwJrLrFnK+5ri2ZlobfW5hbk6oqd3AMFhrjHyC3ZksNLo1GSZrRj7L7nCcli+fJsaQz7Q7y8JuBMsM8gk3D5V6d/eSKngnrff/5wMAVlA4IJZJAACQEAGdASqUAgYBPlEijkUjoiET6d5cOAUEsjdwt4cq66lb/1hsAH6AfwBFcN3/rv7D3YnE/Af4H9qPzJ+ZqvP1/+1/4j/Lf2/9uvlH4N9VeXf5T+u/7r/Dfl18wP8b/tfYd+mv9v+f/0CfqD/v/7p/mPbU9Tn7x+ob+p/5P9pf+d8Qv+c/Zf3if27/c/sn/1vkE/sv+7///tof+T2M/3r9gr+r/7j/8+z//3/3S/73yqf17/j/t9/1fec///+1/8/wAf//2zv4B/9eKu/vH4xftJ6mP2z/Mf3n8g/In9b/iP7v+4f9/90J9B+Rfeb9P/e/3T9lv93+VXnz+Xfy37EewX+M/y7/H/mdxkVu/QR9wvqn+8/wv+R8uv/T9Hfsd/1/cB/WL/l+WR4N/nvsA/y3+7/+T/F+7V/T//H/bflP7dPzf/Qf+7/T/Ab/N/7P/1/Xm9j37v///3K/2m/+yEPs5T95jPz9zPjgdmrDWUzH8HH9vkJsKGsCTRsfwcf2+QmwoawHBqxGVPz2PppQlkSKRYs0VL6uighbKRfv5U/IWGwOKYzqutU/k0bH8HH9vkJsKGsCTRsfwcf2+QmwoMn6L8c6dPfskCdZgbQQHm6RlRs7kzEjB7lKzndeKgdWrYWeoMeJVabUuCW79P2Vf2dLJv7Olk39nSyb+zpZN/Z0sm/s6WTflpRRXC4fU+aadG2IHlgZs75+rEerwrUl3DQdC00G0cZldGDxCp2Ma/W+98ASpIbkpizJUufDDR2szlX2SyESdu6FHrGLFUDrf8FtbgesZaLUzVRwIi4NiY+rSBYu1OBeGYt2I+ddZ45vkxYNS1+s3ijM3cjeg3uYSlyaM/b+ZIBCaglfy+0UOOfRZVYowXEcJEqMKIixex7D7MbKusgP0ElYz6279rPtMFLYAvQ2wuxbP9TN7p7Q8nuPzfpecfuCxoN1M9d7dmu3nO22wgwFzHWvbWSUkRsZhtuFdd7eOJJlkgxHzubrwqzRzVaXfZB+5npO4+ahV9yOSqyL8miOwNvvBYiIpoiVOCtvmbSTV0jAN8T6wGOWWpfeorZULy/XSqPQtcxPsRx9tjUwl2CYcIdgWx8EVKF1Wx8zu/TSnXaKsLm2vCwdgw8/77dE17Esbl8WlTS7Ta/bWzMsMQ+NluqKXMMO+DUoHey17fxgXiayavoQe5pSbUPiXE4yUJGO2A2qNqMdDqPFE1llZQ6y+9XBNMqxKZx15SUZu4eni98Lon9Bs0O92HIfS4P36bKlaO8m0ms0HiANQubi2j8+5W/WUObUCrYbYznkC5es76Ce/acHq3eT+hgA/XHgTiub076+DvaOsPRIQ6dYJ6AEKpirbNzEgRl2geP9/TK9F5GEy1uym14MO8H2WOdOu1pNepXNykI6YZxiW81gLXiunh0fj4KBAfGQbMGFcmIjtESAmvnXq/v8ui0P4te88vEbduOuHx2PCnMhbWvc5YtAWTzIw2DKNj/3f/i6b5qwbCMKTZivC82j2DYBpzD/iXNVlNmO0SzxgutOEIEMAzfFuibrelvoiPUk2eoCMmu6vOkm7RPRkOLKYT1qNlIIoku7uzFXJFlBNnsHNb2/ig7PeUQIvNspA54r0fhXaBVpj1A3NE3bMzqOJBq9meH/l0bpuvArgXBsRd8YeZnueMV6cDg3wupYBxg0VeqaUpkS0umYj0Pb7yXQx5oVnvL+uN07N+xmffYr/BgewWoscmyG6UyUSEvZuDXHy8yHghsmr7mHxiyM1654a0i33SBiRsSQHmAC7WMHvata/MyS5Ur6B6EPYcPM70WNsWjhGGPLIlBd/9b0B9JX1p8qDi/kWbPkixM8h9E5wGyd43K3JS8pNk2x38oAtx5mbBNd7nxBrgRAwLVjY0kFkCmnQXlhAoeI9bsIij+kGsGSSZgsTH5OG3kFxGwCwCAA+sARXq/YJLhpTHAFpjDfHDWHVPt5uYDIwbXGB67p047v9PA/uIGSmUvVCbVfDHoWebOMnV9KMMFAoGSef/Vh9yIRCaHwmYLz6YOz0Hcc/WoiRJj4vkXfx8TS8SI64Fmdimn5lthOi1qNgK1+VRcFnQFhAaEDEB+G0OwV6LLi1arDLRTivyG1OeMUQBK2w1+4htVlfzKUrM/B0rYAL6ajm8MHSp++/q2RexAk/kqI+6RZFJc/sIRLklKDbyTVEbrx+8AqZzC/1/j3a/5g0qGay3Z3VKo7yWM09zJk5GlGc+GkpsU3j3EPjhDy9juVj0vJ3Lp0Sfm4iUcbeZwlbhjcwNqkNxmSozRBN9mADquiexFa03TzF1OdtZdk4US/98UBcNjJ4dE70FqJVb83LaJuTO6IE7l9SH/P//6+v545QTEZmHQPmNgORDqhu0xHWGT0rmKT68cbxiyFBjuqcRlyvaZ40NGd9+2vDpPbM0bb+fYg2hCuuepsoZ3lpcYXr6gMLI5Ixy8oe4ANaGpe7eG2k7FT+sO+vDX3LVAxV70eRpKomy8AmpobfpdvJ9FYrkbdJEJ3VKZsyTXlQV6AuhkljZd4p1B63OSln2f2ONXKOmrI51MNOtXPSyW8My1dLDGDgtuw5BEne7oEIWpyy8hXwRtzzwhInA2nBT/9HQqpXiE3zQlJGhEJ9vkJsKGsCT34EmjY/g7d/B27+Dj+5PhaMJNZ8hrdRaNIkkYUQbHTf+LOGC7YpwfxfU9fT9BQ/k/Vl/k0bH8HH9vkJsKGsCTRsfwcf2+QmwoMQ2wR7bFJ285VsKVEDp3F9NWGCIRyWMIitGD72LZmP4OP7fITYUNYEmjY/g4/t8hNhQ1OffyDbz1rcU4p5bbvGfrJXPSD4rJqDKjZzno/Zo7nOej9mjuc56P2aO5zno/XO54nd/uVP+/l6eQJEL+LNHc5z0fs0dznPR+zR3Oc9CJtFxcYujryuAD++ooBY/1Tk+UyDjCxOJe8DKjWu79LS9t2/zT/xqJ+j4mRL5U8VeM5b7V74+n7B9q8dNPG/1QyQbL4Tgz2j0lFlJ2weef9Hzbp+QbGRAgkhZmVLg8yQE62Pezph6n4En/5jVUKXAvXYAvBaJXdXgtErurwWiV3V4LRK7q8FolWax9QaBAl8u7x1PpO/18HQVyrRtiv3Zw9eU9//6hZlzEuhyiQ/wIzbGBYVCT2NLJxtnpgm9GHuwfcJR3ft7suoLPz1BDPX8HanG7/9YZ///hzQhzyfgeNy1m6NAWS7d1a8gAfP9U5Z9m8ZKNrmZ/1TlblfbiPny33VM57uTp94P3ob3o0HKmW0IGKUj7npmW18Z+6IOPH6qKu1mnMujMZnINhJJLGhhqqo32KFYGqjbxu37Asx+G+lX7qOiWwUuVEZEXAlz/ZBxwQoccj5JRikaZWB00I7Hc7R/cBKsmdwoUqyUgnWm/QlUYBQhhykK4N33ff+APxae66NAJtPspa0UlrLwBL8h6O7U3V7OV1nm85snNpq/xp4scPETamFppcTkfQ8it3idmzafIgoVGNH6P0doGk40KZ4S/7IUKghR0+dgI5auKuBYnm85Y0LKTZwG/J68I2OOxd+tTH4n3OeKj/x06u21CkmLRxgKrPJICv86u3y1uo0q78ShofAeohEJ1ahrBk3xtc/0OdkYrvOMKbgKoD7nIQ53Q3LUJS/qQ87wz6wF8lgH8OAIEh6YAhvXLMo9Fwv7DOgK142gewL4VI55q1Sv33qIYNtdXQQ6G2fZ1hj7T/tJunODVa54JFKWV/QHAje30sknDOdQURzaPcOPhpKpfhK1z/Y4sm6Gn3r/5MjUQImYlyWkZq/KTrrlNY3D/YO1uGU1McCh9TlTJcWbFSaBX1JoEmwZvz+nROqkolRZ9VVPErowGVAd8eq9HFkhY2pgcZf05H5mVO5MfsFyQMbQyg/nE/xFj1HOE+O7NGCARZeNOJ8M4LP0QzREs7+ZNF9eONN4G75CUTOchoJCs6l5qoHSalaazeZ4ogjg/XJ5r8OTJyG/JDL8JJGqBlmBomk1t5vDLNuvOE/6Q/WauFBkVjrm0rEtGJADXjTJ/s72LUkNORVx2VkqJE5HCTE5LcbBQvBRGkQ/tO3Hrs7KEf+HFtY6IcnoqAJ8CK2FaybBX9YB2HA5QScaKduujzy9xmCQR6WVKR55/wKDTeKaXfQi5n3qnqV+JGufuSh+duzzNaLCzq2Jo8L/AbSjp72tWSP8I5cSzkenLiWcj05cSzkt5sHsDONQD9tZsWGYHVtgbxGlfAGs9a2sWaX8uo/xGd2gs/mqm0vP5lEu97/UoJ5CscEU8YzTbydEsQ9hNuwdUWpq5tqJgpCXCE4JCdO94XFHGMYNHQUY7cTcg8iHJKyIqpIzJjxyDxP9haiLB1YbHSd4mcJW9aBZR3aMlvQwGigRdQOeY/9U5Xf9U5vfM/cDT3zz/iWbjINwag59RDg4ayX1LnuUZnaqzFi//DoUzvTX8fpBTLx6O4u2vjUB4ysogAobYHlEwUZqUHbfighyQeAKrywKj6YgdtE8fZHiEOv/7FTQ4RpD+y8e439BlDK7bYMOc6muxSKXvBX9Adcmp9wbqzGcWOUEChMt9Eb+oR2lEazWc3cSvjiIO6KY8lISvyWwAcgAiT23h2T4gXl1VTDu4MDweRFB0oH9RwdrbI/c7fGN5BEb5hMbbn0xIacrDIk8MSuiINZHmbPhK9c2KGaEhAYOL/IYhLLB5092F+4FvadE2EMdv2C0Ah1oXG+ACPcWqqnkkODcnvQdPyotLIsddyx9Dt/zRjpSzp1EPM2axPpoQwncAhO+9OY2f8roJKTBw/Dri+v8d/fPBNL5MZOOXqvJpSNNgIE3H28amB1vfB4dstja7xQQR+CSnK8izWL5ksADGhvgAmq6q4Ra9mkY7rdp3kHRDfcvubFwnvT9oPSqFrS4OqifePMwHGVzgUpWwCEPmlUBMjobr3hfgF+mHV5HzqnGlw9u+BdEI5/DJQ/P+z6zwLBIeW1aKJjN5AyA8mf4LZh3+RY5P1NW5Y+V3BnskGPLvsFcktRT7n3ai/gtqagILE3ZLQzD5vHYJkLzijFCXE4HOyn+cRG8iQzMSMSqkUky6FiAqTE8xD5HgalSzB20ZFdcMRzaZ1vt1wEK0t+emI8cnWwqLAL/KUpPYS+kO2n/UXT1E5gToJhKKtPpme2KJHNUExAqMW6+8Jsl8mQ8rtXIgH66NPEyHaSg7MSH1BnVxNMZtm6e2qv6d75+yp9p20g7GSxfPSg1OnK3MLCqBuvbmI8xfTPUmrCIlRd06j6SRVjVy2GUr8hKT+zhZYdpG4RtrbbvJzZ5pan/GLNTYdWxEmr7Yi9s+Hvo+baL07O7WCpw+DjInpSN4Hh3e/IMVr7vXh+sL1Jlzeg9hdEIFUUoEqwlybZHOvIUCEc6S5VRIhppahjAM0zPLeYRxfm5DHNEdBoZiICgSUSBu0LGXFDDvEKKC7spRb+VVGIM977+aK259K8ViT3k55SWRQA6xQHh+Z99J5chTfJixSOpYUTapa+1Te3nJxoJu1PlZ+4McBszvmROkpbqe9FmyrggVKuQxj8iyMe/VHNR+5HiN3RfaEzPS0aHGK3v6E7hnZp3lbLBTY9Y6n4dJ5y0qhdf+H+A+TGq7GHQMtpHJRyRbTr/5OGg0QlK4esm9YP60D2ecKbblXg8a/ejS17Li46kE1ItFZp2f50oFUjpNtZZK4uPPdzr1y31F6w27FksJFXOj/CxBLwUhEf/iNMamzOzefo453y6HhWQ0tahmRw9ksrMQl8GEfYl2hRJrQMr0Pki/lcfjfdJ0CnU5pyVcDwo4JWKx2z8HSaaud70opzTEPK/pnH4GpVpOVXb+xBfRyplQULqmiLPr1FSrxUmisJ2ynO7GUpC5ZsD32pINNFKHhUkHrA/uykjAnVedQVIJAV9EPOuDsn98Asy/VDIfQ9LjM/tVx6sMoCqbjgZVTxMAtyUmo/jlPFvorZhHbkO6wT8lHrDoUEbv4IaGY3YMHJdC2h5nTt9O/qXC5POCuiiuRgfaDJYNSMtkyOJ54FFWm3DKkZyOOQH2mDnfKe6cT/aU5rtCsJTdjvneNbS/5nDuXNN+O3F88BToNVPFrQa6k9BhCORXYM6b/fj8u6TBTZuz2tNqighMJQI8YxqbJc8RnGP6mD07Fuz1VmNSqRuseuXzQgjm68QfT6aDu1IO6d7c2BTRX6UEDDDQEJTnsmNokra8ctecGR4uRS5nyul9++QJMwwBjIQc3R011Yytb67sJ9zBEL/OnRv29ZPaLzut0Act6vFmQlw+4NQ1KXlTBb+pY3+TptAivDvMCuCGV+s59RFh+Sqk+koN4Sas0grYn8ZPR3YUMPmklJf25ftaIaVWdHfXO0Zr2P83kYMkJuN2myKaYpwbBK9V+tf2Ab0r0w2sWLQPJwfWj+6NV4rgEqpnLDz4foFrVmDuthHB2EpzmM/2osxKh9ECm6zWfAM3Gyh30EByHR0dvDRENFd/JimmiDhcTvJJXJBxxk8Q5mcMon7kYD8PMxW0BONrc2oL3td/awk1nWPZLzzcuswwYrfCV67qZK2DWAoDUZS8W4D4cL8v13HwirygJyGdp6JJmdspBRlRyC+7MQIKWYsjuqT7kbyE2yvtYUKzWYqsuMjrZqY6XzruO/KR4dXVMBq01BYhYnH7nW3ZETp3T5V1S+hVZmlASIJdzNZadfiQLEMfm1z5tajCzmM7ZlYrdA9MfW0hPzHvfcFSvWVEIBdJyAuC8iGLwQtBicuoc1QbaywHKNY84lOM4lBIP9RnRF4ZP5RWWFaG7q91Qk0k1JAJG9sVI3kmqmAAESQ7LRplO0Y4O3aneYaaHgM+SlZQ8BlafuB+DVPMv+jg+ujeW98rhruZ/8e7ux5BsB3sVUSwUshXV70/4FdZbWt/+A+tmIr9APEndF8zfnIMS4H+cmdt1ONcBzpHPvwuEKAA2L3Ym3SyCbisi3rttVovEaFxNlx7l1upLCMPDrw8fRUqAZuun0o1G3ATB+F/hOTR3B2/8+E/4L+uS2sSSw8RWmdyHc6Zky/XPpflOq2T4rn7c3ccWTYdgVZ1j5WMIfM17iHjfS66ulHjdAL33cG0fxDZyL7cC2P2ynigGO49Xqi0OCxe/4i+uhhXvxuxQqWBOxtY7HyUQotkCxUe8l/FHgS/3YRkUPknYvo1YWw0ifx31j44nfQJyRv5eU9Z2Yxe6ziUMUwZbXlVf5tajMTxXynD5GhRqdAUgZ05032Mtay4nhQ3j4yVIglLVBu/K/QqmN1s2F4WSBvHGJ63/6+iu4Rv36AHJ3sHItm8kvbOJEptFELRZT1Z+9ba9QoAU5RjthGcR4ODTiQ1mlOjODJVx2bxEGyyKpN7J7wCgrhi4UpMtAXAANNg4wsqJcKjPYq2qi54SFk72JfzK3ox1iAPnw/hVL2oeJ+9iqyS9HeXBLbG/Ndqc4LWnARdd8bU3AeE1fSyewmC/KMNHvn2DykKyKA9fzZ60lZKmrW5AWMkOwx1a7nMdntOQJV1GmRVCY2mcGtdINA3wYUiwyMwjDFjRX0OvYZKeqfCVio6YObkFHqBrCTZNTSQBIQE8T4JZHMkCxXNhW+NPMbrc96xFkzQWoROC8afc3pVkMviGxUwJdjZfS7oSdiVJJRSMgFII8/KhDtGG0sHve7Fnp4Bu5m1Z3RBde1+8Jo+S6WQ7cSvB21C6DUVAjlPMhFyoGybzf02SQm50/oeN1javNVEvqY9j1gC/3wMZyyQNxApWvlaGeMylsx+VQVr5ohoVHtVpKpgdRkCkLY8G2MTpF5XAqyzqwbOxyMJTU5FicX/E6JufikzuEAKsIJz9XeNpuQNgprGpHzKKzTQDDYYMBMRgCJvqILMYyR383rPahdzHwWp8BBEJ5cuM1L8LyzeO+kWQ35uszbjXlrqoxyFjo6sRgt/haJbQr//VuxJhbtb/03sd8sTp4MBw4CZ6u07MkzDSzOVI5YEpcNao2d4P68MarUPGbSAe+2Syfo5jfFukRJj+T5WG+HuMuQtK5OmfQ2cW6mdtPOLGN2OfFOxmlUPwqzVAdLBtmSEGKAoWMdGI3p08aeAbqh920DwOiwy9sNhOw8rxgEq1VW+xxeSzITIApIbsPQuXPaGgfB3jJXHEmaLXw3i+d2Xf/0oHCEXS8zxfJMRWr3ZSVljAahkyqQ9htGUKT1i+AxuvrO8Hutn1ezWOednVN96FEnEvkJ8J+Sv4uUF03fNGdd3UjJVdf/l8PrCD5AuN8qhoUgMOQAeLcClSYSALux86+GpMZAaYCjGtvTlqXmMcNDEoY2xgHv1Ly6UdMYiA1DmME14lUbVuevPMbBDwIbS4WhTvLKZhZUu5Ik73iLo2+jYfNm2JynsrPZhKEjKVa4ZjHNyI0CcQGGljwFAHZnZtDEf//h84KiLtFPkfrRe7/S++lt2St/TUPMHRZUkZlK3IEzH48xZa/SPvUy/9xDhB7NwawIxsuHhNuB6Yt6x1tMDqTWqra5KP0mBqgOzfx86nKbalnH/YBqbQsW/9b4+uQsG8gZwnhwRzMUEtfiLR1tMgwqkM1kpSE+FiezrMc3H9YLxtRWCDlOqAEfZZbvOWzHIciHdA8d4eQamP2f729g3qY82wqY4xWS2j2edf4vAvBPupo7dC0sw0DlrGnCQr6XfoBDqvQPOnjdfprn3FaXY6r+vg9gkoP1jOvO5M+FQzhPMkf4iKhXyzFyvppVqTNB5y4fKhIFQqHjVsSZXB+ZkzB39INAwGp0eqPxcNceA6z8FdzzFaDBbBNCFsRCtFJs8w0KmahEoo5kcRY+jnPVORigAvLx4/q7bsFUqEa79yfAVoH7beZoyvBHyOr2BA4gSzcRfbPLc1aiNpcLxVZzV5zOvqeBZTiQ8M6dak4RLZ3FVyGKTAztZNqZg37vOr+wI7g2WBvErMhW6oerRJAKI096fBi2fNs+yB5wGnRD8O80S/j3+uHcSwchRLVylTFq33RIGtx09BQe/WZg6i01uaHdlW/CkcelCaUQMzqVAJc/EObyXOyMmUj8v+RzA/e92S1x4+xeeCB8aL6mLld3si90aStYOAYGRRPGNrbC6qiOWMU9P7ZyVQY6WtbJGt9UaxUe6Or65t+gnwZdv8OWUmRZKNV6h7p8Y6LLKvGzt0qyiVxOt1ISQkAX5KpR8iSd8ZmKFXAFXS11tSnXciJYG7Z7EbiZOicIPGuPSFra1gJGymMC7a9QCGyWg/w2nqsPto7XWP72tWt5D25Yclfn3MOHMn6+wjnoBzUspvkV2p8bLOB9IiI0H9hPcY81ja0G1yKPE82/bRTCULrNCEBPGHFUqKzEBZwx1syEswfSbYc2LMrco6LHTyKyFShYESHL+02ku5Z1+IVaKyaRAa5wSHab5g/8FTpoYq/fBVvJYmSg1doT02Ya/MpZ6h49kIcaTiT7wjmjoT/4qDbJxNrPrT8APRJtZwaHlbL/J2IHDButHtlh8R4RPe25ki6WjLXvbKkxo6HP1pPMW1+JQrVl1qPgTYN3zbznwirHQOfKRtaAA8i4dDCKKSF5SRJ8PBTDiJI7Gi0qSyo/1IDsp0h4L0A6c383DZAk8nf9tDyYYStxkGIiLMDlxop0xQvdVxfRuuPDJB5CkopvYiEWjMOe4M5oFf1SccBpcBKBLVqL1CNBVOa+avy6CkxbNQk5mAb6rYG57/1p9L/d2rE8iShdATiZXuW4NhWvB1xSSZoIxPRo8y1fF5mMAwcbk1altXf2cRMxpvUxbacy3ur0aHJhxFHMktDFgVeD23IErHaGegS5pn0O+bUEIzHlb1CCY5owsrUWEQqvdFxmla/xK+TXbna/TJ1mleMWv75HtAoAXfnRmPwjVCeGodAF+SIfKFBNReNrk0i+ir/ms5EujvPaU9sWs6phw9NsASGQDW1zAJel29BhbKWZFkl+0aZFLdYNbgOIjFwan/DdKKJSbHY2mC8sp06Jx6SsMbhXOC+QoOVWMVlhvSF2s+38oS5VXLofonuYBY9BwHXZKog0Cpfg60Q/5lvAJ1JVYAfA//6A5rgzXsk60aipa+gMw+A5xdN64/XZ0R0YYN+ZRoCMIJLjBFuJfH7TNNnQzlDgmTepOpKjR9fPBEL/qYco4hzk7vLJIJ+NCJIlBZTQ3z7rN/Xdt/ktdSXJsd3Ew7YwGLVm5gr+XJmv4Fmpe1WDSx2bM9XVJF7uEvT9+a6GGnbs0VLhiWAYQcAYbSz2E6g76qzrAw+VKimzZMcD7QEgdy2+4w12ltO02Z5ijWLCS/eMbSFNOo8X4mW58SU+v9Vvi8ZqaDviibnjPW/ktum2sLglPtLFW76XuFKRX6RsVwZ3vH3NpId+KxovQM8y7WqYa+3FpHpGFw/x7QV4zIgkXQoDnmpbemUOGSP/dh7p0MOlMtKfAXnjImcOkbvBh7p5PxNulDLKCim3ICRbZ44Zm+NMkH5HkU7RRj6h3yyZ0Jz+jdpoUKh4n9dC5CAVdi+ZioFfJK1Bf5gj+b1MH/lw5GQzw+088tJbQJwcAS3R/CY/v+wcN9oqXe6E7cFPB8e9YzY3tKmemliidjBscFEfFMS+7nP1lt8KWCsilD/8KhVsF3pb8ppnbfhuzXx10UmEn3HnYYP6BqeXezSEVwyMyVTVFmbtgqhF5IyC+hR8yu3xwFdBeFcicEzjGzzMn4XXs2JJu6/w3j+u55Y5zvC5JMJke3r65cyUSR4KoD/XAQsWseMWF/nP7lLS1bGWMcXJ+hOMsds+gDlLYai0Ngw1eE/5tA/wW3tOEFOu3v4BqRx4uvLOmtZgARMF1xYqIFsXszRTaM0gVxVdbuYiMUQIyeQEQABA1F6N1UHL329yVUjR9dDxNDvWwNYC+M1xTu7MnlOeWiFIi0ooUKCmVehJq+kcnbYIBEz0VorqInCLHfr0LZ3Rz9mZercUR7tKXRO/xDFXIBs1Hphg6MBCbYvMCZCtGU09/0QIkhCtZ9tQg2jTPjFXN3aOuVjRHvQg9pePchWrvTeBlBUMuRKXascp/MCla8ig83XcP56NU7D9WJg+lzTkQlVPus30BkAKX93WEInFDFcolaz5crGoudjOqPGspa12eKKkDZj1qEs8qVulwTcTpCQEjOb336TV8FIab0LPLJH0WA7X07ataIZdVLyxOrSbkloOMOzKn1+zWPvQ/IjZ+LcIqsJfneuuDCAh6bxic0H2DzG40g6LStw5Izuctomh8FnF2ESyZ5uVK8L8oSjOeG9Iva6rzJH4IdzlVQ29NW//4GnDqLJ22kqkpGHZFv/JnRuryN0+G6eY3NIVCWw96FRwvk2x/l+KNcN4q1MBdG4B5ace8id8f0Vfv1Wd7/e5K+/A/uCPY6ht2Gev1C6ht2Gevyl2SH/VMBZUnMsnEdcoMlNWaBAH6jZ3gMN1OaDTxuZhviU1hPDGmg6VeJa9c/C1234NvBFnFcmztu04KVnzLyJ6tZW8IkXptgOFevzWKDk/8xXtPJ9YQOd/xplUmTwjLnRhVLWyM8d53mRuDfsJDC2Bfa5pXtRvymNSH7EjxBfLaHzl3WTTCqVJNBtx5fmnbeoZrvK7whD9oOrZ2yah0fu5c10vBPOBlQzk6ZL8DBknl293SDfR9j14LXcAfNQhtzF5GjTCwz+EckSrc4cbNsJuMklcoK5sQTOzYjPC8dpNhdhVqEcCcXfxW1RFOE4JxJ9iy55e05a8AIu7qYX4nn3hL/NrrlgkC4L8B1SaPWl1T4gTnsIOypPVOAYUagsvOtSisTeLSy42T+DxQbSHCMTZ+zoSfBZyHpB/knpXrA2d8K8f/3//ss/1/jCB3Hr5t/59jH5/2j/QIxZDfyr/BJ8qePIsuH0Vnt+aO7voKZD35wik511fRf+8oBaOjXTRziq9rVu7sSJMLpe1+7RUS7xZSQ06/rPg0NCkvYar32ESx9sdQSHRMlKqB3nP/U88zicSBrJpmIsoVwKMoBq03sC7eVzz8Nvl16C5Jd96r0ON+xbKkmfEGO3WHmw1BcJjR4eoBKrfXfwY+YVqdEniigGuXP0jN7xd+QLABpjk7VgJb8GK8QAeTtJdwD2fzel2OhzoLRxd5mh82brisbwL65dTOgC9iTsa/JDCJ1elAYTujlJKd11Ax9+AsCW3EJrODkypgxincxg4v9lG9y8kHmf4wtLsxY9HrQXUfloH5O+/sWzMVoNP/CDoZ/7r1Oim02Jt1GMTZK//HicGA2xT2KglLFCaZBCDns7STzWDLv2r9KbGB1S39MRb7Kw4N86eG90ZyJHKx2EobQNtoCaPGQuiLYFTKbwgqRbBltd1RhWh+fDfqXW7LriNd1vjOWZrM5SLSky4qUTYnSN6E7n1RbgGlo46R4ZWDS6i026rbr3SbhOghvx466l56Ky3E7pTqtZrObMxgoj1a/t5GhDLAc7thTMe1iLm1LWKo8yBWBL6H3XSpozRe5rNl8gzyGlB8QZBzACOHRur+YvR1934VmhXpfq1V1ThXiNDqPHWcAgg/+uJsbgEdf4+4pakoTXp3OJ6cQnmhgDrPv+86L0vJj8QhKcwap0y4OY0iMIPTHUanAU8x07LzMw6xa2WRuZa13mlnq5wgYNaKl0K0q+nnMx4J3MAyNfPL7yubNcguWhqq6vWOVRocbwHjGzazAgUcNFJNuQFI60uCLevSSPN9fs2rRql3NUB6oGU2DffabhDGilpIhnO6QdQDc1PcD+I5/cck7qNNjMvI6kkoMk8PIGKF2xmQyFIU2CPTj/5MFqG4XaIyo3I42RAr3K9puH161r+4FKwUvtguYQxtikexfD4EHMVrkd8WvTdjD4B7ODpUrRxU/CHsrDPiKVnbTumk8wUmiic4Ti9Q47APhHEaWrrCe0z3myRa8Z5EHUgUAxud+6rkJ8w/JtXotDfN7JgvoWimrTNBs/USDXxXD85P+fSyUW+SjFLGpfcviTNb+J2XYq7XqdQaJDzo9IyFrl15o4QCF5NTbk28/f73/tgXoZNpswLFq3iEqjyhHmnabYLsMDcfP/A0cjb2aOyhv0//N4w0d22MuLcvsh7o/nZ/4NuLAqXV8vibtbYx1bnhK8vlRM8/i0s7AuKgAM2wH2Chk96ahQCGDuvVRuESxxF+x+d2dTAU6YTzemzeY94mRfOeq0y7DsmIqNcshgy5ZL8OMcXeDKPKgBXG3Y4S3HiMpN6/33mYmJinyaVCkwYe0ly0v/hOfQ9AxWgH7xI6mOQmnqWtawSBBeRe/IX216z67OtUfSIwvwvZNxvlip4ganXihid9ToWP5aPALto/QzGipFxQrGQC0khjdtASQ+Hb9FvgyOM4fKvqsTRcdFHzV834GwUH8LDhYBnqXEbk9K5eLkS5dKnJjtibqccEqVcvwFxXJ4JfxWHirmUpJsTUmfhwHQmgW1Wam39J9tbaep9M/Yg+3gHNFYJhDbsa9F2B7HlEEAxloG++BHbbO71PU8eJJ1yW1/Z6FAT0ofOZExOMFuwPqAOntuDckuNxXxLG2hYnw9c14b0xJxyi9s3zX6AhXinOvxKlAz6bdTRo15tU4l1vzEEdq6nRnWzNMttbTAscUq8ZAv3SBP/BYa9+2u8aFMwytLj0fJTEMjB841+QUqOZFAdv38yE+H0HR6gtT9qRV//ndO9UU0ookqxoAdXqsB7pkuixVWON35qcuVntYVC3yqj3um49XVj6gQfSh4pMDv7WtRq0WWv8nIcljLC8SPsKCiUg4lK5125fu57HaRH+cTSLOGeBzj25aZmW/0M3/kAli196+16ILYuCYPFKDguI7ccs5u4XLYo0z81mBmbvJrDFisc+oPezCB2pVQYUEpLGl3HGEHixZdLMH/h8FlCtWiuBthJZGi/Ab8yxf2NAhn9fe2wPqIdZ75O9Gk7al6qlkiaq6IZU1+Py2KEDtH4332Fsmu8W07xFhn3h/Z1ibZD1nf8j4MsXOvDtkKbCWS5JARzddbi8R6QmrNanQbJoph88ix8Db9G7XKPAoGTucnE5JFZEpGb9fdeh3X54CaOFuuz4rVjpduMdlakJ8tHEq1GfCqtrjc2zezmctf8tY6ZMIE6VuPeoymLGnwm7X/65sSo1K02lWS+GE+0rpjsqyrIZZILwxhU3oc3fvqZmYxxsxlanQvxjoLi3jWsKMczz5vhZefPUnyV1PxoHEQID+OSLby6pEg4YYuytr7nYCxbtZPlSTEogwWG29QSDTVf5AfAyPy35HpZI9PimUz7b1HM17uBp0byyne+MixP7J7EC6ZCqQ7vp5ZXtu6Thl98dlDGm5byjx9wcO4Nv0jDyBEGwgsNm7QbvRzmYB1DsLYbliC8PclNlDj8YC/N2j+S1f6urDKoKY9EFniqgA3m7Sxb+0ERfOUp8EfAZWhIWAgr6wTwt3GAB1dLp1vda3ASEWfwCC65jpvN1U/19h/RVWX4KZDjVmBcJHAUM9I5iegYRzgL5SnP6lN3EVtWHM/zJSZBYgfgGvypzLHlZ/1Jhleq4tOVOqTSeWWZ1eXqVS21d/fmHCdBlrBWnKdaUFKqAae46lPOHcXpYH9f8eMSiGmwPr7BOxFFHQLMyQZV/VEXubB6VpBkxtU0rHYCwMq4B6UNpWmilmLnvi/aV9YdF7VG5uLcanBzvbqVSDqCYTLWWqQtnyslyEdwhd2hGmvH2/C/BREYNPFXoBNb20kKAo3XJVT7UR8nBjH5Pxk4hr5RhMMq9vtfaElXXzd/PZ4dQSOYg9ggZ0IJ2gX355pp4U8MgOGzzGR8eieifDbL/S1WASCvg/Gi0Fm0d5KscWZo8wUvcCtfzftZmzMC/GnlATuSmHKgpUVCkqkohH3H5J4RKqXnbhHZVJu384vKXgcGRaEf4O19sjq1Xz5gcL6/4etz75yzsnRGp2z0OmujdYNBPT8tdRp/sh3GTku0ni6qvZzoWWFOXrVpFnQWQM80kTLvCfSSmwqyfHZ5oyrj4F9SqTrmDBm1V0Ez35E9O6WX+wETWtV74Ls1RFplYcFqf70Y1kVMyQSB8b3vz8Y6vmnKGUd3sn+Rx8DfmaOas4r7C3hQFPB3Ydt9A0MZREk/X94feaF/bnIancvsas5JMX4p9QrSOWYVfglSpYFE10/kuc7VSSHPg4K28XFHoCj1VSp5ULK4Q5INpJlliweKX4dX1iHlS4QcZQrKA2c6SCscyfQlTHz2WLlJu2s2prfDeX0zgF2zeltjPtBKi0AL+ylEhw2xvJ+U4rzlH/OYYwH3ZR2kplB+vcconwLGDBvA4cj5H6G6HLpus/iXT8fiGv9q6jNyltTs13A73evDbRH0VEyB+dtF726hmELv/nHjYgB5S+EXZUTXPB3cdF/IZlzbB79G0ehOrwAz8Vx53xBST27aubbveGmRK0CNM4MC1+xf1Clh7Xyf5b3hVDk8FLcYCPg5LKUVh45bBYDy642FYXPhXob/OaEXgcr0pbP4HtO2LGcsj/IMM8pzpnohGf7spKr4/uPg+bc+RJ7vylSGbZVNv+AuFIMRrxgI3SmxJ9M1JE7k9k8MERiELDDzEMNMe54+Ic+tseAoCUCBNS9z7vM5WuE+xn+BvlJWExJsqHYQNW7mkPaF7NnNXK9ZYI3qCKqmJic7c71hXRi/zCc5pCPhpK6c4fpBKem0RPDvFd27yauQcIrpAyNAhFDR+2LjEeDaY2rMxy5JFIPrXmxr8hceV2n+UxTq5xTNdVc5yBC/oAbpkC9rJuQ3d9LqXz43kYJo10/YUlkvOd9j+tQSTaYeiT6kq/GssnEb/Kkla9tZtohszKe5NGt2x1gG2NjArUPCewpySRoEhqJu+vdjt0KCmVZI5R4AiKHRKa1NQeUbjxP9zpDxa5pUIRTDFiITUHsHc5N388omf4MulNkqvSHdCMq+f/58HMVrqKyyUSnrHN36wlyCs7FcP+BkuhdDs9IghFheQInxpvLtmbT8yRu4PsP9kwcDMLel3+k2LnhxtzS8BZ1nYM+tlphXBoZGGZdEd1xVISBuVAG7SyHwwfUAS+1a5S2hybc29O4wCvjtVF3DuCFnPptF/CE6ehfe4499UVwpgDXAIuoOPkIu2nUi5K/8W8IHPyzoBRGn6Evddgdll5lnXoWQ2B2CtSgc7fXv9MBm+BuWvuuzHyLqoehxp9OZRGYr/I3fcuosvy4Ir4MhQUuRQSPYqA2/Iu1YQR8/ID9FF/cFmvrrzSrzkTtI9N4iCqZ5E+wfn77sLGlMHXs6V7KA4Eqn37hBFfpoJleDX/HCP3yFujDuy7TN1seURpWTzPTQPGRD2bzdTOLcjOyi5OS41Ue/zikLusSqxGbBzezDokxY7UOBHR/Uk+uxguPX4lLXLII+1/dFQAU+4MyAFSgr01RJ6oO8kelpFPvwymmutuJ8tsVZKmr1v7GXR0wRk5TVvL8rZzNFzQhf4k7aP3VPv96mIW6ovVT7VrCxvi1cMZfyFDNxW7tW80RJCWhOB6twipAyfJ7FD8hFEAWOaoW1pOy3exEt/C0FRVa4wGz7ZoCwYiDQ0iftXse4zvMG5EvWcTL5ph0k8RHxJIpCYLlqSBeOPk3gti68nubhLdM2Ve8NxMr8gB9nYwO3f6XFkvhwr9EdHlCjFqs7MukFA7110/RM4TyFiedbbb4uXzWMkNe01kJMvlo0Bi7BW6dawj8hRzezIcKg/ng2udqf8Jf+J5fshHQt9KKz/MXWW9r3dJbH/q/V5jGw0i0kCH3DqEpne5D4MmEj5B/AnwJfy2TZeGeMxIUEK1Z+Ax827cjA4I9l04xJ0K32Kg5oFLNWqWQWL+3NhC/GYx+7W+4yHPU+ngp3fPKhpG0anGB1+53O+pnxLVLrBfNWNNHSkzP4VqYfOXYVwnx1OW+RFavsaWWHYleXX2VMWA89p1j/Nye6flLL5MIfCwKCruk7TrHoavp1SVpuhKRgsDZ3VaKkVpq2YWGRP/l9Zuv+jFTCDRn2BjwzdY9UqWCx4C7WjBuKmREnxHUemY8mctjaeuj1iLHY1s0cX+KngYWys11OomwVcL1PXFZdfCYos+CPrFmY4Wpf8ryyvUKnxj/DDfYXPi3kFdKqxhFj6pNoFs4j/qYZ68ygsS8lUoPdc57UdeWz/EGog6zTLEyylEXHD1cXSpIEoPSol/Kmc5FYpXVZUTeRZKDNwrQ0/mnm3/D8sxJpqbSJpajHstfKrkgqRuvjuYT2lIekAM3S9uhcEhaBcuYiLEAGETOqcnMmHJAn0XfX2UOvtdz8vvP6xhoqHzFVl/zuL+mz0cGaOvNXlYFN7LUW8TN9uzJaqFP1r7q41C3Bec61XQwOP9fu8PPJ7uVKfsKSEwYH7pxs6HtIZd58h7Z7sgkKlp++DVnxXnb4uoqoRlf3IVBPz7twYtakRjdQtJJuFfXb+lqM+ihgIAvm/M3pnEej4WhMD9nNRZrlP+ZIVIIMNnHrT3vZqDKIDqyuJOBynUMtgXoplY331dbPZckILaDlNakZzi8vol/SIoOsg5UF/b94A9x3XQsw8x24poF8lMetV8BJ6/Uuix3lc6Ipq3V+44EgayjqU/r1qKTpP1uWwrqHxQ0QNkBVQi0kCbmzjvo/QqGvICWWWe2yP/wLzFs2ohcx3sEgpt2ZnmIv8mpGDM1vi4Qpj58Z8n1CoqgjJlafYk+oXtR0naqTuWrs86XO63qfpaItEF9CeEWkK+RV/7mEYoTNkP79BsrZGGJ58VpjsFxmpiITa7x3R1II4vhcZTiQukut/znSjXxYxcSonwv8z7BrVx88gEMfkETxAViaiVe2zyGYir8jfImKI0bG11A7L2svMi6jWiz7JBLCvd4qysOnf1cZu6pLrLiuZ+bYCoTXhAbAJ4Sb1F4Z8NqryQzCfUi+zqdrb1yLJliirZPqDD6W7UNJqHQy/JiUFvcKFWIOTb2Ya2Kfl84k7L5JobSyR4Xk/i1LzKf/MY0qy1W5iUTtyQvhZvhk8/kexAKvgneOEVGdWoC+DK4wSmDjhIv9zrKr5oZNouCN1B8BKWbVvan3nSqpOVvhzw/AJmQmHl1axkcNvMiE0ymDZCY1gNpAmFfrXgCpKG6WDktjwrh6sNqqfJJBMafCIO4DYfdSvuisvnmgbtIbNX8Jev8JqxCy9tPke9a+8pszePIyviqCUhuauhqWV22NJlYtxOSTJBYSJxOvb7tOtjNqJ71rNPc9Uq62PMdOgvKv9mG1/yF9fv6daqOsX9bESxeRbrJwB7mnkdb/I0wE/TRaLFlNBXpymoUW3mcISBYiQfimkVc9UoO7heNNT8FNdV/m9o+3cRK6AyX3EZ1nj5Dhr0kRXYbRL8WrLXu7QciRJMZHkrXUsCiV5QjE8Zg07XO4DQNQr+49N69xZ4+j705UWnePiteub9FiyoKvu/VNVTsDxFSZetoNA0ktgraSoniGd4tEwjBeurqSHTCIcN0NaYkQIx+ZWB1RghZmeLE4Yc6M2KtV3DuM7ADQdgJRjvur7lE1CDfoQue3evubLcWmTeUJaCzP8kSXbYbfN2AU+mUzAsz31ZIUq5cCHSfqEGPc1aG5U9HIPCqXp+xAkyfjwFH4zRSXkXYBN35QQ/QAIxFn0PpBtX1PBjJteBZjj5gVMAkTdyNHvFse1SmM7S21oyDj0f9aE+MjvFkTEX+mFGrjGYCsqeXiPCjlJPBbzQ4vXQK3jgbOEJ8NdzYlnrl5gmJLA35lqiFSIqog8VIxJLSUYoRdqzDxTgv3tOpGzTbTcELUYtFGSS47pUqsJPkWvi8+DaChLqXKGRcr/hOttBiUmYxi3pYe92PAJ0t9uBPshlaPaU1aqYn8s5H0gQ+Y5c6j5tnHY2xM6rJTsS+CFjCEl6k/aGmtt12LSFHURx+IqCXfvNi60q4znxAU5IIj40MlutkGUrTPEp67sPLePAXAGDbzXgYgwqP/h9OsLGDX/dkpHcH4FSTLCH/0JH3SsXCA8TGzBBr5I6hThw4GXD9Aaf4YQB4lGMnOIsw1FcaULyyAX17df7Wwohz1r/tG/eQPLf3zb2JKiD9k8cz+ut/VTrXuJZsCQtiQrOdMqMUYeAaCOfo9ZThCYbWPj8RD31SHm9oohBzRdI8Z12OntWJPZgemmV8mqUfeu54+WEaT4d9nMlxS9bHrqjH4aFxKa3khnQ46DPFjFfn4BDWI3UQG4YnqSGyF4nzxTEu+B5lPQngFXCWAGV/aDLJ2ckwYuEtc0xvDbqBNr1I6SdYe89J6C02aLm/o2tb5oP1ljWduzarEfckpiHyx75ZhFaKJ2ECYDxT71+9/jk0tn45UQDdumQ1yfyCEIGCfQYBzjp4X7UYZ3uILBoNVDRyrBLUIqlmQvzENWvndNsAEqZGBTnZgcbRQpNOE9Lyg8AgYPU2wFJGc6YST/wcsEzXX6LUpZmw2tWVsuvVMUAshZ9a/p9JfUadRoMmD8YOD/kjM5c7cgEIwXZ1tmGItijUm+/GYwLrKLKCCREoB9+8ReJisWtLfBcQg49g2+c06WgdngrWn/GAM4wVZlxT6xB0CyTDF3jbNTgl3xpS8i6YvT+LXKRVyhnjkKAjApdOnZbT7dDyXv3wnDrWpLjz+zSLI816UUYNHK1RJpjGmrvcXWNgLxeQjIWOCUbo3BP+kp6A8TePGyoru5HfrtHxkB5pugu2jz8gRX+z+6MGdYEVLJ4UZ1F3pefZMuraq6u1h9snOFKCntbLgvxR8R3CVx88zdXy702PDw4w2SlK6yX1NFXDafJlqA5PiylbuIoXCE6M3illG/oxVqOkmE5nEXu9pPil7J9/sXWlIeaMd1gAim8DBFuIy/1a2yw1B8Mg4Mr+ExxIOz2nmSHLRymdzTFoPYOu9UQgFCusT9QEEYaj48b2gXbkrPRHGaSLr0o0WAmBLhNxT7MoF7rhg4RCEwf9PXCX85bJgIJP2HnUxpkfKSUO4iPJ9V4/BAHLAH3tD5kVS5yxKb5eA8X3W9So7jP4QpNn8GEQxveH1pO+nUpQCuVlyFN9mibKRb+pBJEHYihsHDM2MO1mtyJm6KhtQZ5N9eIw35KhIpbCIinzZ/PMWaBvPqKZTvr7xEa8xrdYcpINuqh5o4aHRN1hY8FR23SuXI9zyXdb+82LXwefc9x4sindIU9OFEYS5WxcojQx9/cLo7OSX3td4BWHAKIGMK2/UybRkZadbegUljvZgeN14JrAJaLExU56X2ud7QV7bdujW53vJdKo0w8ladpivSzDA0Zm1ehlxzhnTREB2f1QTFNCwR7W6mtC7Cc9DGrJozjiCwhvCYGjqPEoc4WrKb/XaMSE46fdSUBNHB2wyk5atAzwVefnb0M3mKjNGRCWkWHz19jib3QC45nmYdfVyBNCNAlxC/l1Kn9RCVcQ71uh2Erw+Bn620NEgjiycin0eyX+T3jqLp6dKMZ6xsSH+L1ipHYJk3KHLjcYZ5GepdN4MzymZIqsD/eo87smXwoePlvoTI6n+V03nVuWhgT9fKkE73XlxAUojM3oqR7FOAUtUc5ZBvcep6Dh6pGum+HJT4oyzg9Rlg+OA7KV22aEU+C2Dh+90XygA0rgRl7hIicDeyMlx5Cb7I+spthJMPkcGzFsjG5X2d21EZJgP1JbCXJuXdvo11DSrHDfqTceM3CT74bFbJe7WWEDmS07hnyNn6koGOtE6KEAAJm6owTdRleS3Fw+Z9x9HqzKXBjK/mzWPlgnKwB6SrjF12W76UhfmgSSX2xKbjDsJieT/qZ3u+hnDdWmahzdSPoncabtO9zr6WC1UdiE/lJUBW0LezNtVLEFfTGZFkiCPndRQ9AnIaCfSrqCWNWb0PTBrLvasP0GRBTqz0joBB99856I6udV2QCYVP36vX0eSTZkiDRfg1ajqPy/ocQ7L01bCAW8B+MgPioR9+/06orLBUzIA1kGHViM422X4XV535JXSIj7f4oXclrbH0/AAYvwDQ0VIpTpJ78ryMev3JcuR1YUJba8HDSPur07vjmiiubregz0EBqifFtR6MRa89FQ7vEIYnLCDK6DA9Z3eOOfradxssWYAVqXV5YpKRIdsFsenFRa7O+mSwbt69tOr1nnKFqIY/FF++U/CtfoBxDtzG5f0fN7meJbpAtExJfZxNE2T5V9/QuUSrM3yHs9L3VUdhDEnhHaZQWEm1dhsfdTmkH/IaxESTsoxs6fQrkJZ6rUqIwL9+YpgXMFa9L/fAyT54L4h85+Rpg7lKhUO/aLqI6u7R9Cak5ys853NSBaRQLK0EN5PtloP6KnYFc8MVsVoc4mWjvkisW1j6zIKq/OqeLdBby/9/14vr//ii3//4jeGvx+hAVHvUKcsooSCmHOgSDTlm/uTxC+p9ArGmQt8VAQjlWaFlNpvGkAzkXrz5mrbVVOhSOOfUKLH5Nh0TqjnEofQqDTBujEmRxY+boJb8DfTK8jYytKFIFQ6TKaeqG6lPN4jCl2kNNOuE6Upw+fVr4naEsrsMfxSlPZC+SwjvgKKuPhtJL0JMq3W0aA5OOb1/IXNy5+vM2RI5rcCoe5j9PwtL43RE/QLjm9vbnfdOvOdpjMDIo48twjBOMxXKWOY2xRXEVDIVlf763pB87Thb9NmZmZ7pHHEf4maiysLkP5yla0rqryzQXFHo0YROpiZuCdPW6MPWAYD5d68n/jWUYjTy/zJDthfKKpx7n92mVOw1P1ntiak2zqN6Mc+hTB6sljXSbaquLGV/RDhcZPZdEjlbmYDl48FeXL9bawf3wkQ3GbnnvP3fFpf7VetISdA2Mhgfe8D+5jOUFlWBlN/ikRXeW87dNFsOBND1S0A5WX3ASinRzIPej/wfKWoi4uAdOA24RfwWKK0134k1gUHcamT5r8l1tU2/fVW0DGwoMVMdjcQzXq+7Afw4+fMPWy55wLFnCoDrVbT7ylgP+hAdqI1NKS0Y5JxxSFuCt+1OlowGnlldqomCNpsb82VSkqiNxgkfiKo8AijVqJrwxDPsGI14eVMyWcwDVawg+bccL768kE/Lic1uj4ZC5FS5SmcQfvS1q4x1c/ADyOL1PwgkMzrl8qAfkwNihQzCuCyKcMyWn4evQ56aBa7Rod9rRcS1OfD2o6BLf34VgLjmn0LtX/ymH30DIIWMlVzmUl1//Jl3/aZ6wxGxZPuNXY2nCJ8gkrU0i3D3Qcj058RAz0tsQCM4atXxMMy6T3oiAAk3mcubdUqTCb55E6cnIqieMoGYzC3p9aUiV7ZNIdDH9NvyzAJOAB9VRtHX9YY5J5o7ne+4yatfkkOQHKcDIcB1DTkcSOs8LchT9DGJWYv6r9IQQxTE8Y+Os68zIDRalQPLoFeIeqFeB+/0wsoUD+X2BVY2gzPT7iA6cOpyRrID+8g78o/mzY5pbrU+3z6yEMZ/xFtsi6NW2AMDtjmvh+q2a2TyX05LPwvgWO8XcBVMOg38FJH0493BghT3RACOxcXL2/FCrMV7JcpQXGOwbdqU9JT1sODTfTkmCbLB/qhHashrNw4lTHfp7B8NuyByAkcCtoo8jd2P/LWWLP6Gzjs3rDC97RyHZsEcNcukJuvdduuBuiYDdnvaEEAvbBvBIyIeoRKcccoEAwR08M8IVkhIFmVp78qjOkP/L9n3CYV+OLU7TN6z5YEuwtTSGqCSFrtck+3v4od7ZjvJLuc1o6h9QVzjltgl31GkiRd+NimAL/CKUoa486gEPGoCWVrjLT/rmOlPo8H3qZIBalgg20T7Rou/X5h+3x1iTCj1A/IdTipJSce0x2TYEkHUPUn8Dc9WkjHVpqjzdqJA+W2ZLf6fGGj4PlgA04vKHUvKkX3dzv6kyu60mGyA7ESlbLIqR01O0YxpAGav5T2Wtlu6PWl527ZpQKzh+htY7ZJMKllJymW52djbVzqPLmNnnM9OTNcquCZqwDry3IuiyvSMv5lwLrqmRrEhfXUAvIgK+Fb7XA97J+SnBA0QUrOMNtWkJl7bG+UTwzWdMCJEfoYNT+nc1wlzofQ0BxGjjMtxVgSJGB6mKgX0+nOzT+p2juFAtJODcZUG0BrlTl8vJYZR09hjw47c+TcLt4nvQFjtTF5TVm+MbOroKuRw1brW6QzWkyuFeLfb+qszAw4z7hSO1JAhgla0BtoYR7ZSqB19QBkSBVfqBtf8/NcxAbtQXeGR1rzzYXZeLYUESMJ56lhDk/Oy3MDCaBJXNNyV2G89ZhaFtyi0LMO9ok9tiHjBkhtEQkIqyOuU/YIHHvXPxeJ3foHUjBlyGHmKv/3mh7u9Xw3JhtvdRKutlvKqqswvqLbXSIRtJnvKXU7K6QZbsHOZrcilviCeUpKH+bj0bv8DAef1cWwohI6umS+iyyOyHaKM4GEEnOgPBLfesmMixftfI6hC9Y09+aKLx4YgRTozQLgDseTZQBcCcV1rReOHIO52r+iR2Iq7j5D5X2Z0ba9+Vgmh2OvEes0SvhWjLvamvpJ6ysRTprG7N0Eam8tKwvDz+NGzCJ3IXN6pWseN0uvll9+ucILSIIA7e8mGQXlWtNDk7UENw4cCwABFhgk0gzWuucvxH9CAK63kRJeDv85Nk52Z4SG9nLm0i26U0mPvhWbSArfpF/lBliF14pv+AyQw+0PG9iHRz++Ny+Yuu4QYDy97XDHRWgLqBVWf4nEO0XIiDTxU9IR7dsk3iJKnxgufq8qg9CDfaMhaW3HgdXELlQcLKLEd496Ehlahms15iHjrbqBDlUPdQY/txnb7qkgDdBWQ8Jt0LRwmOycMJZsn51OcJJteXSBG9Pt9PVYCBUKsgu3Q0pj0QPHAUR0keKKhQn9/bknijbazF4T3fsvgN2e32gWT8cNvxZYkI7fCzABURwwnViMNBUa1pog0vGrRmYj2/kCLm9h3URUrACITXBqDnRBELYh6mFiG38fBqAPJNmK76DDsBT25vfO7zkPo4Z33nO4DlfBpYNbv+8cQrG+FIdQx+kGfyNfz8UaztFTdCTGr5JfMbfbz+4nDfeNnTS/NoDfMwGM74d21j9KXb+JodfuMqt/8GfILJOxUjG5Pqvfs83OLVPQn8hNVDU+La62F47Y280tvJ54VYOO2tuoZxpGwMGX+q5CUo7EQNwWLsEmgFbXnYDSJ0ykCSLJgdbzLRbRDk2nVasaAUXJKC7KVXq/QgAaGh0Ob+AlhqAAEuIWsCX2mK6ryvnGCI8pCvir5t2gKRGZISZrM2q7GKv0HTcyXlBzjRokp44ikUng0SgB4Sj6+5DEpSBmkosRMR01OzB9+euTmqfLpc2e0sBZLHhT+YiabqW5kvsPuPaVavmwLtXp/jYEXMTYvUjPTZjCC2V9DUTWHLUH/W1TniN2iQqGKgmVrQTO8ulmNmN+VwUthFacCHXzJEqb1aNdNyTsRx8KYlCwHyMq6EB8Y9T5NxrKXlQK2jpMr/B9b6CgPzBGxL6CrXqxcJqT2pIchjB6wKPei3pq5eAxIMcwqc8SdDIbzlT43BowQFWd9SwEBnM6sfyMm/gW3X/kjqR/PpNfKavQjlntwzpYMP23kGzjSOz0jpUKCxuYB3hNF9SZTNrKmwXZ9tSWEButuUd1eF5hAAAYRR1kuy265ruZrKNX+B+dnmqGcFl3rJOl6Jbk4ggHKJPfay87Q5RJ77WXnaHKJPfay87Q5Q+OiJO9LgJn/swRnl9H1DfoNHdm8+ApsEDW+FyyGwQKMJJr4VdhQI7pKpS6vxnmHbKbS8RP8ew+vKRnxDQVny4VEEWDcwUhL2S7TcyxvgdD3npZSLA/msYlDEnuDMDiIU4Ri666V6Tt95zY6o4W/P7wU4vJ1ck1PZI1CG70v4J9tUiyN0F6XocepvNznhZ/wti0fUglBj0clja16oWIIujcI+f+0CrsskziNProzs06qQg0fxluI0uYWjpgzUHdJmK1Ag4w+65+XvykNc5stDyOhOHWzNKHOXLXDZ9YYDYCVNbzKFTx7OMJ+S21CBxyBV2lfIsozbUZOojWs0Rwzsp4wXjJgAAAAAAAAAYH/Bj8WK//xRb//8TcjFjX/8mC0iweWJvuY600dAw7HLMkgqZX2VsUXOjGEDR+QPW9qWOsmzxKCr/1Nrx/qbUo5P+BtBXdAU/wAAAAAAAAAAA+QKNPxa6+Hn7LiBztbmZeBCOTT0uKmqL1D//7xGFnoAAAAA" width="660" height="262" alt="無料カウンセリング予約はこちら" draggable="false">
+                                </a>
+                            </div>
+                            <ul class="mlc-cta-notes">
+                                <li>カウンセリングは<b>無料</b>。相談のみでも問題ありません</li>
+                                <li>完全プライベート空間・スタッフは<b>全員男性</b></li>
+                            </ul>
+                            <p class="mlc-disclaimer">※本セルフチェックは目安です。正確な診断は医師の診察により行います。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </span></div>
+
+    <!-- ===== 選ばれる理由（既存の解説を結果の下に集約） ===== -->
+    <div class="sb-custom"><span contenteditable="false">
+            <div class="sb-custom-part-mlc2reason">
+                <p class="mlc-sec-h">メンズライフクリニックが<br>選ばれる<b>3つの理由</b></p>
+                <div class="mlc-reason">
+                    <p class="mlc-reason-num">01</p>
+                    <p class="mlc-reason-h">ミリ単位で微調整する<br>「オーダーメイド」施術</p>
+                    <picture>
+                        <img loading="lazy" src="https://file.mysquadbeyond.com/lazy.png" alt="" draggable="false" data-src="https://file.mysquadbeyond.com/uploads/article_photo/photo/7130693/31096c58-8cb7-415c-a4ae-94cb605f9d66.png" class="lazyload">
+                    </picture>
+                    <p class="mlc-reason-p">皮の余り方や形状は一人ひとり異なります。機械的な一律の施術ではなく、熟練のスタッフが状態に合わせて調整。傷跡が<span class="mlc-mk">目立ちにくい</span>、<span class="mlc-mk">自然な仕上がり</span>を目指します。</p>
+                </div>
+                <div class="mlc-reason">
+                    <p class="mlc-reason-num">02</p>
+                    <p class="mlc-reason-h">周囲の目が気にならない<br>完全プライベート空間</p>
+                    <picture>
+                        <source type="image/webp" data-srcset="https://file.mysquadbeyond.com/uploads/article_photo/photo/7130726/a85943e2-8215-4c2c-a37d-8443a1793226.webp">
+                        <img loading="lazy" src="https://file.mysquadbeyond.com/lazy.png" alt="" draggable="false" data-src="https://file.mysquadbeyond.com/uploads/article_photo/photo/7130726/a85943e2-8215-4c2c-a37d-8443a1793226.jpg" class="lazyload">
+                    </picture>
+                    <p class="mlc-reason-p">周囲の目が一切気にならない<span class="mlc-mk">完全プライベート空間</span>を徹底。デリケートなお悩みも安心してご相談いただけます。</p>
+                </div>
+                <div class="mlc-reason">
+                    <p class="mlc-reason-num">03</p>
+                    <p class="mlc-reason-h">スタッフは<br>全員男性のみ</p>
+                    <picture>
+                        <source type="image/webp" data-srcset="https://file.mysquadbeyond.com/uploads/article_photo/photo/7130762/d87a6e7d-06ef-44d9-9e68-bb8269cedb2c.webp">
+                        <img loading="lazy" src="https://file.mysquadbeyond.com/lazy.png" alt="" draggable="false" data-src="https://file.mysquadbeyond.com/uploads/article_photo/photo/7130762/d87a6e7d-06ef-44d9-9e68-bb8269cedb2c.png" class="lazyload">
+                    </picture>
+                    <p class="mlc-reason-p">女性スタッフに見られる心配はありません。人には言いにくいお悩みも、<span class="mlc-mk">リラックスしてご相談</span>いただけます。</p>
+                </div>
+            </div>
+        </span></div>
+
+    <!-- ===== よくある不安（予約前の最後のブレーキを外す） ===== -->
+    <div class="sb-custom"><span contenteditable="false">
+            <div class="sb-custom-part-mlc2faq">
+                <p class="mlc-sec-h">よくあるご質問</p>
+                <details class="mlc-faq">
+                    <summary>セルフチェックは本当に無料ですか？</summary>
+                    <p>はい、無料です。3つの質問に答えるだけで、包茎タイプの目安をその場で表示します。</p>
+                </details>
+                <details class="mlc-faq">
+                    <summary>カウンセリングは無料ですか？</summary>
+                    <p>はい、無料です。診断結果をもとに、治療方法や費用についてご相談いただけます。</p>
+                </details>
+                <details class="mlc-faq">
+                    <summary>相談したら必ず治療しないといけませんか？</summary>
+                    <p>いいえ。ご相談のみでも問題ありません。内容をお聞きになってから、ゆっくりご検討ください。</p>
+                </details>
+                <details class="mlc-faq">
+                    <summary>無理に剥いて確認したほうがいいですか？</summary>
+                    <p>締め付けを感じる場合は重症化リスクの可能性があるため、無理に剥かないでください。今の状態のままお気軽にご相談ください。</p>
+                </details>
+                <a href="javascript:void(0)" class="mlc-start mlc-start--bottom" data-mlc-start draggable="false">
+                    <span class="mlc-start-main" data-mlc-start-label>30秒セルフチェックに答える</span>
+                    <span class="mlc-start-sub">あなたの<b>包茎タイプ</b>がその場で分かります</span>
+                </a>
+            </div>
+        </span></div>
+
+    <div><br></div>
+
+    <!-- ===== 追従バー（状態に応じて文言と遷移先が変わる） ===== -->
+    <div id="mlc-sticky" class="mlc-sticky">
+        <a href="javascript:void(0)" class="mlc-sticky-inner" id="mlc-sticky-link" data-mlc-place="sticky" draggable="false">
+            <span class="mlc-sticky-badge" id="mlc-sticky-badge">無料</span>
+            <span class="mlc-sticky-txt" id="mlc-sticky-txt"><span class="mlc-sticky-sec">30秒</span>セルフチェックを開始</span>
+            <span class="mlc-sticky-arr">▶</span>
+        </a>
+    </div>
+
+    <!-- ===== 離脱防止ポップアップ（状態に応じて文言が変わる） ===== -->
+    <div id="mlc-exit" class="mlc-exit">
+        <div class="mlc-exit-overlay" data-mlc-close></div>
+        <div class="mlc-exit-box">
+            <button type="button" class="mlc-exit-x" data-mlc-close aria-label="閉じる">×</button>
+            <p class="mlc-exit-h" id="mlc-exit-h">お悩みのまま<br>本当に大丈夫ですか？</p>
+            <p class="mlc-exit-p" id="mlc-exit-p">今なら<b>たった30秒のセルフチェック</b>で<br>あなたの<b class="mlc-r">包茎タイプ</b>を<br>その場で確認できます。</p>
+            <a href="javascript:void(0)" class="mlc-exit-cta" id="mlc-exit-cta" data-mlc-place="exit" draggable="false">無料でセルフチェックを受ける</a>
+            <button type="button" class="mlc-exit-no" data-mlc-close>今回は見送る</button>
+        </div>
+    </div>
+</div>
+<script>
+// LPのCSS（CSS欄が反映されない場合の保険。2_css.css を圧縮したもの。CSS欄が効いていれば同じ内容なので二重でも問題なし）
+(function() {
+    if (document.getElementById("mlc-lp-css")) return;
+    var s = document.createElement("style");
+    s.id = "mlc-lp-css";
+    s.appendChild(document.createTextNode(".lp-root{font-family:\"Hiragino Sans\",\"Hiragino Kaku Gothic ProN\",\"Yu Gothic\",Arial,sans-serif;color:#010e23;font-size:17px;line-height:1.8;padding:0 15px;background:#fff}.lp-root *{box-sizing:border-box}.lp-root img,.lp-root picture,.lp-root source{max-width:100%}.lp-root img{display:inline;height:auto;margin:0}.lp-root p,.lp-root ul{margin:0}.lp-root a{text-decoration:none}.lp-root button{font:inherit;-webkit-tap-highlight-color:transparent}.lp-root .lp-fv{margin:0 -15px}.lp-root .lp-fv img{display:block;width:100%;max-width:none}.lp-root .mlc-chips{list-style:none;display:flex;justify-content:center;flex-wrap:wrap;gap:6px;padding:14px 0 12px}.lp-root .mlc-chips li{padding:4px 10px;border:1.5px solid #1a3a6b;border-radius:999px;font-size:13px;font-weight:700;color:#1a3a6b;line-height:1.4;background:#fff}.lp-root .mlc-chips b{color:#E5484D}.lp-root .mlc-start{position:relative;display:flex;flex-direction:column;align-items:center;width:100%;max-width:520px;margin:0 auto;padding:12px 44px;border-radius:999px;border:3px solid #fff7e6;background:linear-gradient(180deg,#ffb347 0%,#ff8c00 45%,#ff6a00 100%);box-shadow:0 6px 0 rgba(190,80,0,.4),0 10px 18px rgba(0,0,0,.2);text-align:center;overflow:hidden}.lp-root .mlc-start::before{content:\"▼\";position:absolute;right:18px;top:50%;transform:translateY(-50%);color:#fff;font-size:14px}.lp-root .mlc-start::after{content:\"\";position:absolute;top:-10%;left:-75%;width:35%;height:120%;background:linear-gradient(75deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.7) 50%,rgba(255,255,255,0) 100%);transform:skewX(-20deg);animation:mlcShine 3s ease-in-out infinite;pointer-events:none}.lp-root .mlc-start-main{color:#fff;font-size:21px;font-weight:800;line-height:1.3;text-shadow:0 2px 3px rgba(150,60,0,.5)}.lp-root .mlc-start-sub{margin-top:2px;color:#fff;font-size:13px;font-weight:700;line-height:1.4}.lp-root .mlc-start-sub b{color:#ffe94d}.lp-root .mlc-start--bottom{margin-top:28px}.lp-root .mlc-start--bottom::before{content:\"▶\"}.lp-root .mlc-worry{margin:22px 0 0;border:3px solid #1a3a6b;border-radius:12px;overflow:hidden}.lp-root .mlc-worry-h{padding:10px 12px;background:#1a3a6b;color:#fff;font-size:17px;font-weight:700;text-align:center}.lp-root .mlc-worry-list{list-style:none;padding:8px 12px 4px}.lp-root .mlc-worry-list li + li{border-top:1px solid #e6e9ef}.lp-root .mlc-worry-list button{display:flex;align-items:flex-start;gap:10px;width:100%;padding:12px 4px;border:none;background:none;color:#1a1a1a;font-size:15px;font-weight:700;line-height:1.6;text-align:left;cursor:pointer}.lp-root .mlc-worry-list button::before{content:\"\";flex-shrink:0;width:24px;height:24px;margin-top:1px;border:2.5px solid #1a3a6b;border-radius:4px;background:#fff center/16px no-repeat}.lp-root .mlc-worry-list button.is-on::before{background-color:#E5484D;border-color:#E5484D;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.5'%3E%3Cpolyline points='5 13 10 18 19 7'/%3E%3C/svg%3E\")}.lp-root .mlc-worry-result{padding:12px 12px 14px;background:#fff8d6;font-size:15px;font-weight:700;text-align:center;line-height:1.6}.lp-root .mlc-worry-result b{color:#E5484D}.lp-root .mlc-quiz{max-width:520px;margin:26px auto 0;padding:0 0 22px;border:2px solid #BBD6F8;border-radius:20px;background:#F2F8FE;box-shadow:0 8px 20px rgba(47,111,237,.1);overflow:hidden;scroll-margin-top:10px}.lp-root .mlc-quiz-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 16px;background:#2F6FED;color:#fff}.lp-root .mlc-quiz-title{font-size:15px;white-space:nowrap;font-weight:800}.lp-root .mlc-quiz-gift{padding:2px 10px;border-radius:999px;background:#fff;color:#E5484D;font-size:12px;font-weight:700;white-space:nowrap}.lp-root .mlc-quiz-gift b{font-size:15px}.lp-root .mlc-progress{height:10px;margin:16px 18px 0;border-radius:999px;background:#DCE6F5;overflow:hidden}.lp-root .mlc-progress-bar{width:10%;height:100%;border-radius:999px;background:linear-gradient(90deg,#2F6FED,#22b8f0);transition:width .4s ease}.lp-root .mlc-progress-txt{margin-top:4px;font-size:13px;font-weight:700;color:#2F6FED;text-align:center}.lp-root .mlc-progress-txt b{color:#E5484D;font-size:15px}.lp-root .mlc-step{display:none;padding:12px 18px 0;text-align:center}.lp-root .mlc-step.is-active{display:block;animation:mlcSlide .3s ease}.lp-root .mlc-q-num{font-size:36px;font-weight:900;color:#2F6FED;line-height:1.2}.lp-root .mlc-q-num span{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:4px;background:#E5484D;color:#fff;font-size:13px;vertical-align:middle}.lp-root .mlc-q-text{margin:8px 0 22px;font-size:21px;font-weight:700;line-height:1.5;color:#222}.lp-root .mlc-ans{display:flex;gap:12px}.lp-root .mlc-ans--col{flex-direction:column;gap:10px}.lp-root .mlc-ans-btn{flex:1;min-height:60px;padding:12px 8px;border:2px solid #2F6FED;border-radius:12px;background:#fff;box-shadow:0 4px 0 #BBD6F8;color:#1a3a6b;font-size:19px;font-weight:700;line-height:1.3;cursor:pointer;transition:transform .08s ease,box-shadow .08s ease}.lp-root .mlc-ans-btn:active,.lp-root .mlc-ans-btn.is-selected{transform:translateY(3px);box-shadow:0 1px 0 #BBD6F8;background:#2F6FED;color:#fff}.lp-root .mlc-back{margin-top:14px;border:none;background:none;color:#6b7a90;font-size:13px;text-decoration:underline;cursor:pointer}.lp-root .mlc-loading{padding:34px 0 20px;font-size:16px;font-weight:700;color:#1a3a6b;line-height:1.6}.lp-root .mlc-spinner{display:block;width:44px;height:44px;margin:0 auto 14px;border:5px solid #DCE6F5;border-top-color:#2F6FED;border-radius:50%;animation:mlcSpin .8s linear infinite}.lp-root .mlc-result-label{display:inline-block;padding:2px 14px;border-radius:999px;background:#1a3a6b;color:#fff;font-size:13px;font-weight:700}.lp-root .mlc-level{margin:12px 0 0;padding:0 0 16px;border:3px solid #E5484D;border-radius:14px;background:#fff;box-shadow:0 6px 18px rgba(229,72,77,.25);overflow:hidden}.lp-root .mlc-level-h{padding:10px 8px 12px;background:linear-gradient(90deg,#E5484D 0%,#ff7a00 100%);color:#fff;font-weight:900;line-height:1.25;letter-spacing:.03em;text-shadow:0 2px 0 rgba(120,0,0,.35)}.lp-root .mlc-level-h-you{display:block;font-size:17px}.lp-root .mlc-level-h-main{display:block;font-size:30px;white-space:nowrap}.lp-root .mlc-level-h-sub{display:block;margin-bottom:2px;color:#ffe94d;font-size:13px;letter-spacing:.05em}.lp-root .mlc-type{margin:14px 12px 0;padding:16px 10px 18px;border-radius:10px;background:#fff4f4;line-height:1.2}.lp-root .mlc-type-sub{font-size:13px;font-weight:700;color:#7a1a00}.lp-root .mlc-type-name{display:block;margin-top:4px;font-size:40px;font-weight:900;color:#E5484D;letter-spacing:.04em;white-space:nowrap;animation:mlcPopIn .4s ease}.lp-root .mlc-type-note{margin-top:8px;font-size:12px;color:#888}.lp-root .mlc-result-desc{margin-top:14px;font-size:15px;line-height:1.8;text-align:left;color:#222}.lp-root .mlc-result-warn:empty,.lp-root .mlc-result-concern:empty{display:none}.lp-root .mlc-result-warn{margin-top:10px;padding:10px 12px;border-left:4px solid #E5484D;background:#fff0f0;font-size:14px;font-weight:700;color:#b42318;line-height:1.6;text-align:left}.lp-root .mlc-result-concern{margin-top:10px;font-size:14px;line-height:1.7;text-align:left;color:#222}.lp-root .mlc-result-concern b,.lp-root .mlc-mk{background:linear-gradient(transparent 62%,#FFF176 62%);font-weight:700}.lp-root .mlc-cta-lead{margin-top:18px;font-size:15px;font-weight:800;color:#E5484D;animation:mlcBlink 1.4s ease-in-out infinite}.lp-root .mlc-cta-wrap{margin-top:6px}.lp-root .mlc-cta-btn{display:block;line-height:0;animation:mlcFloat 2.2s ease-in-out infinite}.lp-root .mlc-cta-btn img{display:block;width:100%;margin:0 auto}.lp-root .mlc-cta-notes{list-style:none;margin-top:10px;padding:0;text-align:left}.lp-root .mlc-cta-notes li{position:relative;padding-left:20px;font-size:13px;line-height:1.6;color:#444}.lp-root .mlc-cta-notes li + li{margin-top:4px}.lp-root .mlc-cta-notes li::before{content:\"✓\";position:absolute;left:2px;color:#ff6a00;font-weight:900}.lp-root .mlc-disclaimer{margin-top:12px;font-size:11px;color:#888;line-height:1.6;text-align:left}.lp-root .mlc-sec-h{margin:44px 0 16px;font-size:21px;font-weight:800;color:#1a3a6b;text-align:center;line-height:1.5}.lp-root .mlc-sec-h b{color:#E5484D}.lp-root .mlc-reason{margin-top:16px;padding:18px 16px;border-radius:14px;background:#F2F8FE;text-align:center}.lp-root .mlc-reason-num{font-size:28px;font-weight:900;color:#2F6FED;line-height:1}.lp-root .mlc-reason-h{margin:8px 0 12px;font-size:18px;font-weight:800;color:#1a3a6b;line-height:1.5}.lp-root .mlc-reason img{display:block;width:100%;border-radius:8px}.lp-root .mlc-reason-p{margin-top:12px;font-size:15px;line-height:1.8;text-align:left}.lp-root .mlc-faq{margin-top:10px;border:1.5px solid #DCE3EE;border-radius:10px;background:#fff}.lp-root .mlc-faq summary{position:relative;padding:12px 36px 12px 40px;font-size:15px;font-weight:700;line-height:1.5;list-style:none;cursor:pointer}.lp-root .mlc-faq summary::-webkit-details-marker{display:none}.lp-root .mlc-faq summary::before{content:\"Q\";position:absolute;left:14px;top:11px;color:#2F6FED;font-weight:900}.lp-root .mlc-faq summary::after{content:\"+\";position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#2F6FED;font-size:20px;font-weight:700}.lp-root .mlc-faq[open] summary::after{content:\"−\"}.lp-root .mlc-faq p{padding:0 14px 14px 40px;font-size:14px;line-height:1.7;color:#333}.mlc-sticky{position:fixed;left:50%;bottom:0;transform:translateX(-50%) translateY(130%);width:100%;max-width:620px;padding:8px 12px calc(8px + env(safe-area-inset-bottom));z-index:99998;transition:transform .35s ease;pointer-events:none;box-sizing:border-box}.mlc-sticky.show{transform:translateX(-50%) translateY(0);pointer-events:auto}.mlc-sticky-inner{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:56px;padding:8px 44px 8px 12px;border-radius:40px;border:2px solid #fff;background:linear-gradient(180deg,#ffb347 0%,#ff8c00 45%,#ff6a00 100%);box-shadow:0 4px 0 rgba(190,80,0,.4);text-decoration:none !important;overflow:hidden;box-sizing:border-box}.mlc-sticky.is-cta .mlc-sticky-inner{animation:mlcFloat 2.4s ease-in-out infinite}.mlc-sticky-inner::after{content:\"\";position:absolute;top:-10%;left:-60%;width:35%;height:120%;background:linear-gradient(75deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.65) 50%,rgba(255,255,255,0) 100%);transform:skewX(-20deg);animation:mlcShine 3s ease-in-out infinite;pointer-events:none}.mlc-sticky-badge{flex-shrink:0;display:flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:#E5484D;color:#fff;font-size:13px;font-weight:800;line-height:1.1;text-align:center}.mlc-sticky-txt{color:#fff;font-size:17px;font-weight:800;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.35)}.mlc-sticky-sec{color:#ffe94d}.mlc-sticky-arr{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#fff;color:#ff6a00;font-size:12px}.mlc-exit{position:fixed;inset:0;z-index:99999;display:none}.mlc-exit.show{display:block}.mlc-exit-overlay{position:absolute;inset:0;background:rgba(0,0,0,.6)}.mlc-exit-box{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:90%;max-width:380px;padding:28px 22px 18px;border-radius:18px;background:#fff;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.4);animation:mlcPop .25s ease;box-sizing:border-box}.mlc-exit-x{position:absolute;top:8px;right:12px;width:30px;height:30px;border:none;background:none;color:#888;font-size:24px;line-height:1;cursor:pointer}.mlc-exit-h{margin:0 0 14px;font-size:22px;font-weight:800;color:#1a3a6b;line-height:1.4}.mlc-exit-p{margin:0 0 20px;font-size:15px;color:#333;line-height:1.8}.mlc-exit-p b{font-weight:800}.mlc-exit-p .mlc-r{color:#E5484D}.mlc-exit-cta{display:block;width:100%;padding:15px 10px;border-radius:40px;background:linear-gradient(180deg,#ffb347 0%,#ff8c00 45%,#ff6a00 100%);box-shadow:0 5px 0 rgba(190,80,0,.4);color:#fff;font-size:18px;font-weight:800;text-decoration:none !important;text-shadow:0 1px 2px rgba(0,0,0,.3);box-sizing:border-box}.mlc-exit-no{display:inline-block;margin-top:14px;border:none;background:none;color:#999;font-size:13px;text-decoration:underline;cursor:pointer}@keyframes mlcShine{0%{left:-75%}25%{left:125%}100%{left:125%}}@keyframes mlcFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}@keyframes mlcSlide{0%{opacity:0;transform:translateX(24px)}100%{opacity:1;transform:translateX(0)}}@keyframes mlcSpin{100%{transform:rotate(360deg)}}@keyframes mlcBlink{0%,100%{opacity:1}50%{opacity:.45}}@keyframes mlcPopIn{0%{opacity:0;transform:scale(.6)}70%{transform:scale(1.1)}100%{opacity:1;transform:scale(1)}}@keyframes mlcPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.9)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}@media (max-width:360px){.lp-root .mlc-start-main{font-size:19px}.lp-root .mlc-q-text{font-size:19px}.lp-root .mlc-level-h-main{font-size:26px}.lp-root .mlc-type-name{font-size:34px}.mlc-sticky-txt{font-size:15px}}@media (prefers-reduced-motion:reduce){.lp-root *,.mlc-sticky *,.mlc-exit *{animation:none !important;transition:none !important}}"));
+    (document.head || document.documentElement).appendChild(s);
+})();
+
+function mlcInit() {
+    // 無料カウンセリング予約フォーム（CTAの遷移先）
+    var CONTACT_URL = "https://www.mens-life-clinic.com/w/inquiry/contact_z/";
+
+    // 結果画面の文言（医療広告ガイドラインに配慮し「目安」で表現）
+    // 分岐：Q1「剥くことができない」→真性 / Q1「剥くことができる」かつ Q2「強い締め付け・痛み」→カントン / それ以外→仮性
+    var RESULTS = {
+        kasei: {
+            name: "仮性包茎",
+            desc: "普段は皮がかぶっていても剥くことができ、締め付けもない状態です。皮の余り方や形状は一人ひとり異なり、ニオイや見た目など、日常のお悩みにつながることもあります。メンズライフクリニックでは、ミリ単位で微調整する<b class=\"mlc-mk\">オーダーメイド施術</b>で、自然な仕上がりを目指します。",
+            warn: ""
+        },
+        kanton: {
+            name: "カントン包茎",
+            desc: "剥くことはできるものの、露茎した際に締め付けや痛みがある状態です。<b class=\"mlc-mk\">重症化リスクの可能性</b>があるため、メンズライフクリニックでは一人ひとりの締め付け状況に応じて緻密な計算をして治療します。",
+            warn: "無理に剥かないようにしてください。"
+        },
+        shinsei: {
+            name: "真性包茎",
+            desc: "普段、皮を剥くことができない状態です。ご自身での対処が難しく、衛生面や病気のリスクにも関わるケースです。皮の状態は一人ひとり異なるため、<b class=\"mlc-mk\">今の状態のまま</b>お気軽にご相談ください。",
+            warn: "無理に剥かないようにしてください。"
+        }
+    };
+
+    var CONCERNS = {
+        smell: "臭いが気になる",
+        confidence: "自信を持てない",
+        disease: "病気のリスク",
+        pe: "早漏を改善したい"
+    };
+
+    var STORE_KEY = "mlc_selfcheck_v3";
+    var state = { q1: null, q2: null, q3: null, done: false };
+    var trail = [];
+    var current = "1";
+    var busy = false; // 連打による二重遷移を防ぐ
+
+    var quiz = document.getElementById("survey-wrapper");
+    if (!quiz) return;
+
+    function track(name, extra) {
+        try {
+            window.dataLayer = window.dataLayer || [];
+            var ev = { event: name, mlc_segment: state.done ? getSegment() : null };
+            for (var k in extra) ev[k] = extra[k];
+            window.dataLayer.push(ev);
+        } catch (e) {}
+    }
+
+    function save() {
+        try { sessionStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+    }
+
+    function load() {
+        try {
+            var s = JSON.parse(sessionStorage.getItem(STORE_KEY) || "null");
+            if (s && s.done) state = s;
+        } catch (e) {}
+    }
+
+    function getSegment() {
+        if (state.q1 === "no") return "shinsei"; // 真性（剥けない）
+        if (state.q1 === "yes" && state.q2 === "yes") return "kanton"; // カントン（締付・痛みあり）
+        return "kasei"; // 仮性（締付なし）
+    }
+
+    // 流入時のクエリパラメータ（utm等）を予約フォームのURLへ引き継ぐ
+    function buildCtaUrl() {
+        try {
+            var url = new URL(CONTACT_URL);
+            new URLSearchParams(location.search).forEach(function(v, k) {
+                if (k === "step_uid" || k === "sb_tu_id") return;
+                if (!url.searchParams.has(k)) url.searchParams.append(k, v);
+            });
+            return url.toString();
+        } catch (e) {
+            return CONTACT_URL;
+        }
+    }
+
+    function remaining() {
+        if (current === "1") return 3;
+        if (current === "2") return 2;
+        if (current === "3") return 1;
+        return 0;
+    }
+
+    function setProgress() {
+        var bar = document.getElementById("mlc-progress-bar");
+        var txt = document.getElementById("mlc-progress-txt");
+        var pct = { "1": 10, "2": 45, "3": 75, loading: 95, result: 100 }[current];
+        if (bar) bar.style.width = pct + "%";
+        if (!txt) return;
+        if (current === "result") txt.innerHTML = "<b>回答完了！</b>結果が出ました";
+        else if (current === "loading") txt.innerHTML = "判定中…";
+        else if (current === "3") txt.innerHTML = "<b>あと1問</b>で結果が出ます";
+        else txt.innerHTML = "あと<b>" + remaining() + "問</b>で結果が出ます";
+    }
+
+    function show(step) {
+        var steps = quiz.querySelectorAll("[data-mlc-step]");
+        for (var i = 0; i < steps.length; i++) {
+            steps[i].classList.toggle("is-active", steps[i].getAttribute("data-mlc-step") === step);
+        }
+        current = step;
+        setProgress();
+        updateSticky();
+    }
+
+    function scrollToQuiz(force) {
+        var r = quiz.getBoundingClientRect();
+        if (force || r.top < 0 || r.top > window.innerHeight * 0.35) {
+            quiz.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }
+
+    function renderResult() {
+        var seg = getSegment();
+        var res = RESULTS[seg];
+        setText("mlc-result-type", res.name);
+        document.getElementById("mlc-result-desc").innerHTML = res.desc;
+        document.getElementById("mlc-result-warn").textContent = res.warn;
+        var c = CONCERNS[state.q3];
+        document.getElementById("mlc-result-concern").innerHTML = c ?
+            "あなたのお悩み：<b>" + c + "</b><br>包茎の状態とあわせて、無料カウンセリングでお気軽にご相談ください。" : "";
+        var url = buildCtaUrl();
+        var links = document.querySelectorAll(".js-cta-link");
+        for (var j = 0; j < links.length; j++) links[j].setAttribute("href", url);
+    }
+
+    function finish() {
+        show("loading");
+        scrollToQuiz(false);
+        setTimeout(function() {
+            state.done = true;
+            save();
+            renderResult();
+            setCtaMode();
+            show("result");
+            scrollToQuiz(true);
+            track("mlc_result_view", { mlc_concern: state.q3 });
+        }, 1200);
+    }
+
+    function answer(btn) {
+        if (busy) return;
+        busy = true;
+        var q = btn.getAttribute("data-q");
+        var v = btn.getAttribute("data-v");
+        var sibs = btn.parentElement.querySelectorAll(".mlc-ans-btn");
+        for (var i = 0; i < sibs.length; i++) sibs[i].classList.remove("is-selected");
+        btn.classList.add("is-selected");
+        state[q] = v;
+        track("mlc_answer_" + q, { mlc_value: v });
+
+        setTimeout(function() {
+            busy = false;
+            trail.push(current);
+            if (q === "q1") {
+                // どの回答でも Q1→Q2→Q3 の順に進む（判定は Q1「剥くことができない」なら Q2 に関係なく真性）
+                show("2");
+                scrollToQuiz(false);
+            } else if (q === "q2") {
+                show("3");
+                scrollToQuiz(false);
+            } else {
+                finish();
+            }
+        }, 220);
+    }
+
+    function back() {
+        if (busy) return;
+        var prev = trail.pop();
+        if (prev) {
+            show(prev);
+            scrollToQuiz(false);
+        }
+    }
+
+    // ===== 追従バー ＆ 離脱ポップアップ =====
+    var bar = document.getElementById("mlc-sticky");
+    var stickyLink = document.getElementById("mlc-sticky-link");
+    var exitBox = document.getElementById("mlc-exit");
+    var exitCta = document.getElementById("mlc-exit-cta");
+
+    function setCtaMode() {
+        // 結果表示後は、追従バー・ポップアップから直接予約フォームへ
+        var url = buildCtaUrl();
+        var name = RESULTS[getSegment()].name;
+        [stickyLink, exitCta].forEach(function(a) {
+            if (!a) return;
+            a.setAttribute("href", url);
+            a.classList.add("js-cta-link", "_unTrackingLink_a5of4_150");
+        });
+        if (bar) bar.classList.add("is-cta");
+        var badge = document.getElementById("mlc-sticky-badge");
+        if (badge) badge.innerHTML = "無料";
+        var labels = document.querySelectorAll("[data-mlc-start-label]");
+        for (var i = 0; i < labels.length; i++) labels[i].textContent = "診断結果を確認する";
+        setText("mlc-sticky-txt", "<span class=\"mlc-sticky-sec\">無料</span>カウンセリングを予約する");
+        setText("mlc-exit-h", "お悩みのまま<br>戻りますか？");
+        setText("mlc-exit-p", "診断結果は<b class=\"mlc-r\">" + name + "</b>でした。<br>まずは<b>無料カウンセリング</b>で<br>今の状態をご相談ください。");
+        setText("mlc-exit-cta", "無料カウンセリングを予約する");
+    }
+
+    function setText(id, html) {
+        var el = document.getElementById(id);
+        if (el) el.innerHTML = html;
+    }
+
+    function updateSticky() {
+        if (!bar) return;
+        if (!state.done) {
+            var n = remaining();
+            if (current === "1") {
+                // Q1に戻ったときは初期文言に戻す
+                setText("mlc-sticky-txt", "<span class=\"mlc-sticky-sec\">30秒</span>セルフチェックを開始");
+                setText("mlc-exit-h", "お悩みのまま<br>本当に大丈夫ですか？");
+                setText("mlc-exit-p", "今なら<b>たった30秒のセルフチェック</b>で<br>あなたの<b class=\"mlc-r\">包茎タイプ</b>を<br>その場で確認できます。");
+                setText("mlc-exit-cta", "無料でセルフチェックを受ける");
+            } else if (n > 0) {
+                setText("mlc-sticky-txt", "続きから回答する<span class=\"mlc-sticky-sec\">（あと" + n + "問）</span>");
+                setText("mlc-exit-h", "あと" + n + "問で<br>結果が出ます！");
+                setText("mlc-exit-p", "ここでやめるのはもったいない！<br>回答を終えると<br>あなたの<b class=\"mlc-r\">包茎タイプ</b>が<br>その場で分かります。");
+                setText("mlc-exit-cta", "続きから回答する");
+            }
+        }
+        onScroll();
+    }
+
+    function onScroll() {
+        if (!bar) return;
+        var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+        var show = y > 300;
+        var target = state.done ? document.getElementById("contact-cta") : quiz;
+        if (target) {
+            var r = target.getBoundingClientRect();
+            if (r.top < window.innerHeight * 0.9 && r.bottom > 0) show = false;
+        }
+        bar.classList.toggle("show", show);
+    }
+
+    function closeExit() {
+        if (exitBox) exitBox.classList.remove("show");
+    }
+
+    var exitShown = false;
+    try { window.history.pushState({ mlc: 1 }, "", location.href); } catch (e) {}
+    window.addEventListener("popstate", function() {
+        if (exitShown || !exitBox) return;
+        exitBox.classList.add("show");
+        exitShown = true;
+        track("mlc_exit_popup", {});
+        try { window.history.pushState({ mlc: 1 }, "", location.href); } catch (e) {}
+    });
+
+    // ===== クリック処理（イベント委譲） =====
+    document.addEventListener("click", function(e) {
+        var t = e.target.closest ? e.target : e.target.parentElement;
+        if (!t || !t.closest) return;
+        var el;
+
+        if ((el = t.closest(".js-cta-link"))) {
+            // 予約フォームへ遷移（CV計測）
+            try { twq("event", "tw-omfcg-rd72l", {}); } catch (err) {}
+            track("mlc_cta_click", { mlc_place: el.getAttribute("data-mlc-place") || "" });
+            closeExit();
+            return;
+        }
+        if ((el = t.closest("[data-mlc-answer]"))) { answer(el); return; }
+        if (t.closest("[data-mlc-back]")) { back(); return; }
+        if (t.closest("[data-mlc-start]") || t.closest("#mlc-sticky-link") || t.closest("#mlc-exit-cta")) {
+            e.preventDefault();
+            closeExit();
+            scrollToQuiz(true);
+            track("mlc_start_click", {});
+            return;
+        }
+        if (t.closest("[data-mlc-close]")) { closeExit(); return; }
+        if ((el = t.closest("[data-mlc-worry]"))) {
+            el.classList.toggle("is-on");
+            var n = document.querySelectorAll("[data-mlc-worry].is-on").length;
+            var box = document.getElementById("mlc-worry-result");
+            if (box) {
+                box.innerHTML = n > 0 ?
+                    "<b>" + n + "つ</b>当てはまりました。<br>下の<b>3問セルフチェック</b>で包茎タイプを確認しましょう" :
+                    "1つでも当てはまるなら、<br><b>3問のセルフチェック</b>で包茎タイプを確認しましょう";
+            }
+        }
+    });
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+
+    // 予約フォームから戻ってきた方には結果をそのまま表示
+    load();
+    if (state.done) {
+        renderResult();
+        setCtaMode();
+        show("result");
+    } else {
+        show("1");
+    }
+}
+// JS Body が HTML より先に読み込まれても動くように、DOM構築後に初期化
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mlcInit);
+else mlcInit();
+</script>
