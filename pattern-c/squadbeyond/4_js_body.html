@@ -1,0 +1,310 @@
+<script>
+function mlcInit() {
+    // 無料カウンセリング予約フォーム（CTAの遷移先）
+    var CONTACT_URL = "https://www.mens-life-clinic.com/w/inquiry/contact_z/";
+
+    // 結果画面の文言（医療広告ガイドラインに配慮し「目安」で表現）
+    // 分岐：Q1「剥くことができない」→真性 / Q1「剥くことができる」かつ Q2「強い締め付け・痛み」→カントン / それ以外→仮性
+    var RESULTS = {
+        kasei: {
+            name: "仮性包茎",
+            desc: "普段は皮がかぶっていても剥くことができ、締め付けもない状態です。皮の余り方や形状は一人ひとり異なり、ニオイや見た目など、日常のお悩みにつながることもあります。メンズライフクリニックでは、ミリ単位で微調整する<b class=\"mlc-mk\">オーダーメイド施術</b>で、自然な仕上がりを目指します。",
+            warn: ""
+        },
+        kanton: {
+            name: "カントン包茎",
+            desc: "剥くことはできるものの、露茎した際に締め付けや痛みがある状態です。<b class=\"mlc-mk\">重症化リスクの可能性</b>があるため、メンズライフクリニックでは一人ひとりの締め付け状況に応じて緻密な計算をして治療します。",
+            warn: "無理に剥かないようにしてください。"
+        },
+        shinsei: {
+            name: "真性包茎",
+            desc: "普段、皮を剥くことができない状態です。ご自身での対処が難しく、衛生面や病気のリスクにも関わるケースです。皮の状態は一人ひとり異なるため、<b class=\"mlc-mk\">今の状態のまま</b>お気軽にご相談ください。",
+            warn: "無理に剥かないようにしてください。"
+        }
+    };
+
+    var CONCERNS = {
+        smell: "臭いが気になる",
+        confidence: "自信を持てない",
+        disease: "病気のリスク",
+        pe: "早漏を改善したい"
+    };
+
+    var STORE_KEY = "mlc_selfcheck_v3";
+    var state = { q1: null, q2: null, q3: null, done: false };
+    var trail = [];
+    var current = "1";
+    var busy = false; // 連打による二重遷移を防ぐ
+
+    var quiz = document.getElementById("survey-wrapper");
+    if (!quiz) return;
+
+    function track(name, extra) {
+        try {
+            window.dataLayer = window.dataLayer || [];
+            var ev = { event: name, mlc_segment: state.done ? getSegment() : null };
+            for (var k in extra) ev[k] = extra[k];
+            window.dataLayer.push(ev);
+        } catch (e) {}
+    }
+
+    function save() {
+        try { sessionStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+    }
+
+    function load() {
+        try {
+            var s = JSON.parse(sessionStorage.getItem(STORE_KEY) || "null");
+            if (s && s.done) state = s;
+        } catch (e) {}
+    }
+
+    function getSegment() {
+        if (state.q1 === "no") return "shinsei"; // 真性（剥けない）
+        if (state.q1 === "yes" && state.q2 === "yes") return "kanton"; // カントン（締付・痛みあり）
+        return "kasei"; // 仮性（締付なし）
+    }
+
+    // 流入時のクエリパラメータ（utm等）を予約フォームのURLへ引き継ぐ
+    function buildCtaUrl() {
+        try {
+            var url = new URL(CONTACT_URL);
+            new URLSearchParams(location.search).forEach(function(v, k) {
+                if (k === "step_uid" || k === "sb_tu_id") return;
+                if (!url.searchParams.has(k)) url.searchParams.append(k, v);
+            });
+            return url.toString();
+        } catch (e) {
+            return CONTACT_URL;
+        }
+    }
+
+    function remaining() {
+        if (current === "1") return 3;
+        if (current === "2") return 2;
+        if (current === "3") return 1;
+        return 0;
+    }
+
+    function setProgress() {
+        var bar = document.getElementById("mlc-progress-bar");
+        var txt = document.getElementById("mlc-progress-txt");
+        var pct = { "1": 10, "2": 45, "3": 75, loading: 95, result: 100 }[current];
+        if (bar) bar.style.width = pct + "%";
+        if (!txt) return;
+        if (current === "result") txt.innerHTML = "<b>回答完了！</b>結果が出ました";
+        else if (current === "loading") txt.innerHTML = "判定中…";
+        else if (current === "3") txt.innerHTML = "<b>あと1問</b>で結果が出ます";
+        else txt.innerHTML = "あと<b>" + remaining() + "問</b>で結果が出ます";
+    }
+
+    function show(step) {
+        var steps = quiz.querySelectorAll("[data-mlc-step]");
+        for (var i = 0; i < steps.length; i++) {
+            steps[i].classList.toggle("is-active", steps[i].getAttribute("data-mlc-step") === step);
+        }
+        current = step;
+        setProgress();
+        updateSticky();
+    }
+
+    function scrollToQuiz(force) {
+        var r = quiz.getBoundingClientRect();
+        if (force || r.top < 0 || r.top > window.innerHeight * 0.35) {
+            quiz.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }
+
+    function renderResult() {
+        var seg = getSegment();
+        var res = RESULTS[seg];
+        setText("mlc-result-type", res.name);
+        document.getElementById("mlc-result-desc").innerHTML = res.desc;
+        document.getElementById("mlc-result-warn").textContent = res.warn;
+        var c = CONCERNS[state.q3];
+        document.getElementById("mlc-result-concern").innerHTML = c ?
+            "あなたのお悩み：<b>" + c + "</b><br>包茎の状態とあわせて、無料カウンセリングでお気軽にご相談ください。" : "";
+        var url = buildCtaUrl();
+        var links = document.querySelectorAll(".js-cta-link");
+        for (var j = 0; j < links.length; j++) links[j].setAttribute("href", url);
+    }
+
+    function finish() {
+        show("loading");
+        scrollToQuiz(false);
+        setTimeout(function() {
+            state.done = true;
+            save();
+            renderResult();
+            setCtaMode();
+            show("result");
+            scrollToQuiz(true);
+            track("mlc_result_view", { mlc_concern: state.q3 });
+        }, 1200);
+    }
+
+    function answer(btn) {
+        if (busy) return;
+        busy = true;
+        var q = btn.getAttribute("data-q");
+        var v = btn.getAttribute("data-v");
+        var sibs = btn.parentElement.querySelectorAll(".mlc-ans-btn");
+        for (var i = 0; i < sibs.length; i++) sibs[i].classList.remove("is-selected");
+        btn.classList.add("is-selected");
+        state[q] = v;
+        track("mlc_answer_" + q, { mlc_value: v });
+
+        setTimeout(function() {
+            busy = false;
+            trail.push(current);
+            if (q === "q1") {
+                // どの回答でも Q1→Q2→Q3 の順に進む（判定は Q1「剥くことができない」なら Q2 に関係なく真性）
+                show("2");
+                scrollToQuiz(false);
+            } else if (q === "q2") {
+                show("3");
+                scrollToQuiz(false);
+            } else {
+                finish();
+            }
+        }, 220);
+    }
+
+    function back() {
+        if (busy) return;
+        var prev = trail.pop();
+        if (prev) {
+            show(prev);
+            scrollToQuiz(false);
+        }
+    }
+
+    // ===== 追従バー ＆ 離脱ポップアップ =====
+    var bar = document.getElementById("mlc-sticky");
+    var stickyLink = document.getElementById("mlc-sticky-link");
+    var exitBox = document.getElementById("mlc-exit");
+    var exitCta = document.getElementById("mlc-exit-cta");
+
+    function setCtaMode() {
+        // 結果表示後は、追従バー・ポップアップから直接予約フォームへ
+        var url = buildCtaUrl();
+        var name = RESULTS[getSegment()].name;
+        [stickyLink, exitCta].forEach(function(a) {
+            if (!a) return;
+            a.setAttribute("href", url);
+            a.classList.add("js-cta-link", "_unTrackingLink_a5of4_150");
+        });
+        if (bar) bar.classList.add("is-cta");
+        var badge = document.getElementById("mlc-sticky-badge");
+        if (badge) badge.innerHTML = "無料";
+        var labels = document.querySelectorAll("[data-mlc-start-label]");
+        for (var i = 0; i < labels.length; i++) labels[i].textContent = "診断結果を確認する";
+        setText("mlc-sticky-txt", "<span class=\"mlc-sticky-sec\">無料</span>カウンセリングを予約する");
+        setText("mlc-exit-h", "お悩みのまま<br>戻りますか？");
+        setText("mlc-exit-p", "診断結果は<b class=\"mlc-r\">" + name + "</b>でした。<br>まずは<b>無料カウンセリング</b>で<br>今の状態をご相談ください。");
+        setText("mlc-exit-cta", "無料カウンセリングを予約する");
+    }
+
+    function setText(id, html) {
+        var el = document.getElementById(id);
+        if (el) el.innerHTML = html;
+    }
+
+    function updateSticky() {
+        if (!bar) return;
+        if (!state.done) {
+            var n = remaining();
+            if (current === "1") {
+                // Q1に戻ったときは初期文言に戻す
+                setText("mlc-sticky-txt", "<span class=\"mlc-sticky-sec\">30秒</span>セルフチェックを開始");
+                setText("mlc-exit-h", "お悩みのまま<br>本当に大丈夫ですか？");
+                setText("mlc-exit-p", "今なら<b>たった30秒のセルフチェック</b>で<br>あなたの<b class=\"mlc-r\">包茎タイプ</b>を<br>その場で確認できます。");
+                setText("mlc-exit-cta", "無料でセルフチェックを受ける");
+            } else if (n > 0) {
+                setText("mlc-sticky-txt", "続きから回答する<span class=\"mlc-sticky-sec\">（あと" + n + "問）</span>");
+                setText("mlc-exit-h", "あと" + n + "問で<br>結果が出ます！");
+                setText("mlc-exit-p", "ここでやめるのはもったいない！<br>回答を終えると<br>あなたの<b class=\"mlc-r\">包茎タイプ</b>が<br>その場で分かります。");
+                setText("mlc-exit-cta", "続きから回答する");
+            }
+        }
+        onScroll();
+    }
+
+    function onScroll() {
+        if (!bar) return;
+        var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+        var show = y > 300;
+        var target = state.done ? document.getElementById("contact-cta") : quiz;
+        if (target) {
+            var r = target.getBoundingClientRect();
+            if (r.top < window.innerHeight * 0.9 && r.bottom > 0) show = false;
+        }
+        bar.classList.toggle("show", show);
+    }
+
+    function closeExit() {
+        if (exitBox) exitBox.classList.remove("show");
+    }
+
+    var exitShown = false;
+    try { window.history.pushState({ mlc: 1 }, "", location.href); } catch (e) {}
+    window.addEventListener("popstate", function() {
+        if (exitShown || !exitBox) return;
+        exitBox.classList.add("show");
+        exitShown = true;
+        track("mlc_exit_popup", {});
+        try { window.history.pushState({ mlc: 1 }, "", location.href); } catch (e) {}
+    });
+
+    // ===== クリック処理（イベント委譲） =====
+    document.addEventListener("click", function(e) {
+        var t = e.target.closest ? e.target : e.target.parentElement;
+        if (!t || !t.closest) return;
+        var el;
+
+        if ((el = t.closest(".js-cta-link"))) {
+            // 予約フォームへ遷移（CV計測）
+            try { twq("event", "tw-omfcg-rd72l", {}); } catch (err) {}
+            track("mlc_cta_click", { mlc_place: el.getAttribute("data-mlc-place") || "" });
+            closeExit();
+            return;
+        }
+        if ((el = t.closest("[data-mlc-answer]"))) { answer(el); return; }
+        if (t.closest("[data-mlc-back]")) { back(); return; }
+        if (t.closest("[data-mlc-start]") || t.closest("#mlc-sticky-link") || t.closest("#mlc-exit-cta")) {
+            e.preventDefault();
+            closeExit();
+            scrollToQuiz(true);
+            track("mlc_start_click", {});
+            return;
+        }
+        if (t.closest("[data-mlc-close]")) { closeExit(); return; }
+        if ((el = t.closest("[data-mlc-worry]"))) {
+            el.classList.toggle("is-on");
+            var n = document.querySelectorAll("[data-mlc-worry].is-on").length;
+            var box = document.getElementById("mlc-worry-result");
+            if (box) {
+                box.innerHTML = n > 0 ?
+                    "<b>" + n + "つ</b>当てはまりました。<br>下の<b>3問セルフチェック</b>で包茎タイプを確認しましょう" :
+                    "1つでも当てはまるなら、<br><b>3問のセルフチェック</b>で包茎タイプを確認しましょう";
+            }
+        }
+    });
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+
+    // 予約フォームから戻ってきた方には結果をそのまま表示
+    load();
+    if (state.done) {
+        renderResult();
+        setCtaMode();
+        show("result");
+    } else {
+        show("1");
+    }
+}
+// JS Body が HTML より先に読み込まれても動くように、DOM構築後に初期化
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mlcInit);
+else mlcInit();
+</script>
