@@ -20,7 +20,7 @@
                 </ul>
                 <a href="javascript:void(0)" class="mlc-start" data-mlc-start draggable="false">
                     <span class="mlc-start-main">今すぐQ1に答える</span>
-                    <span class="mlc-start-sub">あなたの<b>包茎タイプ</b>がその場で分かります</span>
+                    <span class="mlc-start-sub">あなたの<b>治療推奨レベル</b>がその場で分かります</span>
                 </a>
             </div>
         </span></div>
@@ -36,7 +36,7 @@
                         <li><button type="button" data-mlc-worry>服装や髪型を整えても、最後に引け目を感じる</button></li>
                         <li><button type="button" data-mlc-worry>プールや温泉で周囲の目が気になる</button></li>
                     </ul>
-                    <p class="mlc-worry-result" id="mlc-worry-result">1つでも当てはまるなら、<br><b>3問のセルフチェック</b>で包茎タイプを確認しましょう</p>
+                    <p class="mlc-worry-result" id="mlc-worry-result">1つでも当てはまるなら、<br><b>3問のセルフチェック</b>で治療推奨レベルを確認しましょう</p>
                 </div>
             </div>
         </span></div>
@@ -90,7 +90,7 @@
                     <div class="mlc-step" data-mlc-step="loading">
                         <div class="mlc-loading">
                             <span class="mlc-spinner"></span>
-                            <p>回答をもとに<br>包茎タイプを判定中…</p>
+                            <p>回答をもとに<br>治療推奨レベルを判定中…</p>
                         </div>
                     </div>
 
@@ -98,12 +98,13 @@
                     <div class="mlc-step" data-mlc-step="result">
                         <div class="mlc-result">
                             <p class="mlc-result-label">あなたのセルフチェック結果</p>
-                            <!-- 包茎タイプを主役にして、その場で表示する（JSが mlc-result-type に入れる） -->
+                            <!-- 治療推奨レベルを主役にして、その場で表示する（JSが mlc-result-level と mlc-meter-bar に入れる） -->
                             <div class="mlc-level">
-                                <p class="mlc-level-h"><span class="mlc-level-h-sub">＼ 判定が完了しました ／</span><span class="mlc-level-h-you">あなたの</span><span class="mlc-level-h-main">包茎タイプ</span></p>
+                                <p class="mlc-level-h"><span class="mlc-level-h-sub">＼ 判定が完了しました ／</span><span class="mlc-level-h-you">あなたの</span><span class="mlc-level-h-main">治療推奨レベル</span></p>
                                 <div class="mlc-type">
                                     <p class="mlc-type-sub">セルフチェックの結果</p>
-                                    <p class="mlc-type-name" id="mlc-result-type"></p>
+                                    <p class="mlc-type-name" id="mlc-result-level"></p>
+                                    <div class="mlc-meter" aria-hidden="true"><div class="mlc-meter-bar" id="mlc-meter-bar"></div></div>
                                     <p class="mlc-type-note">※回答内容からの目安です</p>
                                 </div>
                             </div>
@@ -168,7 +169,7 @@
                 <p class="mlc-sec-h">よくあるご質問</p>
                 <details class="mlc-faq">
                     <summary>セルフチェックは本当に無料ですか？</summary>
-                    <p>はい、無料です。3つの質問に答えるだけで、包茎タイプの目安をその場で表示します。</p>
+                    <p>はい、無料です。3つの質問に答えるだけで、治療推奨レベルの目安をその場で表示します。</p>
                 </details>
                 <details class="mlc-faq">
                     <summary>カウンセリングは無料ですか？</summary>
@@ -184,7 +185,7 @@
                 </details>
                 <a href="javascript:void(0)" class="mlc-start mlc-start--bottom" data-mlc-start draggable="false">
                     <span class="mlc-start-main" data-mlc-start-label>30秒セルフチェックに答える</span>
-                    <span class="mlc-start-sub">あなたの<b>包茎タイプ</b>がその場で分かります</span>
+                    <span class="mlc-start-sub">あなたの<b>治療推奨レベル</b>がその場で分かります</span>
                 </a>
             </div>
         </span></div>
@@ -206,7 +207,7 @@
         <div class="mlc-exit-box">
             <button type="button" class="mlc-exit-x" data-mlc-close aria-label="閉じる">×</button>
             <p class="mlc-exit-h" id="mlc-exit-h">お悩みのまま<br>本当に大丈夫ですか？</p>
-            <p class="mlc-exit-p" id="mlc-exit-p">今なら<b>たった30秒のセルフチェック</b>で<br>あなたの<b class="mlc-r">包茎タイプ</b>を<br>その場で確認できます。</p>
+            <p class="mlc-exit-p" id="mlc-exit-p">今なら<b>たった30秒のセルフチェック</b>で<br>あなたの<b class="mlc-r">治療推奨レベル</b>を<br>その場で確認できます。</p>
             <a href="javascript:void(0)" class="mlc-exit-cta" id="mlc-exit-cta" data-mlc-place="exit" draggable="false">無料でセルフチェックを受ける</a>
             <button type="button" class="mlc-exit-no" data-mlc-close>今回は見送る</button>
         </div>

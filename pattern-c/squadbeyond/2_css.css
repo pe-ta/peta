@@ -395,7 +395,7 @@
     font-weight: 700;
 }
 
-/* 包茎タイプ：結果画面の主役 */
+/* 治療推奨レベル：結果画面の主役 */
 .lp-root .mlc-level {
     margin: 12px 0 0;
     padding: 0 0 16px;
@@ -452,12 +452,33 @@
 .lp-root .mlc-type-name {
     display: block;
     margin-top: 4px;
-    font-size: 40px;
+    font-size: 32px;
     font-weight: 900;
     color: #E5484D;
-    letter-spacing: .04em;
+    line-height: 1.1;
     white-space: nowrap;
     animation: mlcPopIn .4s ease;
+}
+
+.lp-root .mlc-type-name b {
+    font-size: 72px;
+    letter-spacing: .02em;
+}
+
+.lp-root .mlc-meter {
+    height: 12px;
+    margin: 10px 8px 0;
+    border-radius: 999px;
+    background: #f3d6d6;
+    overflow: hidden;
+}
+
+.lp-root .mlc-meter-bar {
+    width: 0;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ffb347, #E5484D);
+    transition: width .9s ease;
 }
 
 .lp-root .mlc-type-note {
@@ -904,7 +925,7 @@
     .lp-root .mlc-start-main { font-size: 19px; }
     .lp-root .mlc-q-text { font-size: 19px; }
     .lp-root .mlc-level-h-main { font-size: 26px; }
-    .lp-root .mlc-type-name { font-size: 34px; }
+    .lp-root .mlc-type-name b { font-size: 60px; }
     .mlc-sticky-txt { font-size: 15px; }
 }
 
